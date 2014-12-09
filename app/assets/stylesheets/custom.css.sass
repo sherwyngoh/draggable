@@ -1,14 +1,70 @@
+$level-1-color: #E74C3C
+$level-2-color: #2ECC71
+$level-3-color: #3498DB
+$level-4-color: #9B59B6
+$level-5-color: #E67E22
+$level-6-color: #F1C40F
+$text-color: #2C3E50
+
 .row.top-row
   height: 100px
   text-align: center
+  color: white
   .col-sm-2
-    border-right: 2px solid lightgrey
     height: 100%
+    &.level-1
+      background-color: $level-1-color
+    &.level-2
+      background-color: $level-2-color
+    &.level-3
+      background-color: $level-3-color
+    &.level-4
+      background-color: $level-4-color
+    &.level-5
+      background-color: $level-5-color
+    &.level-6
+      background-color: $level-6-color
+
 
 .row.bottom-row
   height: 100%
+  color: white
+
   .col-sm-2
-    border-top: 2px solid lightgrey
+    // border-top: 2px solid lightgrey
     border-right: 2px solid lightgrey
     height: 960px
     text-align: center
+    .box 
+      z-index: 10
+      color: $text-color
+      padding-top: 12px
+      cursor: move
+      margin-top: 10px
+      height: 65px
+      width: 90%
+      margin-left: 5%
+      &.level-1
+        color: $level-1-color
+        border: 2px solid $level-1-color
+        border-radius: 3px
+      &.level-2
+        color: $level-2-color
+        border: 2px solid $level-2-color
+        border-radius: 3px
+      &.level-3
+        color: $level-3-color
+        border: 2px solid $level-3-color
+        border-radius: 3px
+      &.level-4
+        color: $level-4-color
+        border: 2px solid $level-4-color
+        border-radius: 3px
+      &.level-5
+        color: $level-5-color
+        border: 2px solid $level-5-color
+        border-radius: 3px
+      &.level-6
+        color: $level-6-color
+        border: 2px solid $level-6-color
+        border-radius: 3px

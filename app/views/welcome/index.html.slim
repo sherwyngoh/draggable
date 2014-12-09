@@ -1,26 +1,41 @@
+
 .row.top-row
-  .col-sm-2
-    h2 Store selection
-  .col-sm-2
-    h2 Manager
+  .col-sm-2.level-1
+    h3 Manager
 
-  .col-sm-2
-    h2 Assistant Manager
+  .col-sm-2.level-2
+    h3 Assistant Manager
 
-  .col-sm-2
-    h2 Team Leader
+  .col-sm-2.level-3
+    h3 Supervisor
 
-  .col-sm-2
-    h2 Supervisor
+  .col-sm-2.level-4
+    h3 Team Leader
 
-  .col-sm-2
-    h2 Crew
+  .col-sm-2.level-5
+    h3 Crew
+
+  .col-sm-2.level-6
+    h3 Trainee
 
 .row.bottom-row
-  .col-sm-2
+  .col-sm-2.drop data-level="1"
+    - ["Gordon Ng", "Sebastian Kang", "Edwin Feng", "Dan Gernez", "Anonoz", "Shao Ming"].each do |person|
+      .box.level-1.drag data-level="1"
+        h4= person
 
-  .col-sm-2
-  .col-sm-2
-  .col-sm-2
-  .col-sm-2
-  .col-sm-2
+  .col-sm-2.drop data-level="2"
+
+  .col-sm-2.drop data-level="3"
+    / .box.level-3
+
+  .col-sm-2.drop data-level="4"
+    / .box.level-4
+
+  .col-sm-2.drop data-level="5"
+    / .box.level-5
+
+  .col-sm-2.drop data-level="6"
+    / .box.level-6
+
+  
