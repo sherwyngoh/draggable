@@ -29,15 +29,15 @@
           <!-- SUBMIT BUTTON -->
 
           <div class="form-group" ng-class="{ 'has-error' : userForm.nric.$invalid && !userForm.nric.$pristine }">
-            <label>NRIC(automatically capitalized)</label>
+            <label>NRIC(automatically capitalized)<small> Example FIN: F1758750K, NRIC: S6789584C</label>
             <input type="text" name="nric" class="form-control" ng-model="user.nric" validate-nric auto-capitalize ng-min-length="7"/>
             <!-- <p ng-show="userForm.nric.$invalid && !userForm.nric.$pristine" class="help-block">Enter a valid nric.</p> -->
-            <p ng-class="{success: isValidNRIC(user.nric)}"> NRIC</p>
-            <p ng-class="{success: isValidFIN(user.nric)}"> FIN</p>
+
+            <span class="unsuccess" ng-class="{'success': isValidNRIC(user.nric), 'chosen': isNRIC(user.nric)}"> NRIC</span> <span class="unsuccess" ng-class="{'success' : isValidFIN(user.nric), 'chosen': isFIN(user.nric)}"> FIN</span>
           </div>
 
-          <h4> {{userForm.valid}}</h4>
-          <h4> {{userForm.username}}</h4>
+<!--           <h4> {{userForm.valid}}</h4>
+          <h4> {{userForm.username}}</h4> -->
 
 
           <button type="submit" class="btn btn-primary">Submit</button>

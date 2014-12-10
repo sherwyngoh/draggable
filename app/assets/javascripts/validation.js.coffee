@@ -9,6 +9,12 @@ app.controller "MainController", ($scope) ->
     alert "our form is amazing"  if isValid
     return
 
+  $scope.isFIN = (entry) ->
+    return true if entry? and ((entry[0] == "F") or (entry[0] == "G"))
+
+  $scope.isNRIC = (entry) ->
+    return true if entry? and ((entry[0] == "S") or (entry[0] == "T"))
+
   $scope.isValidNRIC = (entry) ->
     return false unless entry? and entry.length is 9
 
@@ -27,21 +33,20 @@ app.controller "MainController", ($scope) ->
     return true
 
   $scope.isValidFIN = (entry) ->
-    multiples = [2, 7, 6, 5, 4, 3, 2]
-    return false  unless fin? and fin.length == 9
+    return false  unless entry? and entry.length == 9
     [weights, total, count, nricNumbers, initialLetter, lastLetter] = [[2, 7, 6, 5, 4, 3, 2], 0, 0, parseInt(entry.substr(1,entry.length - 2)), entry[0], entry.substr(-1)]
+
     return false  if initialLetter isnt "F" and initialLetter isnt "G"
-
     return false  if isNaN(nricNumbers)
-
     until nricNumbers is 0
       total += (nricNumbers % 10) * weights[weights.length - (1 + count++)]
       nricNumbers /= 10
       nricNumbers = Math.floor(nricNumbers)
 
     outputs = if (initialLetter is "F") then ["X", "W", "U", "T", "R", "Q", "P", "N", "M", "L", "K"] else ["R", "Q", "P", "N", "M", "L", "K", "X", "W", "U", "T"]
+    console.log "1"
     return false unless lastLetter is outputs[total%11]
-  return
+    return true
 
 app.directive "blacklist", ->
   require: "ngModel"
@@ -79,12 +84,12 @@ app.directive "myValidateAirportCode", ->
       if value
         
         # test and set the validity after update.
-        valid = value.charAt(0) is "A" or value.charAt(0) is "a"
-        ctrl.$setValidity "invalidAiportCode", valid
+        validity = value.charAt(0) is "A" or value.charAt(0) is "a"
+        ctrl.$setValidity "invalidAiportCode", validity
       
       # if it's valid, return the value to the model,
       # otherwise return undefined.
-      (if valid then value else `undefined`)
+      (if validity then value else `undefined`)
 
     return
 
@@ -102,19 +107,3 @@ app.directive "autoCapitalize", ($parse) ->
     ctrl.$parsers.push capitalize
     capitalize $parse(attrs.ngModel)(scope) # capitalize initial value
     return
-
-# app.directive "validateNric", ($parse) ->
-#   restrict: "A"
-#   require: "ngModel"
-#   scope: true
-#   link: (scope, element, attrs, ctrl) ->
-#     ctrl.$parsers.unshift (entry) ->
-#       if entry
-#         # test and set the validity after update.
-#         valid = scope.isValidNRIC(value)
-#         ctrl.$setValidity "invalidNRIC", valid
-      
-#       # if it's valid, return the value to the model,
-#       if valid then value else `undefined`
-#     return
-#   return
