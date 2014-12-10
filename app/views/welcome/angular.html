@@ -1,0 +1,47 @@
+<div class="container" ng-app="validationApp" ng-controller="MainController">
+      <div class="col-sm-8 col-sm-offset-2">
+        <div class="page-header">
+          <h1>AngularJS Form Validation</h1>
+        </div>
+        <!-- pass in the variable if our form is valid or invalid -->
+        <form name="userForm" ng-submit="submitForm(userForm.$valid)" novalidate="">
+          <!-- novalidate prevents HTML5 validation since we will be validating ourselves -->
+
+          <div class="form-group" ng-class="{ 'has-error' : userForm.name.$invalid && !userForm.name.$pristine }">
+            <label>Name (min 3 characters) </label>
+            <input type="text" name="name"         ng-minlength=3 
+        ng-maxlength=20 class="form-control" ng-model="user.name" />
+            <p ng-show="userForm.name.$invalid && !userForm.name.$pristine" class="help-block"> 3 character minimum.</p>
+          </div>
+          <!-- USERNAME -->
+          <div class="form-group" ng-class="{ 'has-error' : userForm.username.$invalid && !userForm.username.$pristine }">
+            <label>Username (3 to 8 characters)</label>
+            <input type="text" name="username" class="form-control" ng-model="user.username" ng-minlength="3" ng-maxlength="8" />
+            <p ng-show="userForm.username.$error.minlength" class="help-block">Username is too short.</p>
+            <p ng-show="userForm.username.$error.maxlength" class="help-block">Username is too long.</p>
+          </div>
+          <!-- EMAIL -->
+          <div class="form-group" ng-class="{ 'has-error' : userForm.email.$invalid && !userForm.email.$pristine }">
+            <label>Email</label>
+            <input type="email" name="email" class="form-control" ng-model="user.email" />
+            <p ng-show="userForm.email.$invalid && !userForm.email.$pristine" class="help-block">Enter a valid email.</p>
+          </div>
+          <!-- SUBMIT BUTTON -->
+
+          <div class="form-group" ng-class="{ 'has-error' : userForm.nric.$invalid && !userForm.nric.$pristine }">
+            <label>NRIC(automatically capitalized)</label>
+            <input type="text" name="nric" class="form-control" ng-model="user.nric" validate-nric auto-capitalize ng-min-length="7"/>
+            <!-- <p ng-show="userForm.nric.$invalid && !userForm.nric.$pristine" class="help-block">Enter a valid nric.</p> -->
+            <p ng-class="{success: isValidNRIC(user.nric)}"> NRIC</p>
+            <p ng-class="{success: isValidFIN(user.nric)}"> FIN</p>
+          </div>
+
+          <h4> {{userForm.valid}}</h4>
+          <h4> {{userForm.username}}</h4>
+
+
+          <button type="submit" class="btn btn-primary">Submit</button>
+        </form>
+      </div>
+      <!-- col-sm-8 -->
+    </div>
