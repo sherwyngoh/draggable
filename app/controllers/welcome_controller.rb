@@ -4,4 +4,7 @@ class WelcomeController < ApplicationController
 
   def angular
   end
+
+  def scheduler
+  end
 end

@@ -1,4 +1,4 @@
-$(document).ready ->
+$ ->
   $(".drop").droppable tolerance: "fit"
 
   $(".drag").draggable
