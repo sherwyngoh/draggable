@@ -16,6 +16,7 @@
 //= require bootstrap-sprockets
 //= require angular
 //= require sweet-alert
+//= require jquery-tag-input
 //= require_tree .
 
 

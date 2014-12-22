@@ -1,0 +1,58 @@
+.scheduler
+  height: 100%
+  background: whitesmoke
+  padding-top: 20px
+
+  h3
+    text-align: center
+  header
+
+  .col-1-7
+    cursor: pointer
+    padding: 10px
+    border: 1px solid lightgrey
+    width: 14.28%
+    display: inline-block
+    opacity: 0.5
+    background: lighten(whitesmoke, 10%)
+    &.active
+      opacity: 1
+    &:hover
+      background: lighten(whitesmoke, 10%)
+    &:active
+      background: darken(lightgrey, 10%)
+
+  form
+    background: white
+    margin-top: 15px
+    border: 2px solid lightgrey
+    .close
+      font-size: 25px
+      position: absolute
+      right: 15px
+
+    .btn.btn-success
+      margin-top: 20px
+
+    .btn-default
+      margin-right: 10px
+      margin-bottom: 5px
+    #Start_start_4i, #Start_start_5i, #End_end_4i, #End_end_5i
+      width: 47%
+      display: inline-block
+    .form-group:first-of-type
+      padding-top: 15px
+      input
+        height: 50px
+        width: 100%
+        font-size: 17px
+    section
+      border-top: 1px solid lightgrey
+      border-bottom: 1px solid lightgrey
+      padding-bottom: 10px
+      .form-group
+        margin-bottom: 15px
+    .col-xs-3
+      border-right: 1px solid lighten(lightgrey, 10%)
+      min-height: 700px
+

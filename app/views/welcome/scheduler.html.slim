@@ -1,0 +1,100 @@
+.scheduler ng-app="schedulerApp"
+  .container ng-controller='SchedulerController'
+    h3 Select days
+    .row
+      - Date::DAYNAMES.each do |day|
+        .col-1-7 ng-class="{'active': currentDay.indexOf('#{day}') != -1}" ng-click="pushDay('#{day}')"
+          h3= day
+    h3 Plan shifts
+    form.row
+      .col-xs-3
+
+        .form-group
+          input.form-control type="text" placeholder="Manager"
+        section
+          .form-group
+            .btn.btn-default.btn-sm Morning Shift
+            .btn.btn-default.btn-sm 11 - 3
+            .btn.btn-default.btn-sm Afternoon Shift
+            .btn.btn-default.btn-sm Closing Shift
+            .row
+              .col-xs-12
+                h5 From
+                = time_select 'Start', 'start', {minute_step: 15, ampm: true}, {class: 'form-control'}
+              .col-xs-12
+                h5 To
+                = time_select 'End', 'end', {minute_step: 15, ampm: true}, {class: 'form-control'}
+          .form-group
+            .row
+              .col-xs-7
+                h5 No of People 
+              .col-xs-5
+                input.form-control type='number' step='1'
+            .row
+              .col-xs-12
+                h5 Filled by
+              .col-xs-12
+                ul.filled-by
+          .btn.btn-danger.btn-block Delete shift
+        .btn.btn-success.btn-block Add new shift
+      .col-xs-3
+
+        .form-group
+          input.form-control type="text" placeholder="Assistant"
+        section
+          .form-group
+            .btn.btn-default.btn-sm Morning Shift
+            .btn.btn-default.btn-sm 11 - 3
+            .btn.btn-default.btn-sm Afternoon Shift
+            .btn.btn-default.btn-sm Closing Shift
+            .row
+              .col-xs-12
+                h5 From
+                = time_select 'Start', 'start', {minute_step: 15, ampm: true}, {class: 'form-control'}
+              .col-xs-12
+                h5 To
+                = time_select 'End', 'end', {minute_step: 15, ampm: true}, {class: 'form-control'}
+          .form-group
+            .row
+              .col-xs-7
+                h5 No of People 
+              .col-xs-5
+                input.form-control type='number' step='1'
+            .row
+              .col-xs-12
+                h5 Filled by
+              .col-xs-12
+                ul.filled-by
+          .btn.btn-danger.btn-block Delete shift
+        .btn.btn-success.btn-block Add new shift
+      .col-xs-3
+
+        .form-group
+          input.form-control type="text" placeholder="Crew"
+        section
+          .form-group
+            .btn.btn.btn-default.btn-sm Morning Shift
+            .btn.btn-default.btn-sm 11 - 3
+            .btn.btn-default.btn-sm Afternoon Shift
+            .btn.btn-default.btn-sm Closing Shift
+            .row
+              .col-xs-12
+                h5 From
+                = time_select 'Start', 'start', {minute_step: 15, ampm: true}, {class: 'form-control'}
+              .col-xs-12
+                h5 To
+                = time_select 'End', 'end', {minute_step: 15, ampm: true}, {class: 'form-control'}
+          .form-group
+            .row
+              .col-xs-7
+                h5 No of People 
+              .col-xs-5
+                input.form-control type='number' step='1'
+            .row
+              .col-xs-12
+                h5 Filled by
+              .col-xs-12
+                ul.filled-by
+          .btn.btn-danger.btn-block Delete shift
+        .btn.btn-success.btn-block Add new shift
+      
