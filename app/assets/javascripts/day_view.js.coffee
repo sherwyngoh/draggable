@@ -8,6 +8,7 @@ app.controller "dayViewController", ($scope) ->
     {id: '1', name: 'Fordon Ng', hoursExcludingThisWeek: 20, costPerHour: 10, totalHours: 40, currentWeekHours: 5.5},
     {id: '2', name: 'Zadwin Feng', hoursExcludingThisWeek: 16, costPerHour: 7.5, totalHours: 40, currentWeekHours: 8}
     {id: '3', name: 'Kan G', hoursExcludingThisWeek: 10, costPerHour: 7, totalHours: 35, currentWeekHours: 0}
+    {id: '4', name: 'Lesslyn Yoon', hoursExcludingThisWeek: 10, costPerHour: 12, totalHours: 35, currentWeekHours: 0}
   ]
 
   $scope.shifts = [
@@ -16,13 +17,14 @@ app.controller "dayViewController", ($scope) ->
   ]
 
   $scope.leaves = [
-    {employeeID: '3', date: '24-12-2014', length: 2, morningStart: true}
+    {employeeID: '3', fullDay: false, startHour: 12}
+    {employeeID: '4', fullDay: true, startHour: 12}
   ]
   
   $scope.employeesAndOffset = {}
   $scope.hoursAndOffset     = {}
   
-  $scope.shiftColors        = {'Manager': '#0055bb', 'Assistant Manager': '#6699aa',}
+  $scope.shiftColors        = {'Manager': '#56BAEC', 'Assistant Manager': '#B4D8E7', "Leave": "#FFAEAE"}
 
   grabShift = (shiftID) ->
     for shift in $scope.shifts
@@ -57,6 +59,23 @@ app.controller "dayViewController", ($scope) ->
     tdWidth             = parseInt($('.shift-applicable').first().css('width'))
     fifteenMinWidth     =  tdWidth/4
     tdHeight            = parseInt($('.shift-applicable').first().css('height'))
+
+    #set leave bars
+    for leave in $scope.leaves
+      employeeID   = leave.employeeID
+      employeeRow  = $('tr[data-employee-id="' + employeeID + '"]')
+      employeeTD   = $(employeeRow).find('td.employee-name > span').append('<small> (on leave) </small>')
+
+      if leave.fullDay
+        leaveTDs = $(employeeRow).find('td:not(.employee-name)')
+
+      else
+        leaveTDs = $(employeeRow).find('td:not(.employee-name)').filter ()->
+          return parseInt($(this).data('hour')) >= leave.startHour
+
+      $(leaveTDs).each () ->
+        $(this).css('background-color', '#FFAEAE').css('border-right','none')
+
 
     $scope.setShifts = ->
       $('.shift-bar').each () ->

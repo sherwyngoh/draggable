@@ -28,18 +28,19 @@
         tbody
           tr ng-repeat="employee in employees" data-employee-id="{{employee.id}}"
             td.employee-name
-              | {{employee.name}}
+              span
+                | {{employee.name}}
               i.pull-right.fa.fa-calendar
               br
-              small 
-                | This Week: 
+              small
                 i.fa.fa-clock-o
                 .employee-hours 
-                  | {{employee.hoursExcludingThisWeek + employee.currentWeekHours}}/{{employee.totalHours}}
+                  | {{employee.hoursExcludingThisWeek + employee.currentWeekHours}}/{{employee.totalHours}} hours
                 i.fa.fa-dollar
                 .employee-cost 
                   | {{employee.costPerHour * (employee.hoursExcludingThisWeek + employee.currentWeekHours)}}
             td.shift-applicable ng-repeat="(hour, offset) in hoursAndOffset" data-hour="{{hour}}"
 
   .shift-bar ng-repeat="shift in shifts" data-length="{{shift.length}}" data-employee-id="{{shift.employeeID}}" data-role="{{shift.role}}" data-start-hour="{{shift.startHour}}" data-start-min="{{shift.startMin}}" data-end-hour="{{shift.endHour}}" data-end-min="{{shift.endMin}}" data-shift-id="{{shift.id}}"
-    | {{shift.role}} {{shift.startHour}}:{{shift.startMin}} - {{shift.endHour}}:{{shift.endMin}}
+    span
+      | {{shift.role}} {{shift.startHour}}:{{shift.startMin}} - {{shift.endHour}}:{{shift.endMin}}
