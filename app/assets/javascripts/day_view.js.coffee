@@ -1,12 +1,13 @@
 app = angular.module("dayView", [])
 app.controller "dayViewController", ($scope) ->
 
-  $scope.calendarStartDate = new Date()
+  $scope.calendarStartDate   = '24-12-2014'
+  $scope.calendarDisplayDate = moment($scope.calendarStartDate, "DD-MM-YYYY").format('LL')
 
   $scope.employees = [
-    {id: '1', name: 'Fordon Ng'},
-    {id: '2', name: 'Zadwin Feng'}
-    {id: '3', name: 'Kan G'}
+    {id: '1', name: 'Fordon Ng', hoursExcludingThisWeek: 20, costPerHour: 10, totalHours: 40, currentWeekHours: 5.5},
+    {id: '2', name: 'Zadwin Feng', hoursExcludingThisWeek: 16, costPerHour: 7.5, totalHours: 40, currentWeekHours: 8}
+    {id: '3', name: 'Kan G', hoursExcludingThisWeek: 10, costPerHour: 7, totalHours: 35, currentWeekHours: 0}
   ]
 
   $scope.shifts = [
@@ -17,30 +18,34 @@ app.controller "dayViewController", ($scope) ->
   $scope.leaves = [
     {employeeID: '3', date: '24-12-2014', length: 2, morningStart: true}
   ]
-
+  
   $scope.employeesAndOffset = {}
-  $scope.hoursAndOffset = {}
-
-  $scope.shiftColors = {'Manager': 'orangered', 'Assistant Manager': 'green'}
+  $scope.hoursAndOffset     = {}
+  
+  $scope.shiftColors        = {'Manager': '#0055bb', 'Assistant Manager': '#6699aa',}
 
   grabShift = (shiftID) ->
     for shift in $scope.shifts
       return shift if parseInt(shift.id) is shiftID
 
+  grabEmployee = (employeeID) ->
+    for employee in $scope.employees
+      return employee if employee.id is employeeID
 
-  #set the calendar start and end times
-  min = 24
-  max = 0
-  for shiftID, shift of $scope.shifts
-    min     =  shift.startHour if min > shift.startHour
-    max     =  shift.endHour if max < shift.endHour
-  max += 2
+  setCalendarHours = ->
+    #set the calendar start and end times
+    min = 24
+    max = 0
+    for shiftID, shift of $scope.shifts
+      min     =  shift.startHour if min > shift.startHour
+      max     =  shift.endHour if max < shift.endHour
+    max += 2
 
-  while min < max
-    $scope.hoursAndOffset[min] = ""
-    min++
+    while min < max
+      $scope.hoursAndOffset[min] = ""
+      min++
 
-
+  setCalendarHours()
 
   $ ->
 
@@ -54,28 +59,26 @@ app.controller "dayViewController", ($scope) ->
     tdHeight            = parseInt($('.shift-applicable').first().css('height'))
 
     $scope.setShifts = ->
-      $('.shift-bar').each (i,v) ->
-        shiftHours  =  $(v).data('length')
-        shiftWidth  =  ((shiftHours + 1) * tdWidth - 5)
+      $('.shift-bar').each () ->
+        shiftHours  =  $(this).data('length')
+        shiftWidth  =  ((shiftHours) * tdWidth)
         shiftHeight =  tdHeight - 10
 
         role       = $(this).data('role')
         shiftColor = $scope.shiftColors[role]
 
-
-        $(v).css('width', shiftWidth).css('height', shiftHeight).css('background-color', shiftColor)
+        $(this).css('width', shiftWidth).css('height', shiftHeight).css('background-color', shiftColor)
 
         employeeID   = $(this).data('employee-id')
         employeeRow  =  $('tr[data-employee-id="' + employeeID + '"]')
         
         startingHour    = $(this).data('start-hour')
-        startingMin    = $(this).data('start-min')
+        startingMin     = $(this).data('start-min')
         shiftStartingTD = $(employeeRow).find('td[data-hour=' +  startingHour + ']')
 
-        offset          = $(shiftStartingTD).offset()
-
-        offset.top  += 5
-        offset.left += (5 + (startingMin/15 * fifteenMinWidth) )
+        offset           = $(shiftStartingTD).offset()
+        offset.top      += 5
+        offset.left     += (5 + (startingMin/15 * fifteenMinWidth) )
 
         $(this).offset(offset)
 
@@ -84,9 +87,9 @@ app.controller "dayViewController", ($scope) ->
         endingHour = $(this).data('end-hour')
 
     $scope.setShifts()
-      
+    
     $('.shift-bar').draggable({
-      opacity: 0.3,
+      opacity: 0.4,
       grid: [ tdWidth/4, tdHeight],
       revert: 'invalid',
       cursor: 'move',
@@ -117,8 +120,15 @@ app.controller "dayViewController", ($scope) ->
 
         #adjust for min going past 60
         if newEndMin >= 60
-          newEndMin  = newEndMin - 60 
+          newEndMin  = newEndMin - 60
           newEndHour++
+
+        #adjust working hours if employee changed
+        if draggedShift.employeeID isnt newEmployeeID
+          shiftTakenFrom                  = grabEmployee(draggedShift.employeeID)
+          shiftGivenTo                    = grabEmployee(newEmployeeID)
+          shiftTakenFrom.currentWeekHours = shiftTakenFrom.currentWeekHours - draggedShift.length
+          shiftGivenTo.currentWeekHours   = shiftGivenTo.currentWeekHours + draggedShift.length
 
         #set new variables
         draggedShift.employeeID = newEmployeeID
