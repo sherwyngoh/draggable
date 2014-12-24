@@ -44,3 +44,5 @@
   .shift-bar ng-repeat="shift in shifts" data-length="{{shift.length}}" data-employee-id="{{shift.employeeID}}" data-role="{{shift.role}}" data-start-hour="{{shift.startHour}}" data-start-min="{{shift.startMin}}" data-end-hour="{{shift.endHour}}" data-end-min="{{shift.endMin}}" data-shift-id="{{shift.id}}"
     span
       | {{shift.role}} {{shift.startHour}}:{{shift.startMin}} - {{shift.endHour}}:{{shift.endMin}}
+    .pull-right.btn.btn-sm.btn-default
+      i.fa.fa-pencil

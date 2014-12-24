@@ -24,7 +24,7 @@ app.controller "dayViewController", ($scope) ->
   $scope.employeesAndOffset = {}
   $scope.hoursAndOffset     = {}
   
-  $scope.shiftColors        = {'Manager': '#56BAEC', 'Assistant Manager': '#B4D8E7', "Leave": "#FFAEAE"}
+  $scope.shiftColors        = {'Manager': '#56BAEC', 'Assistant Manager': '#B0E57C'}
 
   grabShift = (shiftID) ->
     for shift in $scope.shifts
@@ -74,7 +74,7 @@ app.controller "dayViewController", ($scope) ->
           return parseInt($(this).data('hour')) >= leave.startHour
 
       $(leaveTDs).each () ->
-        $(this).css('background-color', '#FFAEAE').css('border-right','none')
+        $(this).css('background-color', '#FFEC94').css('border-right','none')
 
 
     $scope.setShifts = ->
