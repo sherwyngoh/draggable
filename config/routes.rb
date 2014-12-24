@@ -6,6 +6,7 @@ Rails.application.routes.draw do
   root 'welcome#angular'
   get '/orgchart' => 'welcome#index'
   get '/scheduler' => 'welcome#scheduler'
+  get '/day_view' => 'welcome#day_view'
 
   # Example of regular route:
   #   get 'products/:id' => 'catalog#view'

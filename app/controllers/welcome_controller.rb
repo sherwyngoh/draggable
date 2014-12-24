@@ -7,4 +7,7 @@ class WelcomeController < ApplicationController
 
   def scheduler
   end
+
+  def day_view
+  end
 end
