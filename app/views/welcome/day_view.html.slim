@@ -44,5 +44,56 @@
   .shift-bar ng-repeat="shift in shifts" data-length="{{shift.length}}" data-employee-id="{{shift.employeeID}}" data-role="{{shift.role}}" data-start-hour="{{shift.startHour}}" data-start-min="{{shift.startMin}}" data-end-hour="{{shift.endHour}}" data-end-min="{{shift.endMin}}" data-shift-id="{{shift.id}}"
     span
       | {{shift.role}} {{shift.startHour}}:{{shift.startMin}} - {{shift.endHour}}:{{shift.endMin}}
-    .pull-right.btn.btn-sm.btn-default
+    .pull-right.btn.btn-sm.btn-default ng-click="setShift(shift.id)"
       i.fa.fa-pencil
+  .popup ng-show="showPopup"
+    h3 
+      | Edit Shift
+      small 
+        |  (dragme)
+      small.pull-right
+        i.fa.fa-minus
+        i.fa.fa-plus
+        i.fa.fa-close ng-click="showPopup = !showPopup"
+
+    ng-form name="editShiftForm"
+      .form-group
+        label Role
+        select.form-control ng-model="selectedShift.role"
+          option ng-repeat="role in roles" value="{{role}}"
+            | {{role}}
+      .form-group
+        label Employee
+        select.form-control ng-model="selectedShift.employeeID"
+          option ng-repeat="employee in employees" value="{{employee.id}}" ng-selected="selectedShift.employeeID == employee.id" 
+            | {{employee.name}}
+
+      .form-group
+        .col-xs-5
+          label
+            | Start
+            small 
+              | (h)
+          input.form-control type='text' ng-model="selectedShift.startHour"
+        .col-xs-5.col-xs-offset-2
+          label 
+            small 
+              | (min)
+          input.form-control type='text' ng-model="selectedShift.startMin"
+
+      .form-group
+        .col-xs-5
+          label
+            | End
+            small 
+              | (h)
+          input.form-control type='text' ng-model="selectedShift.endHour"
+        .col-xs-5.col-xs-offset-2
+          label
+            small 
+              | (min)
+          input.form-control type='text' ng-model="selectedShift.endMin"
+
+      .form-group
+        .col-xs-12
+          button.btn.btn-primary.btn-block ng-disabled="editShiftForm.$pristine" Update shift

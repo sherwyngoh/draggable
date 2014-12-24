@@ -24,15 +24,21 @@ app.controller "dayViewController", ($scope) ->
   $scope.employeesAndOffset = {}
   $scope.hoursAndOffset     = {}
   
-  $scope.shiftColors        = {'Manager': '#56BAEC', 'Assistant Manager': '#B0E57C'}
-
+  $scope.shiftColors   = {'Manager': '#3498DB', 'Assistant Manager': '#2ECC71'}
+  $scope.selectedShift = {}
+  $scope.roles         = ["Manager", "Assistant Manager", "Supervisor", "Crew"]
+  $scope.showPopup     = false
   grabShift = (shiftID) ->
     for shift in $scope.shifts
-      return shift if parseInt(shift.id) is shiftID
+      return shift if parseInt(shift.id) is parseInt(shiftID)
+
+  $scope.setShift = (shiftID) ->
+    $scope.selectedShift = grabShift(shiftID)
+    $scope.showPopup = true
 
   grabEmployee = (employeeID) ->
     for employee in $scope.employees
-      return employee if employee.id is employeeID
+      return employee if parseInt(employee.id) is parseInt(employeeID)
 
   setCalendarHours = ->
     #set the calendar start and end times
@@ -49,12 +55,20 @@ app.controller "dayViewController", ($scope) ->
 
   setCalendarHours()
 
-  $ ->
 
-    $('.shift-applicable').droppable({
-      accept: '.shift-bar',
-      activeClass: "ui-state-highlight"
-    })
+  $ ->
+    #popup handler
+    $('.fa-minus').on 'click', ->
+      $('.popup ng-form').hide()
+      $(this).hide()
+      $('.fa-plus').show()
+
+    $('.fa-plus').on 'click', ->
+      $('.popup ng-form').show()
+      $(this).hide()
+      $('.fa-minus').show()
+
+    $('.popup').draggable({cursor: 'move', opacity: 0.4})
 
     tdWidth             = parseInt($('.shift-applicable').first().css('width'))
     fifteenMinWidth     =  tdWidth/4
@@ -74,8 +88,7 @@ app.controller "dayViewController", ($scope) ->
           return parseInt($(this).data('hour')) >= leave.startHour
 
       $(leaveTDs).each () ->
-        $(this).css('background-color', '#FFEC94').css('border-right','none')
-
+        $(this).css('background', 'whitesmoke')
 
     $scope.setShifts = ->
       $('.shift-bar').each () ->
@@ -106,13 +119,12 @@ app.controller "dayViewController", ($scope) ->
         endingHour = $(this).data('end-hour')
 
     $scope.setShifts()
-    
+
     $('.shift-bar').draggable({
       opacity: 0.4,
       grid: [ tdWidth/4, tdHeight],
       revert: 'invalid',
       cursor: 'move',
-      zIndex: 100,
       stop: (event, ui) ->
         top             = $(this).offset().top
         left            = $(this).offset().left
@@ -158,7 +170,11 @@ app.controller "dayViewController", ($scope) ->
 
         $scope.$apply()
     })
-    
+
+    $('.shift-applicable').droppable({
+      accept: '.shift-bar',
+      activeClass: "ui-state-highlight"
+    })
     # Find left offset for each hour
     $('.shift-applicable').each () ->
       hour                        = $(this).data('hour')
