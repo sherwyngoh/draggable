@@ -4,9 +4,10 @@ Rails.application.routes.draw do
 
   # You can have the root of your site routed with "root"
   root 'welcome#angular'
-  get '/orgchart' => 'welcome#index'
+  get '/orgchart'  => 'welcome#index'
   get '/scheduler' => 'welcome#scheduler'
-  get '/day_view' => 'welcome#day_view'
+  get '/day_view'  => 'welcome#day_view'
+  get '/week_view' => 'welcome#week_view'
 
   # Example of regular route:
   #   get 'products/:id' => 'catalog#view'

@@ -10,4 +10,7 @@ class WelcomeController < ApplicationController
 
   def day_view
   end
+  
+  def week_view
+  end
 end
