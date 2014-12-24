@@ -64,8 +64,10 @@
     color: white
     text-align: center
     font-size: 18px
-    cursor: move
+    cursor: grab
     border-radius: 3px
+    &:active
+      cursor: grabbing
     span
       text-shadow: 2px 2px 2px rgba(150, 150, 150, 1)
       position: absolute
@@ -82,15 +84,23 @@
   .popup
     z-index: 101
     position: absolute
-    background: white
+    background: lighten(whitesmoke, 1)
     width: 40%
+    min-width: 400px
     border: 2px solid lighten(darkgrey, 20)
-    padding: 0px 30px 30px 30px
+    padding: 10px 30px 10px 30px
     border-radius: 3px
     top: 40%
     left: 40%
+    h3
+      margin-top: 10px
+
+    &:active
+      cursor: grabbing !important
+
     &:hover:not(input)
-      cursor: move
+      cursor: grab
+
     i
       font-size: 17px
       &:hover
@@ -106,13 +116,16 @@
         margin-left: 20px
         &:hover
           color: $level-1-color
+    .form
+      label
+        margin-top: 10px
 
-    .form-group:nth-child(3)
-      overflow: hidden
-      margin-top: 10px
-    // transform: translate(-50%, -50%)
+      button
+        margin-top: 20px
+        margin-bottom: 20px
+        &.btn.btn-primary
+          background-color: lighten($level-5-color, 15)
+          border-color: lighten($level-5-color, 15)
+          &:hover
+            cursor: default
 
-    .btn.btn-primary
-      background-color: $level-5-color
-      border-color: $level-5-color
-      margin-top: 20px

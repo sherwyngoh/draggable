@@ -49,24 +49,23 @@
   .popup ng-show="showPopup"
     h3 
       | Edit Shift
-      small 
-        |  (dragme)
       small.pull-right
         i.fa.fa-minus
         i.fa.fa-plus
         i.fa.fa-close ng-click="showPopup = !showPopup"
 
-    ng-form name="editShiftForm"
+    ng-form.form name="editShiftForm"
       .form-group
-        label Role
-        select.form-control ng-model="selectedShift.role"
-          option ng-repeat="role in roles" value="{{role}}"
-            | {{role}}
-      .form-group
-        label Employee
-        select.form-control ng-model="selectedShift.employeeID"
-          option ng-repeat="employee in employees" value="{{employee.id}}" ng-selected="selectedShift.employeeID == employee.id" 
-            | {{employee.name}}
+        .col-xs-5
+          label Role
+          select.form-control ng-model="selectedShift.role"
+            option ng-repeat="role in roles" value="{{role}}"
+              | {{role}}
+        .col-xs-5.col-xs-offset-2
+          label Employee
+          select.form-control ng-model="selectedShift.employeeID"
+            option ng-repeat="employee in employees" value="{{employee.id}}" ng-selected="selectedShift.employeeID == employee.id" 
+              | {{employee.name}}
 
       .form-group
         .col-xs-5
@@ -95,5 +94,7 @@
           input.form-control type='text' ng-model="selectedShift.endMin"
 
       .form-group
-        .col-xs-12
-          button.btn.btn-primary.btn-block ng-disabled="editShiftForm.$pristine" Update shift
+        .col-xs-5
+          button.btn.btn-primary.btn-block ng-disabled="editShiftForm.$pristine" ng-click="updateShift(selectedShift)" Update shift
+        .col-xs-5.col-xs-offset-2
+          button.btn-danger.btn.btn-block Delete shift

@@ -28,13 +28,22 @@ app.controller "dayViewController", ($scope) ->
   $scope.selectedShift = {}
   $scope.roles         = ["Manager", "Assistant Manager", "Supervisor", "Crew"]
   $scope.showPopup     = false
+
   grabShift = (shiftID) ->
     for shift in $scope.shifts
       return shift if parseInt(shift.id) is parseInt(shiftID)
 
   $scope.setShift = (shiftID) ->
     $scope.selectedShift = grabShift(shiftID)
-    $scope.showPopup = true
+    $scope.showPopup     = true
+
+  $scope.updateShift = (updatedShift) ->
+    # oldShift             = grabShift(updatedShift.id)
+    # index                = $scope.shifts.indexOf(oldShift)
+    # $scope.shifts[index] = updatedShift
+    # $scope.$apply()
+    $scope.showPopup     = false
+
 
   grabEmployee = (employeeID) ->
     for employee in $scope.employees
@@ -68,7 +77,14 @@ app.controller "dayViewController", ($scope) ->
       $(this).hide()
       $('.fa-minus').show()
 
-    $('.popup').draggable({cursor: 'move', opacity: 0.4})
+    $('.popup').draggable({
+      cursor: 'grabbing !important',
+      opacity: 0.6,
+    })
+
+    $(window).on 'resize', ->
+      location.reload()
+
 
     tdWidth             = parseInt($('.shift-applicable').first().css('width'))
     fifteenMinWidth     =  tdWidth/4
@@ -78,12 +94,13 @@ app.controller "dayViewController", ($scope) ->
     for leave in $scope.leaves
       employeeID   = leave.employeeID
       employeeRow  = $('tr[data-employee-id="' + employeeID + '"]')
-      employeeTD   = $(employeeRow).find('td.employee-name > span').append('<small> (on leave) </small>')
-
+      employeeTD   = $(employeeRow).find('td.employee-name > span')
       if leave.fullDay
         leaveTDs = $(employeeRow).find('td:not(.employee-name)')
+        $(employeeTD).append('<small> (on full-day leave) </small>')
 
       else
+        $(employeeTD).append('<small> (on half-day leave) </small>')
         leaveTDs = $(employeeRow).find('td:not(.employee-name)').filter ()->
           return parseInt($(this).data('hour')) >= leave.startHour
 
@@ -93,7 +110,7 @@ app.controller "dayViewController", ($scope) ->
     $scope.setShifts = ->
       $('.shift-bar').each () ->
         shiftHours  =  $(this).data('length')
-        shiftWidth  =  ((shiftHours) * tdWidth)
+        shiftWidth  =  (shiftHours * tdWidth)
         shiftHeight =  tdHeight - 10
 
         role       = $(this).data('role')
@@ -124,7 +141,7 @@ app.controller "dayViewController", ($scope) ->
       opacity: 0.4,
       grid: [ tdWidth/4, tdHeight],
       revert: 'invalid',
-      cursor: 'move',
+      cursor: 'grabbing !important',
       stop: (event, ui) ->
         top             = $(this).offset().top
         left            = $(this).offset().left
@@ -147,12 +164,14 @@ app.controller "dayViewController", ($scope) ->
         #determine new start and end times
         newStartMin = (4 - (Math.ceil((offset - left)/fifteenMinWidth)))*15
         newEndHour  = parseInt(newStartHour) + Math.floor(shiftLength)
-        newEndMin   = newStartMin + 60*(shiftLength - Math.floor(shiftLength))
-
+        minDuration = shiftLength - Math.floor(shiftLength)
+        newEndMin   = newStartMin + 60*minDuration
+        console.log newEndHour, newEndMin
         #adjust for min going past 60
         if newEndMin >= 60
           newEndMin  = newEndMin - 60
-          newEndHour++
+          newEndHour += 1
+        console.log newEndHour, newEndMin
 
         #adjust working hours if employee changed
         if draggedShift.employeeID isnt newEmployeeID
