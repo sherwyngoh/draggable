@@ -1,0 +1,39 @@
+.day-view ng-app="dayView" ng-controller="dayViewController"
+  .row
+    .col-xs-12.main-box
+      .col-xs-6
+        header
+          h2
+            i.fa.fa-angle-double-left
+            = "  " + Date.today.to_s(:long) + "  "
+            i.fa.fa-angle-double-right
+      .col-xs-6
+        .pull-right
+          button.btn.btn-default
+            i.fa.fa-trash
+          button.btn.btn-default
+            i.fa.fa-slideshare
+          button.btn.btn-default
+            i.fa.fa-bars
+
+      table.table
+        thead
+          tr
+            th 
+              | Staff
+              .pull-right
+                i.fa.fa-plus
+            th ng-repeat="(hour, offset) in hoursAndOffset" data-hour="{{hour}}" 
+              | {{hour}}
+        tbody
+          tr ng-repeat="employee in employees" data-employee-id="{{employee.id}}"
+            td.employee-name
+              | {{employee.name}}
+              br
+              small 
+                i.fa.fa-clock-o
+                i.fa.fa-dollar
+            td.shift-applicable ng-repeat="(hour, offset) in hoursAndOffset" data-hour="{{hour}}"
+
+  .shift-bar ng-repeat="shift in shifts" data-length="{{shift.length}}" data-employee-id="{{shift.employeeID}}" data-role="{{shift.role}}" data-start-hour="{{shift.startHour}}" data-start-min="{{shift.startMin}}" data-end-hour="{{shift.endHour}}" data-end-min="{{shift.endMin}}" data-shift-id="{{shift.id}}"
+    | {{shift.role}} {{shift.startHour}}:{{shift.startMin}} - {{shift.endHour}}:{{shift.endMin}}

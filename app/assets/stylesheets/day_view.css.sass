@@ -1,0 +1,56 @@
+.day-view
+  padding: 30px
+  width: 100%
+  height: 100%
+  background: lighten(lightgrey, 15)
+
+  div[class^="col-xs"]
+    padding-left: 0px !important
+    padding-right: 0px
+    height: 100%
+
+  .col-xs-12.main-box
+    background: white
+    min-height: 700px
+    h2
+      margin-left: 10px
+    .col-xs-6
+      button
+        margin: 20px 3px
+        &:last-of-type
+          margin-right: 10px
+        i
+          font-size: 15px
+
+    table
+      width: 99%
+      margin: 10px auto
+      border: 1px solid lighten(lightgrey, 5)
+      thead
+        background: lighten(lightgrey, 10)
+        th:not(:first-of-type)
+          text-align: center
+        th
+          font-size: 16px
+          border-bottom: 1px solid lighten(lightgrey, 5)
+          border-right: 1px solid lighten(lightgrey, 5)
+          small
+            font-weight: normal
+      tbody
+        .ui-state-highlight
+          background: rgba(0, 255, 44, 0.4)
+        .employee-name
+          z-index: 101
+        tr
+          td:first-of-type
+            font-weight: bold
+            small
+              font-weight: normal
+          td
+            border-right: 1px solid lighten(lightgrey, 5)
+.shift-bar
+  color: white
+  text-align: center
+  font-size: 18px
+  cursor: move
+  border-radius: 3px
