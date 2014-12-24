@@ -17,6 +17,7 @@
 //= require angular
 //= require sweet-alert
 //= require jquery-tag-input
+//= require moment
 //= require_tree .
 
 
