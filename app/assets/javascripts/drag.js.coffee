@@ -5,7 +5,6 @@ $ ->
     revert: "invalid"
     stop: ->
       $(this).draggable "option", "revert", "invalid"
-      console.log($(this).offset().left)
       oneSixth     = $(window).width()/6
       divOffset    = $(this).offset().left
       currentLevel = $(this).data('level')
@@ -23,15 +22,11 @@ $ ->
         else
           ['1', 'Manager']
 
-
       personName   = $(this).text()
       if currentLevel != newLevel
         $(this).data('level', newLevel)
         $(this).removeClass("level-" + currentLevel).addClass("level-"+ newLevel)
         swal personName, " is now a " + newTitle + " !" ,"success"
-
-
-
 
   $(".drag").droppable
     greedy: true
@@ -39,5 +34,5 @@ $ ->
     drop: (event, ui) ->
       ui.draggable.draggable "option", "revert", true
       return
-
+      
   return
