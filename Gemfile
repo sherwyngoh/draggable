@@ -16,7 +16,6 @@ end
 
 # Use SCSS for stylesheets
 gem 'bootstrap-sass', '~> 3.3.1'
-gem 'font-awesome-rails'
 gem 'momentjs-rails'
 gem 'autoprefixer-rails'
 gem 'jquery-ui-rails'
