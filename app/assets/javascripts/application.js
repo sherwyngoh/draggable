@@ -18,6 +18,7 @@
 //= require sweet-alert
 //= require jquery-tag-input
 //= require moment
+//= require redips-drag-min
 //= require_tree .
 
 

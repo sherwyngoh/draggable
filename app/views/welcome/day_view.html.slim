@@ -1,4 +1,4 @@
-.day-view ng-app="dayView" ng-controller="dayViewController"
+#day-view ng-app="dayView" ng-controller="dayViewController"
   .row
     .col-xs-12.main-box
       .col-xs-6
@@ -30,9 +30,9 @@
             td.employee-name
               span
                 | {{employee.name}}
-              i.pull-right.fa.fa-calendar
               br
               small
+                | This week: 
                 i.fa.fa-clock-o
                 .employee-hours 
                   | {{employee.hoursExcludingThisWeek + employee.currentWeekHours}}/{{employee.totalHours}} hours
@@ -54,7 +54,7 @@
         i.fa.fa-plus
         i.fa.fa-close ng-click="showPopup = !showPopup"
 
-    ng-form.form name="editShiftForm"
+    ng-form.draggable-form.form name="editShiftForm"
       .form-group
         .col-xs-5
           label Role

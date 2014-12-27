@@ -1,0 +1,179 @@
+#week-view ng-app="weekView" ng-controller="weekViewController"
+  .row
+    .col-xs-12.main-box
+      .col-xs-8
+        header
+          h2
+            i.fa.fa-angle-double-left
+            | {{calendarDisplayDate}}
+            i.fa.fa-angle-double-right
+      .col-xs-4
+        .pull-right
+          button.btn.btn-default
+            i.fa.fa-trash
+          button.btn.btn-default
+            i.fa.fa-slideshare
+          button.btn.btn-default
+            i.fa.fa-bars
+
+      table.table
+        thead
+          tr
+            th 
+              | Staff
+              .pull-right
+                i.fa.fa-plus
+            th ng-repeat="day in daysInWeek" data-date="{{day[1]}}" 
+              | {{day[0]}}
+        tbody
+          tr ng-repeat="employee in employees" data-employee-id="{{employee.id}}"
+            td.employee-name
+              span
+                | {{employee.name}}
+              br
+              small
+                i.fa.fa-clock-o
+                .employee-hours 
+                  | {{employee.hoursExcludingThisWeek + employee.currentWeekHours}}/{{employee.totalHours}} hours
+                br
+                i.fa.fa-dollar
+                .employee-cost
+                  | {{employee.costPerHour * (employee.hoursExcludingThisWeek + employee.currentWeekHours)}}
+            td.shift-applicable ng-repeat="day in daysInWeek" data-date="{{day[1]}}"  
+              .sortable
+              
+
+  .shift-bar.drag ng-repeat="shift in shifts" data-length="{{shift.length}}" data-employee-id="{{shift.employeeID}}" data-role="{{shift.role}}" data-start-hour="{{shift.startHour}}" data-start-min="{{shift.startMin}}" data-end-hour="{{shift.endHour}}" data-end-min="{{shift.endMin}}" data-shift-id="{{shift.id}}" data-date="{{shift.date}}"
+    span
+      | ({{shift.role | acronymify}})
+      br
+      | {{shift.startHour}}:{{shift.startMin}} - {{shift.endHour}}:{{shift.endMin}}
+  .popup ng-show="showPopup"
+    h3 
+      | Edit Shift
+      small.pull-right
+        i.fa.fa-minus
+        i.fa.fa-plus
+        i.fa.fa-close ng-click="showPopup = !showPopup"
+
+    ng-form.form name="editShiftForm"
+      .form-group
+        .col-xs-5
+          label Role
+          select.form-control ng-model="selectedShift.role"
+            option ng-repeat="role in roles" value="{{role}}"
+              | {{role}}
+        .col-xs-5.col-xs-offset-2
+          label Employee
+          select.form-control ng-model="selectedShift.employeeID"
+            option ng-repeat="employee in employees" value="{{employee.id}}" ng-selected="selectedShift.employeeID == employee.id" 
+              | {{employee.name}}
+
+      .form-group
+        .col-xs-5
+          label
+            | Start
+            small 
+              | (h)
+          input.form-control type='text' ng-model="selectedShift.startHour"
+        .col-xs-5.col-xs-offset-2
+          label 
+            small 
+              | (min)
+          input.form-control type='text' ng-model="selectedShift.startMin"
+
+      .form-group
+        .col-xs-5
+          label
+            | End
+            small 
+              | (h)
+          input.form-control type='text' ng-model="selectedShift.endHour"
+        .col-xs-5.col-xs-offset-2
+          label
+            small 
+              | (min)
+          input.form-control type='text' ng-model="selectedShift.endMin"
+
+      .form-group
+        .col-xs-5
+          button.btn.btn-primary.btn-block ng-disabled="editShiftForm.$pristine" ng-click="updateShift(selectedShift)" Update shift
+        .col-xs-5.col-xs-offset-2
+          button.btn-danger.btn.btn-block Delete shift
+
+  / #drag
+  /   table#table1
+  /     colgroup
+  /       col width="100"
+  /       col width="50" 
+  /       col width="100" 
+  /       col width="100" 
+  /       col width="100" 
+  /       col width="100" 
+  /       col width="100" 
+  /     tr
+  /       td.dark
+  /       td.mark.blank
+  /       td.dark.single title=("Single content cell") 
+  /       td
+  /       td
+  /       td
+  /       td.dark.single title=("Single content cell") 
+  /     tr
+  /       td.dark
+  /       td.mark.blank
+  /       td
+  /       td
+  /       td.mark.green_cell.single
+  /       td
+  /       td
+  /     tr
+  /       td.dark
+  /         #green.drag.green.clone.climit1_2 Green
+  /       td.mark.blank
+  /       td
+  /       td.mark.orange_cell.single
+  /       td.mark
+  /       td.mark.orange_cell.single
+  /       td
+  /     tr
+  /       td.dark
+  /       td.mark.blank
+  /       td
+  /       td
+  /       td
+  /       td
+  /       td
+  /     tr
+  /       td.dark
+  /         #orange.drag.orange.clone.climit1_2 Orange
+  /       td.mark.blank
+  /       td
+  /       td.mark.green_cell.single
+  /       td
+  /       td.mark.green_cell.single
+  /       td
+  /     tr
+  /       td.dark
+  /       td.mark.blank
+  /       td
+  /       td
+  /       td.mark.orange_cell.single
+  /       td
+  /       td
+  /     tr
+  /       td.dark
+  /       td.mark.blank
+  /       td.dark.single title=("Single content cell") 
+  /       td
+  /       td
+  /       td
+  /       td.dark.single title=("Single content cell") 
+  /     /! empty row
+  /     tr
+  /       td.mark.blank colspan="7" 
+  /     /! message row
+  /     tr
+  /       td.mark.blank
+  /       td.mark.blank
+  /       td#message.mark.dark2 colspan="5"  Set green and orange elements to the green and orange cells, respectively.

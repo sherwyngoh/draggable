@@ -17,8 +17,8 @@ app.controller "dayViewController", ($scope) ->
   ]
 
   $scope.leaves = [
-    {employeeID: '3', fullDay: false, startHour: 12}
-    {employeeID: '4', fullDay: true, startHour: 12}
+    {employeeID: '3', fullDay: false, startHour: 15}
+    {employeeID: '4', fullDay: true}
   ]
   
   $scope.employeesAndOffset = {}
