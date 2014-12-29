@@ -10,8 +10,8 @@ app.controller "weekViewController", ($scope) ->
     # rd.tableSort = true -> default
 
     # set hover color
-    rd.hover.colorTd = "#9BB3DA"
-    rd.hover.borderTd = '2px solid #E74C3C'
+    rd.hover.colorTd = '#9BB3DA'
+    rd.hover.borderTd = '2px solid #9bb3da'
 
     rd.mark.exception.green   = "green_cell"
     rd.mark.exception.greenc0 = "green_cell"
@@ -20,10 +20,35 @@ app.controller "weekViewController", ($scope) ->
     rd.mark.exception.orange   = "orange_cell"
     rd.mark.exception.orangec0 = "orange_cell"
     rd.mark.exception.orangec1 = "orange_cell"
-    
+
+    rd.trash.question = 'Are you sure you want to delete this shift?'
+
+    rd.event.clicked = (currentCell)->
+      if currentCell.classList.contains('common-shifts')
+        $scope.showPopup     = false
+        $scope.$apply()
+      else
+        $scope.isDragging = true
+        $scope.$apply()
+    rd.event.notCloned = ->
+      $scope.isDragging = false
+      $scope.$apply()
+    rd.event.notMoved = ->
+      $scope.isDragging = false
+      shiftID = $(rd.obj).data('shift-id')
+      $scope.selectedShift = grabShift(shiftID)
+      $scope.showPopup     = true
+      $scope.$apply()
+    rd.event.deleted = ->
+      $scope.isDragging = false
+      $scope.$apply()
     rd.event.dropped = ->
+      $scope.isDragging = false
+      $scope.$apply()
       console.log $(rd.td.source)
       console.log $(rd.td.target)
+      console.log $(rd.td.previous)
+      console.log $(rd.obj)
       # if rd.td.target.className.indexOf(rd.mark.exception[rd.obj.id]) isnt -1
         
       #   # make it a unmovable
@@ -57,12 +82,11 @@ app.controller "weekViewController", ($scope) ->
     {id: '3', name: 'Kan G', hoursExcludingThisWeek: 10, costPerHour: 7, totalHours: 35, currentWeekHours: 0}
     {id: '4', name: 'Lesslyn Yoon', hoursExcludingThisWeek: 10, costPerHour: 12, totalHours: 35, currentWeekHours: 0}
   ]
-
   $scope.shifts = [
-    {id: '1', employeeID: "1", length: 5.5, startHour: 10, startMin: 30, role: 'Manager', endHour: 16, endMin: '00', date: '27-12-2014'},
-    {id: '2', employeeID: "2", length: 8, startHour: 12, startMin: 15, role: 'Assistant Manager', endHour: 20, endMin: 15, date: '28-12-2014'},
-    {id: '3', employeeID: "3", length: 8, startHour: 10, startMin: '00', role: 'Supervisor', endHour: 18, endMin: '00', date: '30-12-2014'},
-    {id: '4', employeeID: "3", length: 8, startHour: 12, startMin: 15, role: 'Crew', endHour: 20, endMin: 15, date: '29-12-2014'},
+    {id: '1', employeeID: "1", length: 5.5, startHour: 10, startMin: 30, role: 'Manager', endHour: 16, endMin: '00', date: '27-12-2014', breakHours: 1},
+    {id: '2', employeeID: "2", length: 8, startHour: 12, startMin: 15, role: 'Asst Manager', endHour: 20, endMin: 15, date: '28-12-2014', breakHours: 1},
+    {id: '3', employeeID: "3", length: 8, startHour: 10, startMin: '00', role: 'Supervisor', endHour: 18, endMin: '00', date: '30-12-2014', breakHours: 1},
+    {id: '4', employeeID: "3", length: 8, startHour: 12, startMin: 15, role: 'Crew', endHour: 20, endMin: 15, date: '29-12-2014', breakHours: 1},
   ]
 
   $scope.leaves = [
@@ -73,11 +97,21 @@ app.controller "weekViewController", ($scope) ->
   $scope.employeesAndOffset = {}
   $scope.daysInWeek         = []
 
-  $scope.shiftColors   = {'Manager': '#3498DB', 'Assistant Manager': '#2ECC71', 'Supervisor': '#9B59B6', 'Crew': '#F39C12'}
+  $scope.shiftColors   = {'Manager': '#3498DB', 'Asst Manager': '#2ECC71', 'Supervisor': '#9B59B6', 'Crew': '#F39C12'}
   $scope.selectedShift = {}
-  $scope.roles         = ["Manager", "Assistant Manager", "Supervisor", "Crew"]
+  $scope.roles         = ["Manager", "Asst Manager", "Supervisor", "Crew"]
   $scope.showPopup     = false
-
+  $scope.isDragging    = false
+  $scope.commonShifts  = [
+    {title: 'Opening', length: 8, startHour: 7, startMin: 30, endHour: 15, endMin: 30, breakHours: 1, role: "Crew"},
+    {title: 'Closing', length: 8, startHour: 15, startMin: '00', endHour: 23, endMin: 30, breakHours: 1, role: "Crew"},
+    {title: 'Opening', length: 8, startHour: 7, startMin: 30, endHour: 15, endMin: 30, breakHours: 1, role: "Supervisor"},
+    {title: 'Closing', length: 8, startHour: 15, startMin: '00', endHour: 23, endMin: 30, breakHours: 1, role: "Supervisor"},
+    {title: 'Opening', length: 8, startHour: 7, startMin: 30, endHour: 15, endMin: 30, breakHours: 1, role: "Asst Manager"},
+    {title: 'Closing', length: 8, startHour: 15, startMin: '00', endHour: 23, endMin: 30, breakHours: 1, role: "Asst Manager"},
+    {title: 'Opening', length: 8, startHour: 7, startMin: 30, endHour: 15, endMin: 30, breakHours: 1, role: "Manager"},
+    {title: 'Closing', length: 8, startHour: 15, startMin: '00', endHour: 23, endMin: 30, breakHours: 1, role: "Manager"},
+  ]
   grabShift = (shiftID) ->
     for shift in $scope.shifts
       return shift if parseInt(shift.id) is parseInt(shiftID)
@@ -106,25 +140,25 @@ app.controller "weekViewController", ($scope) ->
     while i < 7
       increment = if i != 0 then 1 else 0
       day = $scope.calMomentStart.add(increment, 'days')
-      $scope.daysInWeek.push([day.format('ddd Do MMM'), day.format("D-M-YYYY") ])
+      $scope.daysInWeek.push([day.format('ddd D MMM'), day.format("D-M-YYYY") ])
       i++
   setCalendarDays()
 
   $ ->
-#     #popup handler
-#     $('.fa-minus').on 'click', ->
-#       $('.popup ng-form').hide()
-#       $(this).hide()
-#       $('.fa-plus').show()
+    #popup handler
+    $('.fa-minus').on 'click', ->
+      $('.popup ng-form').hide()
+      $(this).hide()
+      $('.fa-plus').show()
 
-#     $('.fa-plus').on 'click', ->
-#       $('.popup ng-form').show()
-#       $(this).hide()
-#       $('.fa-minus').show()
+    $('.fa-plus').on 'click', ->
+      $('.popup ng-form').show()
+      $(this).hide()
+      $('.fa-minus').show()
 
-#     $('.popup').draggable
-#       cursor: 'grabbing !important',
-#       opacity: 0.6
+    $('.popup').draggable
+      cursor: 'grabbing !important',
+      opacity: 0.6
 
     tdWidth             = parseInt($('.shift-applicable').first().css('width'))
     fifteenMinWidth     =  tdWidth/4
@@ -154,7 +188,7 @@ app.controller "weekViewController", ($scope) ->
         role       = $(this).data('role')
         shiftColor = $scope.shiftColors[role]
 
-        $(this).css('width', shiftWidth).css('height', shiftHeight).css('background-color', shiftColor)
+        $(this).css('width', shiftWidth).css('height', shiftHeight).css('background-color', shiftColor).css('border', '3px solid ' + shiftColor)
 
         employeeID   = $(this).data('employee-id')
         employeeRow  =  $('tr[data-employee-id="' + employeeID + '"]')
@@ -165,7 +199,6 @@ app.controller "weekViewController", ($scope) ->
 
     $scope.setShifts()
 
-    # Find left offset for each hour
     $('.shift-applicable').each () ->
       day                       = $(this).data('day')
       left                      = $(this).offset().left
