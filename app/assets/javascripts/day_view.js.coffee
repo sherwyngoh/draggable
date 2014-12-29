@@ -12,8 +12,8 @@ app.controller "dayViewController", ($scope) ->
   ]
 
   $scope.shifts = [
-    {id: '1', employeeID: "1", length: 5.5, startHour: 10, startMin: 30, role: 'Manager', endHour: 16, endMin: '00'},
-    {id: '2', employeeID: "2", length: 8, startHour: 12, startMin: 15, role: 'Assistant Manager', endHour: 20, endMin: 15}
+    {id: '1', employeeID: "1", length: 5.5, startHour: 10, startMin: 30, role: 'Manager', endHour: 16, endMin: '00', breakHours: 1},
+    {id: '2', employeeID: "2", length: 8, startHour: 12, startMin: 15, role: 'Assistant Manager', endHour: 20, endMin: 15, breakHours: 2}
   ]
 
   $scope.leaves = [
@@ -177,8 +177,8 @@ app.controller "dayViewController", ($scope) ->
         if draggedShift.employeeID isnt newEmployeeID
           shiftTakenFrom                  = grabEmployee(draggedShift.employeeID)
           shiftGivenTo                    = grabEmployee(newEmployeeID)
-          shiftTakenFrom.currentWeekHours = shiftTakenFrom.currentWeekHours - draggedShift.length
-          shiftGivenTo.currentWeekHours   = shiftGivenTo.currentWeekHours + draggedShift.length
+          shiftTakenFrom.currentWeekHours = shiftTakenFrom.currentWeekHours - draggedShift.length + draggedShift.breakHours
+          shiftGivenTo.currentWeekHours   = shiftGivenTo.currentWeekHours + draggedShift.length - draggedShift.breakHours
 
         #set new variables
         draggedShift.employeeID = newEmployeeID
