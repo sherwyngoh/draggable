@@ -72,33 +72,57 @@
           td:not(:first-of-type)
             text-align: center
 
-          .trash-row
-            background: lighten($level-1-color, 10%)
-            height: 50px
+        tr:last-of-type
+          td
+            padding: 0px !important
+          &:hover
+            cursor: pointer
+          .bottom-controls
             text-align: center
-            color: white
             font-size: 25px
-            &:hover
-              background: lighten($level-1-color, 20%) !important
+            color: white
+            height: 50px
+            i
+              line-height: 50px
+            &.trash-td
+              width: 99%
+              background: lighten($level-1-color, 10%)
+              &:hover
+                background: lighten($level-1-color, 20%) !important
+            &.plus-td
+              width: 49%
+              display: inline-block
+              background: lighten($level-2-color, 10%)
+              &:hover
+                background: lighten($level-2-color, 20%)
+            &.undo-td
+              display: inline-block
+              width: 50%
+              background: lighten($level-3-color, 10%)
+              &:hover
+                background: lighten($level-3-color, 20%)
       .mark
         background: white
 
 
   .shift-bar
+    z-index: 10
     display: inline-block
-    margin: 5px
+    margin: 10px
     max-height: 55px
     color: white
     text-align: center
     position: relative
-    cursor: grab
+    cursor: grab !important
     border-radius: 3px
     padding-top: 5px
     padding: 3px
+    opacity: 0.8
+
     &:active
       cursor: grabbing
+
     span
-      text-shadow: 2px 2px 2px rgba(150, 150, 150, 1)
       font-size: 15px !important
       width: 100%
       line-height: 15px
@@ -106,7 +130,12 @@
       position: absolute
       top: 50%
       right: 5%
-      transform: translate(-50%, -50%)    
+      transform: translate(-50%, -50%)
+    &.selected
+      opacity: 1
+      -webkit-box-shadow: 10px 7px 5px -6px rgba(0,0,0,0.75)
+      -moz-box-shadow: 10px 7px 5px -6px rgba(0,0,0,0.75)
+      box-shadow: 10px 7px 5px -6px rgba(0,0,0,0.75)
 
   .popup
     overflow: scroll
@@ -150,7 +179,10 @@
 
       button
         margin-top: 10px
-        margin-bottom: 10px
+        &:first-of-type
+          margin-top: 20px
+        &:not(:first-of-type)
+          margin-bottom: 10px
         &.btn.btn-primary
           background-color: lighten($level-5-color, 15)
           border-color: lighten($level-5-color, 15)

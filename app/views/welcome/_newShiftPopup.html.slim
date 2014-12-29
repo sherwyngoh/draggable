@@ -1,0 +1,60 @@
+.popup ng-show="showNewPopup"
+  h3 
+    | New Shift
+    small.pull-right
+      i.fa.fa-minus
+      i.fa.fa-plus
+      i.fa.fa-close ng-click="showNewPopup = !showNewPopup"
+
+  ng-form.form name="newShiftForm"
+    .form-group
+      .col-xs-5
+        label Role
+        select.form-control ng-model="newShift.role"
+          option ng-repeat="role in roles" value="{{role}}"
+            | {{role}}
+      .col-xs-5.col-xs-offset-2
+        label Employee
+        select.form-control ng-model="newShift.employeeID"
+          option ng-repeat="employee in employees" value="{{employee.id}}" ng-selected="newShift.employeeID == employee.id" 
+            | {{employee.name}}
+
+    .form-group
+      .col-xs-5
+        .col-xs-6
+          label
+            | Start
+            small 
+              | (h)
+          input.form-control type='text' ng-model="newShift.startHour"
+        .col-xs-6
+          label 
+            small 
+              | (min)
+          input.form-control type='text' ng-model="newShift.startMin"
+
+      .col-xs-5.col-xs-offset-2
+        .col-xs-6
+          label
+            | End
+            small 
+              | (h)
+          input.form-control type='text' ng-model="newShift.endHour"
+        .col-xs-6
+          label
+            small 
+              | (min)
+          input.form-control type='text' ng-model="newShift.endMin"
+    .form-group
+      .col-xs-5
+        label Date
+        input.form-control type='text' ng-model="newShift.date"
+
+      .col-xs-5.col-xs-offset-2
+        label Break Hours
+        input.form-control type='text' ng-model="newShift.breakHours" 
+
+    .form-group
+      .col-xs-12
+        button.btn.btn-success.btn-block  ng-click="submitShift(newShift)" Submit
+
