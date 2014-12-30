@@ -55,12 +55,8 @@ app.controller "weekViewController", ($scope, $timeout) ->
     {id: '8', title: 'Closing', length: 8, startHour: 15, startMin: '00', endHour: 23, endMin: 30, breakHours: 1, role: "Manager"},
   ]
 
-  grabShift = (shiftID) ->
+  $scope.grabShift = (shiftID) ->
     for shift in $scope.shifts
-      return shift if parseInt(shift.id) is parseInt(shiftID)
-
-  grabCommonShift = (shiftID) ->
-    for shift in $scope.commonShifts
       return shift if parseInt(shift.id) is parseInt(shiftID)
 
   $scope.setShift = (shiftID) ->
@@ -79,19 +75,23 @@ app.controller "weekViewController", ($scope, $timeout) ->
     $scope.isSelecting   = false
 
   $scope.submitShift = (newShift) ->
-    newShift.id = $scope.shifts.length + 1
+    hours = newShift.endHour - newShift.startHour
+    hours += (newShift.endMin - newShift.startMin)/60
+    newShift.length = hours
+    newShift.id     = $scope.shifts.length + 1
     $scope.shifts.push(newShift)
     $scope.showNewPopup = false
+    $scope.refreshCalendar()
 
   $scope.removeShifts = (shiftsArray) ->
     for shiftID in shiftsArray
-      shift = grabShift(shiftID)
+      shift = $scope.grabShift(shiftID)
       index = $scope.shifts.indexOf(shift)
       if index > -1
         $scope.shifts.splice(index, 1)
     $timeout($scope.refreshCalendar, 0)
 
-  $scope.refreshCalendar = ()->
+  $scope.refreshCalendar = () ->
     for shift in $scope.shifts
       employeeID   = shift.employeeID
       employeeRow  =  $('tr[data-employee-id="' + employeeID + '"]')
@@ -101,7 +101,6 @@ app.controller "weekViewController", ($scope, $timeout) ->
       element         = $('.shift-bar[data-shift-id="'+shift.id+'"]')
       shiftStartingUL.append(element)
     return
-    debugger
 
   grabEmployee = (employeeID) ->
     for employee in $scope.employees
@@ -126,6 +125,7 @@ app.controller "weekViewController", ($scope, $timeout) ->
       if e.keyCode is 27
         $scope.showPopup     = false
         $scope.showNewPopup  = false
+        $scope.resetSelected()
         $scope.$apply()
 
     #popup handler
@@ -214,36 +214,25 @@ app.directive 'shiftBar', ($timeout) ->
       shiftStartingUL = $(employeeRow).find('td[data-date=' +  date + ']')
       shiftStartingUL.append(element)
       return
+
     $timeout(setShift, 0)
 
 app.directive 'setDrag', ($timeout) ->
   restrict: 'A'
   link: (scope, element, attrs) ->
     redipsInit = ->
-      num = 0 # number of successfully placed elements
-      rd = REDIPS.drag # reference to the REDIPS.drag lib
+      rd = REDIPS.drag
       rd.init('week-view')
-      # rd.tableSort = true -> default
-
-      # set hover color
       rd.hover.colorTd  = 'blank'
       rd.hover.borderTd = '3px solid #9bb3da'
       rd.clone.keyDiv   = true
-
-      # rd.mark.exception.green   = "green_cell"
-      # rd.mark.exception.greenc0 = "green_cell"
-      # rd.mark.exception.greenc1 = "green_cell"
-      
-      # rd.mark.exception.orange   = "orange_cell"
-      # rd.mark.exception.orangec0 = "orange_cell"
-      # rd.mark.exception.orangec1 = "orange_cell"
-
       # rd.trash.question = 'Are you sure you want to delete this shift?'
 
       rd.event.clicked = (currentCell)->
+        console.log 'clicked'
         if window.event.metaKey
           shiftID            = $(rd.obj).data('shift-id')
-          toggleItemInArray($scope.toggledShifts, shiftID)
+          toggleItemInArray(scope.toggledShifts, shiftID)
           scope.isSelecting = if scope.toggledShifts.length > 0 then true else false
           scope.$apply()
         else if currentCell.classList.contains('common-shifts')
@@ -251,31 +240,24 @@ app.directive 'setDrag', ($timeout) ->
           scope.$apply()
 
       rd.event.notCloned = ->
-        scope.$apply()
+        console.log 'not cloned'
 
       rd.event.notMoved = ->
         if !(window.event.ctrlKey or window.event.metaKey)
-          shiftID              = $(rd.obj).data('shift-id')
-          scope.selectedShift = grabShift(shiftID)
+          shiftID             = $(rd.obj).data('shift-id')
+          scope.selectedShift = scope.grabShift(shiftID)
           scope.showPopup     = true
           scope.$apply()
 
-      rd.event.deleted = ->
-        console.log 'moved'
-        scope.$apply()
-
       rd.event.moved = ->
         console.log 'moved'
-        shiftID          = $(rd.obj).data('shift-id')
-        shift            = grabShift(shiftID)
-        shift.employeeID = $(rd.td.target).parent().data('employee-id')
-        shift.date       = $(rd.td.target).data('date')
-        scope.$apply()
 
       rd.event.dropped = ->
-        console.log $(rd.td.target)
-        console.log $(rd.td.previous)
-        console.log $(rd.obj)
+        console.log 'dropped'
+        shiftID          = $(rd.obj).data('shift-id')
+        shift            = scope.grabShift(shiftID)
+        shift.employeeID = $(rd.td.target).parent().data('employee-id')
+        shift.date       = $(rd.td.target).data('date')
         scope.$apply()
 
       rd.event.cloned = (clonedElement)->
@@ -283,7 +265,6 @@ app.directive 'setDrag', ($timeout) ->
 
       rd.event.clonedDropped = (targetCell)->
         console.log 'clone dropped'
-        debugger
 
       rd.event.clonedEnd1 = ->
         console.log 'clone end 1'
@@ -291,8 +272,14 @@ app.directive 'setDrag', ($timeout) ->
       rd.event.clonedEnd2 = ->
         console.log 'clone end 2'
 
-      rd.event.deleted = (cloned)->
+      rd.event.deleted = (cloned) ->
         console.log 'deleted'
+        shiftID = $(rd.obj).data('shift-id')
+        shift   = scope.grabShift(shiftID)
+        index   = scope.shifts.indexOf(shift)
+        scope.shifts.splice(index, 1)
+        scope.$apply
+        scope.reInitDrag
       return
 
     # add onload event listener
