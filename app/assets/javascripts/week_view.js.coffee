@@ -211,14 +211,14 @@ app.controller "weekViewController", ($scope, $timeout) ->
 
     #popup handler
     $('.fa-minus').on 'click', ->
-      $(this).parents('.popup').find('ng-form').hide()
+      $(this).parents('.expand-container').find('ng-form').hide()
       $(this).hide()
-      $(this).siblings('.fa-plus').show()
+      $(this).siblings('.fa-plus').css('display', 'inline-block')
 
     $('.fa-plus').on 'click', ->
-      $(this).parents('.popup').find('ng-form').show()
+      $(this).parents('.expand-container').find('ng-form').show()
       $(this).hide()
-      $(this).siblings('.fa-minus').show()
+      $(this).siblings('.fa-minus').css('display', 'inline-block')
 
     $('.popup').draggable
       cursor: 'grabbing !important',
@@ -248,7 +248,7 @@ app.controller "weekViewController", ($scope, $timeout) ->
           return parseInt($(this).data('hour')) >= leave.startHour
 
       $(leaveTDs).each () ->
-        $(this).css('background', 'whitesmoke').addClass('mark')
+        $(this).css('background', 'lightgrey').addClass('mark')
 
 
     $('.shift-applicable').each () ->
@@ -277,7 +277,7 @@ app.directive "shiftBar", ($timeout) ->
       tdWidth     = parseInt($('.shift-applicable').first().css('width'))
       tdHeight    = parseInt($('.shift-applicable').first().css('height'))
       shiftWidth  =  '130px'
-      shiftHeight =  '70px'
+      shiftHeight =  '60px'
 
       role       = shift.role
       shiftColor = scope.shiftColors[role]
@@ -286,7 +286,7 @@ app.directive "shiftBar", ($timeout) ->
         .css('min-height', shiftHeight)
         .css('color', shiftColor)
         .css('border', '3px solid ' + shiftColor)
-        .html('<span>' + shift.role + "<br/>" + shift.startHour + ':' + shift.startMin + '-' + shift.endHour + ':' + shift.endMin + "</span>")
+        .html('<span>' + shift.role + "<br/>" + shift.startHour + ':' + shift.startMin + ' - ' + shift.endHour + ':' + shift.endMin + "</span>")
 
       employeeID   = shift.employeeID
       employeeRow  =  $('tr[data-employee-id="' + employeeID + '"]')
@@ -305,24 +305,3 @@ toggleItemInArray = (array, value) ->
   else
     array.splice index, 1
   return
-
-setShifts = (shiftColors)->
-  tdWidth  = parseInt($('.shift-applicable').first().css('width'))
-  tdHeight = parseInt($('.shift-applicable').first().css('height'))
-
-  $('.shift-bar').each () ->
-    shiftHours  =  $(this).data('length')
-    shiftWidth  =  tdWidth - 10
-    shiftHeight =  tdHeight - 10
-
-    role       = $(this).data('role')
-    shiftColor = shiftColors[role]
-
-    $(this).css('width', shiftWidth).css('height', shiftHeight).css('background-color', shiftColor).css('border', '3px solid ' + shiftColor)
-
-    employeeID   = $(this).data('employee-id')
-    employeeRow  =  $('tr[data-employee-id="' + employeeID + '"]')
-    
-    date            = $(this).data('date')
-    shiftStartingUL = $(employeeRow).find('td[data-date=' +  date + '] .sortable')
-    $(this).appendTo(shiftStartingUL)

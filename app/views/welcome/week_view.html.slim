@@ -2,11 +2,10 @@
   .row
     .col-xs-12.main-box
       .col-xs-6
-        header
-          h2
-            i.fa.fa-angle-double-left ng-click="redipsInit()"
-            | {{calendarDisplayDate}}
-            i.fa.fa-angle-double-right
+        h2
+          i.fa.fa-angle-double-left ng-click="redipsInit()"
+          | {{calendarDisplayDate}}
+          i.fa.fa-angle-double-right
 
       .col-xs-6
         .pull-right
@@ -39,7 +38,6 @@
                 i.fa.fa-clock-o
                 .employee-hours 
                   | {{employee.hoursExcludingThisWeek + employee.currentWeekHours}}/{{employee.totalHours}} hours
-                br
                 i.fa.fa-dollar
                 .employee-cost
                   | {{employee.costPerHour * (employee.hoursExcludingThisWeek + employee.currentWeekHours)}}
@@ -53,10 +51,32 @@
                 i.fa.fa-plus-square.btn-block ng-click="showNewPopup = !showNewPopup"
             td.trash.trash-td.bottom-controls colspan='7' ng-click="removeShifts(toggledShifts)"
               i.fa.fa-trash
+    / summary.expand-container
+    /   .col-xs-6
+    /     h4 Summary
+    /   .col-xs-6
+    /     .pull-right
+    /       i.fa.fa-plus
+    /       i.fa.fa-minus
+    /   ng-form.content.col-xs-12
+    /     .form-group
+    /       label Sales forecast:
+    /       input.form-control type='text' ng-model='salesForecast'
+    /     .form-group
+    /       label Percentage of sales for budget:
+    /       input.form-control type='text' ng-model='budgetPercentage'
+    /     .form-group
+    /       label Wage budget:
+    /       p
+    /         | {{wageBudget}}
+    /     .form-group
+    /       label Current estimation:
+    /       p
+    /         | {{wageEstimation}}
 
   .shift-bar.drag shift-bar='' ng-model="shift" ng-repeat="shift in shifts" data-length="{{shift.length}}" ng-class="{'selected': toggledShifts.indexOf({{shift.id}}) > -1}" data-shift-id="{{shift.id}}"
 
-  .popup ng-show="showPopup"
+  .popup.expand-container ng-show="showPopup"
     h3 
       | Edit Shift
       small.pull-right
