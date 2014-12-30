@@ -8,8 +8,9 @@ app.controller "weekViewController", ($scope, $timeout) ->
     # rd.tableSort = true -> default
 
     # set hover color
-    rd.hover.colorTd = '#9BB3DA'
-    rd.hover.borderTd = '2px solid #9bb3da'
+    rd.hover.colorTd  = 'blank'
+    rd.hover.borderTd = '3px solid #9bb3da'
+    rd.clone.keyDiv   = true
 
     # rd.mark.exception.green   = "green_cell"
     # rd.mark.exception.greenc0 = "green_cell"
@@ -32,7 +33,7 @@ app.controller "weekViewController", ($scope, $timeout) ->
         $scope.$apply()
       else
         $scope.isDragging = true
-        $scope.$apply() 
+        $scope.$apply()
 
     rd.event.notCloned = ->
       $scope.isDragging = false
@@ -47,32 +48,41 @@ app.controller "weekViewController", ($scope, $timeout) ->
         $scope.$apply()
 
     rd.event.deleted = ->
+      console.log 'moved'
       $scope.isDragging = false
       $scope.$apply()
 
-    rd.event.dropped = ->
-      $scope.isDragging = false
+    rd.event.moved = ->
+      console.log 'moved'
+      shiftID          = $(rd.obj).data('shift-id')
+      shift            = grabShift(shiftID)
+      shift.employeeID = $(rd.td.target).parent().data('employee-id')
+      shift.date       = $(rd.td.target).data('date')
       $scope.$apply()
-      console.log $(rd.td.source)
+
+    rd.event.dropped = ->
       console.log $(rd.td.target)
       console.log $(rd.td.previous)
       console.log $(rd.obj)
-      # if rd.td.target.className.indexOf(rd.mark.exception[rd.obj.id]) isnt -1
-        
-      #   # make it a unmovable
-      #   rd.enableDrag false, rd.obj
-        
-      #   # increase counter
-      #   num++
-        
-      #   # prepare and display message
-      #   if num < 6
-      #     msg = "Number of successfully placed elements: " + num
-      #   else
-      #     msg = "Well done!"
-      #   document.getElementById("message").innerHTML = msg
-      # return
+      $scope.isDragging = false
+
+    rd.event.cloned = (clonedElement)->
+      console.log 'cloned'
+
+    rd.event.clonedDropped = (targetCell)->
+      console.log 'clone dropped'
+
+    rd.event.clonedEnd1 = ->
+      console.log 'clone end 1'
+
+    rd.event.clonedEnd2 = ->
+      console.log 'clone end 2'
+
+    rd.event.deleted = (cloned)->
+      console.log 'deleted'
+
     return
+
 
   # add onload event listener
   if window.addEventListener
@@ -123,18 +133,22 @@ app.controller "weekViewController", ($scope, $timeout) ->
   $scope.toggledShifts = []
 
   $scope.commonShifts  = [
-    {title: 'Opening', length: 8, startHour: 7, startMin: 30, endHour: 15, endMin: 30, breakHours: 1, role: "Crew"},
-    {title: 'Closing', length: 8, startHour: 15, startMin: '00', endHour: 23, endMin: 30, breakHours: 1, role: "Crew"},
-    {title: 'Opening', length: 8, startHour: 7, startMin: 30, endHour: 15, endMin: 30, breakHours: 1, role: "Supervisor"},
-    {title: 'Closing', length: 8, startHour: 15, startMin: '00', endHour: 23, endMin: 30, breakHours: 1, role: "Supervisor"},
-    {title: 'Opening', length: 8, startHour: 7, startMin: 30, endHour: 15, endMin: 30, breakHours: 1, role: "Asst Manager"},
-    {title: 'Closing', length: 8, startHour: 15, startMin: '00', endHour: 23, endMin: 30, breakHours: 1, role: "Asst Manager"},
-    {title: 'Opening', length: 8, startHour: 7, startMin: 30, endHour: 15, endMin: 30, breakHours: 1, role: "Manager"},
-    {title: 'Closing', length: 8, startHour: 15, startMin: '00', endHour: 23, endMin: 30, breakHours: 1, role: "Manager"},
+    {id: '1', title: 'Opening', length: 8, startHour: 7, startMin: 30, endHour: 15, endMin: 30, breakHours: 1, role: "Crew"},
+    {id: '2', title: 'Closing', length: 8, startHour: 15, startMin: '00', endHour: 23, endMin: 30, breakHours: 1, role: "Crew"},
+    {id: '3', title: 'Opening', length: 8, startHour: 7, startMin: 30, endHour: 15, endMin: 30, breakHours: 1, role: "Supervisor"},
+    {id: '4', title: 'Closing', length: 8, startHour: 15, startMin: '00', endHour: 23, endMin: 30, breakHours: 1, role: "Supervisor"},
+    {id: '5', title: 'Opening', length: 8, startHour: 7, startMin: 30, endHour: 15, endMin: 30, breakHours: 1, role: "Asst Manager"},
+    {id: '6', title: 'Closing', length: 8, startHour: 15, startMin: '00', endHour: 23, endMin: 30, breakHours: 1, role: "Asst Manager"},
+    {id: '7', title: 'Opening', length: 8, startHour: 7, startMin: 30, endHour: 15, endMin: 30, breakHours: 1, role: "Manager"},
+    {id: '8', title: 'Closing', length: 8, startHour: 15, startMin: '00', endHour: 23, endMin: 30, breakHours: 1, role: "Manager"},
   ]
 
   grabShift = (shiftID) ->
     for shift in $scope.shifts
+      return shift if parseInt(shift.id) is parseInt(shiftID)
+
+  grabCommonShift = (shiftID) ->
+    for shift in $scope.commonShifts
       return shift if parseInt(shift.id) is parseInt(shiftID)
 
   $scope.setShift = (shiftID) ->
@@ -153,6 +167,7 @@ app.controller "weekViewController", ($scope, $timeout) ->
     $scope.isSelecting   = false
 
   $scope.submitShift = (newShift) ->
+    debugger
     $scope.shifts.push(newShift)
     $scope.showNewPopup = false
 
@@ -174,6 +189,7 @@ app.controller "weekViewController", ($scope, $timeout) ->
       element         = $('.shift-bar[data-shift-id="'+shift.id+'"]')
       shiftStartingUL.append(element)
     return
+    debugger
 
   grabEmployee = (employeeID) ->
     for employee in $scope.employees
@@ -193,6 +209,13 @@ app.controller "weekViewController", ($scope, $timeout) ->
   setCalendarDays()
 
   $ ->
+    #close popups on esc keypress
+    $(document).on 'keyup', (e)->
+      if e.keyCode is 27
+        $scope.showPopup     = false
+        $scope.showNewPopup  = false
+        $scope.$apply()
+
     #popup handler
     $('.fa-minus').on 'click', ->
       $(this).parents('.popup').find('ng-form').hide()
@@ -210,7 +233,7 @@ app.controller "weekViewController", ($scope, $timeout) ->
 
     #click on date box
     $('.shift-applicable').on 'click', ->
-      return if $(this).children().find('.shift-bar').length > 0
+      return if $(this).children('.shift-bar').length > 0
       employeeID = $(this).parent('tr').data('employee-id')
       date       = $(this).data('date')
       $scope.newShift.date       = date
@@ -260,15 +283,15 @@ app.directive "shiftBar", ($timeout) ->
     setShift = ->
       tdWidth     = parseInt($('.shift-applicable').first().css('width'))
       tdHeight    = parseInt($('.shift-applicable').first().css('height'))
-      shiftWidth  =  tdWidth - 15
-      shiftHeight =  tdHeight - 10
+      shiftWidth  =  '130px'
+      shiftHeight =  '70px'
 
       role       = shift.role
       shiftColor = scope.shiftColors[role]
 
-      element.css('width', shiftWidth)
-        .css('height', shiftHeight)
-        .css('background-color', shiftColor)
+      element.css('min-width', shiftWidth)
+        .css('min-height', shiftHeight)
+        .css('color', shiftColor)
         .css('border', '3px solid ' + shiftColor)
         .html('<span>' + shift.role + "<br/>" + shift.startHour + ':' + shift.startMin + '-' + shift.endHour + ':' + shift.endMin + "</span>")
 
@@ -276,11 +299,9 @@ app.directive "shiftBar", ($timeout) ->
       employeeRow  =  $('tr[data-employee-id="' + employeeID + '"]')
       
       date            = shift.date
-      shiftStartingUL = $(employeeRow).find('td[data-date=' +  date + '] .sortable')
+      shiftStartingUL = $(employeeRow).find('td[data-date=' +  date + ']')
       shiftStartingUL.append(element)
-
       return
-
     $timeout(setShift, 0)
 
 

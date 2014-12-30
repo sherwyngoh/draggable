@@ -9,7 +9,7 @@
             i.fa.fa-angle-double-right
 
       .col-xs-4
-        | {{newShift}}
+        | {{shifts}}
         / .pull-right
         /   button.btn.btn-default
         /     i.fa.fa-trash
@@ -20,10 +20,10 @@
 
       table.table
         thead
-          tr
-            td.mark.common-shifts colspan="8"
+          / tr
+          /   td.mark.common-shifts colspan="8"
 
-              .shift-bar.drag shift-bar='' ng-model="shift" ng-repeat="shift in commonShifts" data-length="{{shift.length}}" ng-class="{'selected': toggledShifts.indexOf({{shift.id}}) > -1}" data-shift-id="{{shift.id}}"
+          /     .shift-bar.drag.clone shift-bar='' ng-model="commonShift" ng-repeat="commonShift in commonShifts" ng-class="{'selected': toggledShifts.indexOf({{shift.id}}) > -1}" data-common-shift-id="{{commonShift.id}}"
               
           tr
             th.mark
@@ -118,7 +118,5 @@
       .form-group
         .col-xs-12
           button.btn.btn-primary.btn-block ng-disabled="editShiftForm.$pristine" ng-click="updateShift(selectedShift)" Update shift
-        .col-xs-12
-          button.btn-danger.btn.btn-block Delete shift
 
   = render 'newShiftPopup'
