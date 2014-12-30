@@ -22,8 +22,35 @@
   .col-xs-12.main-box
     background: white
     min-height: 700px
-    h2
+
+    h2, summary
       margin-left: 10px
+
+    summary
+      overflow: hidden
+      width: 100%
+      border: 2px solid lightgrey
+      border-radius: 3px
+      padding-left: 10px
+      margin-bottom: 20px
+      i
+        font-size: 18px
+        margin-top: 10px
+        margin-right: 20px
+        &:hover
+          cursor: pointer
+
+        &.fa-plus
+          display: none
+          &:hover
+            color: $level-2-color
+        &.fa-minus
+          &:hover
+            color: $level-1-color
+      .content
+        text-align: left
+
+
     .col-xs-6
       button
         margin: 20px 3px
@@ -110,14 +137,14 @@
   .shift-bar
     z-index: 10
     display: inline-block
-    margin: 10px
+    margin: 5px
+    background: transparent
     color: black
     text-align: center
     position: relative
     cursor: grab !important
     border-radius: 3px
     opacity: 0.8
-
     &:active
       cursor: grabbing
 
@@ -135,9 +162,9 @@
 
     &.selected
       opacity: 1
-      -webkit-box-shadow: 10px 7px 5px -6px rgba(0,0,0,0.75)
-      -moz-box-shadow: 10px 7px 5px -6px rgba(0,0,0,0.75)
-      box-shadow: 10px 7px 5px -6px rgba(0,0,0,0.75)
+      -webkit-box-shadow: -1px 3px 5px 9px rgba(0,0,0,0.4)
+      -moz-box-shadow: -1px 3px 5px 9px rgba(0,0,0,0.4)
+      box-shadow: -1px 3px 5px 9px rgba(0,0,0,0.4)
 
   .popup
     overflow: scroll
