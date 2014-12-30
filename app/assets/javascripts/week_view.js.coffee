@@ -1,87 +1,6 @@
 app = angular.module "weekView", []
 
 app.controller "weekViewController", ($scope, $timeout) ->
-  redipsInit = ->
-    num = 0 # number of successfully placed elements
-    rd = REDIPS.drag # reference to the REDIPS.drag lib
-    rd.init('week-view')
-    # rd.tableSort = true -> default
-
-    # set hover color
-    rd.hover.colorTd  = 'blank'
-    rd.hover.borderTd = '3px solid #9bb3da'
-    rd.clone.keyDiv   = true
-
-    # rd.mark.exception.green   = "green_cell"
-    # rd.mark.exception.greenc0 = "green_cell"
-    # rd.mark.exception.greenc1 = "green_cell"
-    
-    # rd.mark.exception.orange   = "orange_cell"
-    # rd.mark.exception.orangec0 = "orange_cell"
-    # rd.mark.exception.orangec1 = "orange_cell"
-
-    # rd.trash.question = 'Are you sure you want to delete this shift?'
-
-    rd.event.clicked = (currentCell)->
-      if window.event.metaKey
-        shiftID            = $(rd.obj).data('shift-id')
-        toggleItemInArray($scope.toggledShifts, shiftID)
-        $scope.isSelecting = if $scope.toggledShifts.length > 0 then true else false
-        $scope.$apply()
-      else if currentCell.classList.contains('common-shifts')
-        $scope.showPopup     = false
-        $scope.$apply()
-
-    rd.event.notCloned = ->
-      $scope.$apply()
-
-    rd.event.notMoved = ->
-      if !(window.event.ctrlKey or window.event.metaKey)
-        shiftID              = $(rd.obj).data('shift-id')
-        $scope.selectedShift = grabShift(shiftID)
-        $scope.showPopup     = true
-        $scope.$apply()
-
-    rd.event.deleted = ->
-      console.log 'moved'
-      $scope.$apply()
-
-    rd.event.moved = ->
-      console.log 'moved'
-      shiftID          = $(rd.obj).data('shift-id')
-      shift            = grabShift(shiftID)
-      shift.employeeID = $(rd.td.target).parent().data('employee-id')
-      shift.date       = $(rd.td.target).data('date')
-      $scope.$apply()
-
-    rd.event.dropped = ->
-      console.log $(rd.td.target)
-      console.log $(rd.td.previous)
-      console.log $(rd.obj)
-      $scope.$apply()
-
-    rd.event.cloned = (clonedElement)->
-      console.log 'cloned'
-
-    rd.event.clonedDropped = (targetCell)->
-      console.log 'clone dropped'
-
-    rd.event.clonedEnd1 = ->
-      console.log 'clone end 1'
-
-    rd.event.clonedEnd2 = ->
-      console.log 'clone end 2'
-
-    rd.event.deleted = (cloned)->
-      console.log 'deleted'
-
-    return
-
-
-  # add onload event listener
-  if window.addEventListener
-    window.addEventListener "load", redipsInit, false
-  else window.attachEvent "onload", redipsInit  if window.attachEvent
 
   $scope.calendarStartDate    = '27-12-2014'
   $scope.calMomentStart       = moment($scope.calendarStartDate, "DD-MM-YYYY")
@@ -267,7 +186,7 @@ app.filter 'acronymify', () ->
     return input.match(/\b(\w)/g).join('')
 
 
-app.directive "shiftBar", ($timeout) ->
+app.directive 'shiftBar', ($timeout) ->
   restrict: 'A'
   require: 'ngModel'
   link: (scope, element, attrs) ->
@@ -277,7 +196,7 @@ app.directive "shiftBar", ($timeout) ->
       tdWidth     = parseInt($('.shift-applicable').first().css('width'))
       tdHeight    = parseInt($('.shift-applicable').first().css('height'))
       shiftWidth  =  '130px'
-      shiftHeight =  '60px'
+      shiftHeight =  '45px'
 
       role       = shift.role
       shiftColor = scope.shiftColors[role]
@@ -296,6 +215,90 @@ app.directive "shiftBar", ($timeout) ->
       shiftStartingUL.append(element)
       return
     $timeout(setShift, 0)
+
+app.directive 'setDrag', ($timeout) ->
+  restrict: 'A'
+  link: (scope, element, attrs) ->
+    redipsInit = ->
+      num = 0 # number of successfully placed elements
+      rd = REDIPS.drag # reference to the REDIPS.drag lib
+      rd.init('week-view')
+      # rd.tableSort = true -> default
+
+      # set hover color
+      rd.hover.colorTd  = 'blank'
+      rd.hover.borderTd = '3px solid #9bb3da'
+      rd.clone.keyDiv   = true
+
+      # rd.mark.exception.green   = "green_cell"
+      # rd.mark.exception.greenc0 = "green_cell"
+      # rd.mark.exception.greenc1 = "green_cell"
+      
+      # rd.mark.exception.orange   = "orange_cell"
+      # rd.mark.exception.orangec0 = "orange_cell"
+      # rd.mark.exception.orangec1 = "orange_cell"
+
+      # rd.trash.question = 'Are you sure you want to delete this shift?'
+
+      rd.event.clicked = (currentCell)->
+        if window.event.metaKey
+          shiftID            = $(rd.obj).data('shift-id')
+          toggleItemInArray($scope.toggledShifts, shiftID)
+          scope.isSelecting = if scope.toggledShifts.length > 0 then true else false
+          scope.$apply()
+        else if currentCell.classList.contains('common-shifts')
+          scope.showPopup     = false
+          scope.$apply()
+
+      rd.event.notCloned = ->
+        scope.$apply()
+
+      rd.event.notMoved = ->
+        if !(window.event.ctrlKey or window.event.metaKey)
+          shiftID              = $(rd.obj).data('shift-id')
+          scope.selectedShift = grabShift(shiftID)
+          scope.showPopup     = true
+          scope.$apply()
+
+      rd.event.deleted = ->
+        console.log 'moved'
+        scope.$apply()
+
+      rd.event.moved = ->
+        console.log 'moved'
+        shiftID          = $(rd.obj).data('shift-id')
+        shift            = grabShift(shiftID)
+        shift.employeeID = $(rd.td.target).parent().data('employee-id')
+        shift.date       = $(rd.td.target).data('date')
+        scope.$apply()
+
+      rd.event.dropped = ->
+        console.log $(rd.td.target)
+        console.log $(rd.td.previous)
+        console.log $(rd.obj)
+        scope.$apply()
+
+      rd.event.cloned = (clonedElement)->
+        console.log 'cloned'
+
+      rd.event.clonedDropped = (targetCell)->
+        console.log 'clone dropped'
+        debugger
+
+      rd.event.clonedEnd1 = ->
+        console.log 'clone end 1'
+
+      rd.event.clonedEnd2 = ->
+        console.log 'clone end 2'
+
+      rd.event.deleted = (cloned)->
+        console.log 'deleted'
+      return
+
+    # add onload event listener
+    if window.addEventListener
+      window.addEventListener "load", redipsInit, false
+    else window.attachEvent "onload", redipsInit  if window.attachEvent
 
 
 toggleItemInArray = (array, value) ->
