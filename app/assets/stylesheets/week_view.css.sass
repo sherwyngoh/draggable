@@ -35,7 +35,7 @@
     table
       width: 99%
       margin: 10px auto
-      border: 1px solid lighten(lightgrey, 5)
+      border: 2px solid lightgrey
       thead
         background: lighten(lightgrey, 10)
         th:not(:first-of-type)
@@ -49,6 +49,7 @@
       tbody
         .employee-name
           z-index: 101
+          padding-left: 10px
           font-size: 18px
           i.fa-calendar
             font-size: 22px
@@ -67,9 +68,10 @@
             padding: 5px
             border-right: 1px solid lighten(lightgrey, 5)
           td
-            width: 11%
+            width: 11% !important
             overflow: hidden
           td:not(:first-of-type)
+
             text-align: center
 
         tr:last-of-type
@@ -109,28 +111,28 @@
     z-index: 10
     display: inline-block
     margin: 10px
-    max-height: 55px
-    color: white
+    color: black
     text-align: center
     position: relative
     cursor: grab !important
     border-radius: 3px
-    padding-top: 5px
-    padding: 3px
     opacity: 0.8
 
     &:active
       cursor: grabbing
 
     span
-      font-size: 15px !important
-      width: 100%
-      line-height: 15px
-    .btn
-      position: absolute
+      display: block
       top: 50%
-      right: 5%
+      left: 50%
+      position: absolute
       transform: translate(-50%, -50%)
+      -webkit-font-smoothing: antialiased
+      text-shadow: rgba(0,0,0,.01) 0 0 1px
+      font-size: 17px
+      font-weight: 500
+      width: 100%
+
     &.selected
       opacity: 1
       -webkit-box-shadow: 10px 7px 5px -6px rgba(0,0,0,0.75)
@@ -139,7 +141,7 @@
 
   .popup
     overflow: scroll
-    z-index: 101
+    z-index: 1000
     position: absolute
     background: lighten(whitesmoke, 1)
     width: 40%
