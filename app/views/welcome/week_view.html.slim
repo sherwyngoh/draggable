@@ -9,11 +9,13 @@
       .col-xs-6
         .pull-right
           button.btn.btn-default.btn-lg
+            i.fa.fa-undo Undo 
+
+          button.btn.btn-default.btn-lg
             i.fa.fa-eraser Reset changes
+
           button.btn.btn-default.btn-lg
-            i.fa.fa-undo Undo all changes
-          button.btn.btn-default.btn-lg
-            i.fa.fa-trash Delete all shifts
+            i.fa.fa-trash Delete all 
 
       table.table set-drag=''
         thead
@@ -47,9 +49,9 @@
                 i.fa.fa-undo.btn-block ng-click="resetSelected()"
               .plus-td.bottom-controls.pull-right
                 i.fa.fa-plus-square.btn-block ng-click="showNewPopup = !showNewPopup"
-            td.trash.trash-td.bottom-controls colspan='7' ng-click="removeShifts(toggledShifts)"
+            td.rubbish-td.bottom-controls colspan='7' ng-click="removeShifts(toggledShifts)"
               i.fa.fa-trash
-      | {{ shifts}}
+      | {{shifts}}
   = render 'summary'
 
   .shift-bar.drag shift-bar='' ng-model="shift" ng-repeat="shift in shifts" data-length="{{shift.length}}" ng-class="{'selected': toggledShifts.indexOf({{shift.id}}) > -1}" data-shift-id="{{shift.id}}"

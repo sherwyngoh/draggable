@@ -74,14 +74,16 @@ app.controller "weekViewController", ($scope, $timeout) ->
     $scope.toggledShifts = []
     $scope.isSelecting   = false
 
-  $scope.submitShift = (newShift) ->
-    hours = newShift.endHour - newShift.startHour
-    hours += (newShift.endMin - newShift.startMin)/60
-    newShift.length = hours
-    newShift.id     = $scope.shifts.length + 1
-    $scope.shifts.push(newShift)
+  $scope.submitShift = (shift) ->
+    hours = shift.endHour - shift.startHour
+    hours += (shift.endMin - shift.startMin)/60
+    shift.length = hours
+    shift.id     = $scope.shifts.length + 1
+    $scope.shifts.push(shift)
+    $scope.newShift      = {role: $scope.roles[0], breakHours: 1, startHour: 8, startMin: '00', endHour: 17, endMin: '00'}
     $scope.showNewPopup = false
-    $scope.refreshCalendar()
+    $scope.$apply()
+    $timeout($scope.refreshCalendar, 0)
 
   $scope.removeShifts = (shiftsArray) ->
     for shiftID in shiftsArray
@@ -95,12 +97,10 @@ app.controller "weekViewController", ($scope, $timeout) ->
     for shift in $scope.shifts
       employeeID   = shift.employeeID
       employeeRow  =  $('tr[data-employee-id="' + employeeID + '"]')
-      
-      date            = shift.date
-      shiftStartingUL = $(employeeRow).find('td[data-date=' +  date + '] .sortable')
-      element         = $('.shift-bar[data-shift-id="'+shift.id+'"]')
+      shiftStartingUL = $(employeeRow).find('td[data-date=' +  shift.date + ']')
+      element         = $('.shift-bar[data-shift-id="' + shift.id + '"]')
       shiftStartingUL.append(element)
-    return
+      REDIPS.drag.init('week-view')
 
   grabEmployee = (employeeID) ->
     for employee in $scope.employees
@@ -120,6 +120,12 @@ app.controller "weekViewController", ($scope, $timeout) ->
   setCalendarDays()
 
   $ ->
+    #trash box functionality
+    $('.rubbish-td').bind 'DOMNodeInserted', (event) ->
+        shiftID = $(this).find('.shift-bar').data('shift-id')
+        $scope.removeShifts([shiftID])
+        $scope.$apply()
+        
     #close popups on esc keypress
     $(document).on 'keyup', (e)->
       if e.keyCode is 27
@@ -140,7 +146,7 @@ app.controller "weekViewController", ($scope, $timeout) ->
       $(this).siblings('.fa-minus').css('display', 'inline-block')
 
     $('.popup').draggable
-      cursor: 'grabbing !important',
+      cursor: 'grabbing !important'
       opacity: 0.6
 
     #click on date box
@@ -226,7 +232,7 @@ app.directive 'setDrag', ($timeout) ->
       rd.hover.colorTd  = 'blank'
       rd.hover.borderTd = '3px solid #9bb3da'
       rd.clone.keyDiv   = true
-      # rd.trash.question = 'Are you sure you want to delete this shift?'
+      rd.trash.question = 'Are you sure you want to delete this shift?'
 
       rd.event.clicked = (currentCell)->
         console.log 'clicked'
@@ -273,14 +279,11 @@ app.directive 'setDrag', ($timeout) ->
         console.log 'clone end 2'
 
       rd.event.deleted = (cloned) ->
+        shift = scope.grabShift($(rd.td).data('shift-id'))
+        index = scope.shifts.indexOf(shift)
+        scope.shifts.splice(shift, 1)
+        scope.$apply()
         console.log 'deleted'
-        shiftID = $(rd.obj).data('shift-id')
-        shift   = scope.grabShift(shiftID)
-        index   = scope.shifts.indexOf(shift)
-        scope.shifts.splice(index, 1)
-        scope.$apply
-        scope.reInitDrag
-      return
 
     # add onload event listener
     if window.addEventListener
