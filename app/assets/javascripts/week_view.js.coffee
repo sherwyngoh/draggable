@@ -160,7 +160,7 @@ app.controller "weekViewController", ($scope, $timeout) ->
     $scope.isSelecting   = false
 
   $scope.submitShift = (newShift) ->
-    debugger
+    newShift.id = $scope.shifts.length + 1
     $scope.shifts.push(newShift)
     $scope.showNewPopup = false
 

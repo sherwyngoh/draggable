@@ -1,22 +1,21 @@
 #week-view ng-app="weekView" ng-controller="weekViewController"
   .row
     .col-xs-12.main-box
-      .col-xs-8
+      .col-xs-6
         header
           h2
             i.fa.fa-angle-double-left ng-click="redipsInit()"
             | {{calendarDisplayDate}}
             i.fa.fa-angle-double-right
 
-      .col-xs-4
-        | {{shifts}}
-        / .pull-right
-        /   button.btn.btn-default
-        /     i.fa.fa-trash
-        /   button.btn.btn-default
-        /     i.fa.fa-slideshare
-        /   button.btn.btn-default
-        /     i.fa.fa-bars
+      .col-xs-6
+        .pull-right
+          button.btn.btn-default.btn-lg
+            i.fa.fa-eraser Reset changes
+          button.btn.btn-default.btn-lg
+            i.fa.fa-undo Undo all changes
+          button.btn.btn-default.btn-lg
+            i.fa.fa-trash Delete all shifts
 
       table.table
         thead
@@ -28,8 +27,6 @@
           tr
             th.mark
               | Staff
-              .pull-right
-                i.fa.fa-plus
             th.mark ng-repeat="day in daysInWeek" data-date="{{day[1]}}" 
               | {{day[0]}}
         tbody
