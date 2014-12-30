@@ -20,7 +20,7 @@ app.controller "weekViewController", ($scope, $timeout) ->
     # rd.mark.exception.orangec0 = "orange_cell"
     # rd.mark.exception.orangec1 = "orange_cell"
 
-    rd.trash.question = 'Are you sure you want to delete this shift?'
+    # rd.trash.question = 'Are you sure you want to delete this shift?'
 
     rd.event.clicked = (currentCell)->
       if window.event.metaKey
@@ -31,17 +31,12 @@ app.controller "weekViewController", ($scope, $timeout) ->
       else if currentCell.classList.contains('common-shifts')
         $scope.showPopup     = false
         $scope.$apply()
-      else
-        $scope.isDragging = true
-        $scope.$apply()
 
     rd.event.notCloned = ->
-      $scope.isDragging = false
       $scope.$apply()
 
     rd.event.notMoved = ->
       if !(window.event.ctrlKey or window.event.metaKey)
-        $scope.isDragging    = false
         shiftID              = $(rd.obj).data('shift-id')
         $scope.selectedShift = grabShift(shiftID)
         $scope.showPopup     = true
@@ -49,7 +44,6 @@ app.controller "weekViewController", ($scope, $timeout) ->
 
     rd.event.deleted = ->
       console.log 'moved'
-      $scope.isDragging = false
       $scope.$apply()
 
     rd.event.moved = ->
@@ -64,7 +58,7 @@ app.controller "weekViewController", ($scope, $timeout) ->
       console.log $(rd.td.target)
       console.log $(rd.td.previous)
       console.log $(rd.obj)
-      $scope.isDragging = false
+      $scope.$apply()
 
     rd.event.cloned = (clonedElement)->
       console.log 'cloned'
@@ -127,7 +121,6 @@ app.controller "weekViewController", ($scope, $timeout) ->
   $scope.newShift      = {role: $scope.roles[0], breakHours: 1, startHour: 8, startMin: '00', endHour: 17, endMin: '00'}
   $scope.showNewPopup  = false
 
-  $scope.isDragging    = false
   $scope.isSelecting   = false
 
   $scope.toggledShifts = []
