@@ -27,8 +27,7 @@ app.controller "weekViewController", ($scope, $timeout) ->
     {employeeID: '3', fullDay: false, startHour: 12}
     {employeeID: '4', fullDay: true, startHour: 12}
   ]
-  
-  $scope.employeesAndOffset = {}
+
   $scope.daysInWeek         = []
 
   $scope.shiftColors   = {'Manager': '#3498DB', 'Asst Manager': '#2ECC71', 'Supervisor': '#9B59B6', 'Crew': '#F39C12'}
@@ -40,7 +39,8 @@ app.controller "weekViewController", ($scope, $timeout) ->
   $scope.newShift      = {role: $scope.roles[0], breakHours: 1, startHour: 8, startMin: '00', endHour: 17, endMin: '00'}
   $scope.showNewPopup  = false
 
-  $scope.isSelecting   = false
+  $scope.isSelecting = false
+  $scope.isCloning    = false
 
   $scope.toggledShifts = []
 
@@ -120,12 +120,26 @@ app.controller "weekViewController", ($scope, $timeout) ->
   setCalendarDays()
 
   $ ->
+    #Dropping a clone or moving a div handler
+      $('.shift-applicable').bind 'DOMNodeInserted ', (event) -> 
+        console.log $scope.movedObj
+        if $scope.isCloning
+          #perform clone
+        else
+          #modify attributes
+          shift            = $scope.movedObj
+          shift.employeeID = $(this).parent().data('employee-id')
+          shift.date       = $(this).data('date')
+
+        $scope.$apply()
+
+
     #trash box functionality
     $('.rubbish-td').bind 'DOMNodeInserted', (event) ->
         shiftID = $(this).find('.shift-bar').data('shift-id')
         $scope.removeShifts([shiftID])
         $scope.$apply()
-        
+
     #close popups on esc keypress
     $(document).on 'keyup', (e)->
       if e.keyCode is 27
@@ -165,27 +179,15 @@ app.controller "weekViewController", ($scope, $timeout) ->
       employeeID   = leave.employeeID
       employeeRow  = $('tr[data-employee-id="' + employeeID + '"]')
       employeeTD   = $(employeeRow).find('td.employee-name > span')
+
       if leave.fullDay
         leaveTDs = $(employeeRow).find('td:not(.employee-name)')
-
       else
         leaveTDs = $(employeeRow).find('td:not(.employee-name)').filter ()->
           return parseInt($(this).data('hour')) >= leave.startHour
 
       $(leaveTDs).each () ->
         $(this).css('background', 'lightgrey').addClass('mark')
-
-
-    $('.shift-applicable').each () ->
-      day                       = $(this).data('day')
-      left                      = $(this).offset().left
-      # $scope.daysAndOffset[day] = left
-
-    # Find top offset for each employee
-    $("tbody tr").each () ->
-      id                            = $(this).data("employee-id")
-      top                           = $(this).offset().top
-      $scope.employeesAndOffset[id] = top
 
 app.filter 'acronymify', () ->
   return (input) ->
@@ -233,6 +235,7 @@ app.directive 'setDrag', ($timeout) ->
       rd.hover.borderTd = '3px solid #9bb3da'
       rd.clone.keyDiv   = true
       rd.trash.question = 'Are you sure you want to delete this shift?'
+      #events are only for modifying existing objects and setting state. No creating of objects
 
       rd.event.clicked = (currentCell)->
         console.log 'clicked'
@@ -257,33 +260,25 @@ app.directive 'setDrag', ($timeout) ->
 
       rd.event.moved = ->
         console.log 'moved'
+        shiftID             = $(rd.obj).data('shift-id')
+        shift               = scope.grabShift(shiftID)
+        scope.movedObj     = shift
+        if window.event.shiftKey is true
+          scope.isCloning     = true
+          scope.$apply()
+
 
       rd.event.dropped = ->
         console.log 'dropped'
-        shiftID          = $(rd.obj).data('shift-id')
-        shift            = scope.grabShift(shiftID)
-        shift.employeeID = $(rd.td.target).parent().data('employee-id')
-        shift.date       = $(rd.td.target).data('date')
+        scope.isCloning     = false
+        scope.movedObj = {}
         scope.$apply()
 
-      rd.event.cloned = (clonedElement)->
+      rd.event.cloned = (clonedElement) ->
         console.log 'cloned'
 
-      rd.event.clonedDropped = (targetCell)->
+      rd.event.clonedDropped = (targetCell) ->
         console.log 'clone dropped'
-
-      rd.event.clonedEnd1 = ->
-        console.log 'clone end 1'
-
-      rd.event.clonedEnd2 = ->
-        console.log 'clone end 2'
-
-      rd.event.deleted = (cloned) ->
-        shift = scope.grabShift($(rd.td).data('shift-id'))
-        index = scope.shifts.indexOf(shift)
-        scope.shifts.splice(shift, 1)
-        scope.$apply()
-        console.log 'deleted'
 
     # add onload event listener
     if window.addEventListener
