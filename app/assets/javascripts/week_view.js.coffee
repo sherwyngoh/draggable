@@ -27,20 +27,14 @@ app.controller "weekViewController", ($scope, $timeout) ->
     {employeeID: '3', fullDay: false, startHour: 12}
     {employeeID: '4', fullDay: true, startHour: 12}
   ]
-  
-  $scope.employeesAndOffset = {}
-  $scope.daysInWeek         = []
 
   $scope.shiftColors   = {'Manager': '#3498DB', 'Asst Manager': '#2ECC71', 'Supervisor': '#9B59B6', 'Crew': '#F39C12'}
   $scope.roles         = ["Manager", "Asst Manager", "Supervisor", "Crew"]
 
   $scope.selectedShift = {}
-  $scope.showPopup     = false
+  $scope.baseShift     = {}
 
   $scope.newShift      = {role: $scope.roles[0], breakHours: 1, startHour: 8, startMin: '00', endHour: 17, endMin: '00'}
-  $scope.showNewPopup  = false
-
-  $scope.isSelecting   = false
 
   $scope.toggledShifts = []
 
@@ -75,13 +69,14 @@ app.controller "weekViewController", ($scope, $timeout) ->
     $scope.isSelecting   = false
 
   $scope.submitShift = (shift) ->
-    hours = shift.endHour - shift.startHour
-    hours += (shift.endMin - shift.startMin)/60
+    hours        = shift.endHour - shift.startHour
+    hours        += (shift.endMin - shift.startMin)/60
     shift.length = hours
     shift.id     = $scope.shifts.length + 1
     $scope.shifts.push(shift)
     $scope.newShift      = {role: $scope.roles[0], breakHours: 1, startHour: 8, startMin: '00', endHour: 17, endMin: '00'}
-    $scope.showNewPopup = false
+    $scope.showNewPopup  = false
+    $scope.baseShift     = {}
     $scope.$apply()
     $timeout($scope.refreshCalendar, 0)
 
@@ -93,48 +88,113 @@ app.controller "weekViewController", ($scope, $timeout) ->
         $scope.shifts.splice(index, 1)
     $timeout($scope.refreshCalendar, 0)
 
-  $scope.refreshCalendar = () ->
-    for shift in $scope.shifts
-      employeeID   = shift.employeeID
-      employeeRow  =  $('tr[data-employee-id="' + employeeID + '"]')
-      shiftStartingUL = $(employeeRow).find('td[data-date=' +  shift.date + ']')
-      element         = $('.shift-bar[data-shift-id="' + shift.id + '"]')
-      shiftStartingUL.append(element)
-      REDIPS.drag.init('week-view')
+app.filter 'acronymify', () ->
+  return (input) ->
+    return input.match(/\b(\w)/g).join('')
 
-  grabEmployee = (employeeID) ->
-    for employee in $scope.employees
-      return employee if parseInt(employee.id) is parseInt(employeeID)
+app.directive 'weekCalendarStates', () ->
+  restrict: 'A'
+  compile: (scope) ->
+    scope.showPopup     = false
+    scope.showNewPopup  = false
 
-  setCalendarDays = ->
-    #set the calendar start and end times
-    min = $scope.calMomentStart
-    i = 0
+    scope.isSelecting    = false
+    scope.isCloning      = false
+    scope.isInitializing = true
 
-    while i < 7
-      increment = if i != 0 then 1 else 0
-      day = $scope.calMomentStart.add(increment, 'days')
-      $scope.daysInWeek.push([day.format('ddd D MMM'), day.format("D-M-YYYY") ])
-      i++
+app.directive 'calendarListener', () ->
+  restrict: "A"
+  link: (scope) ->
+    $ ->
+      #trash box functionality
+      $('.rubbish-td').bind 'DOMNodeInserted', (event) ->
+          shiftID = $(this).find('.shift-bar').data('shift-id')
+          scope.removeShifts([shiftID])
+          scope.$apply()
+          
+      #clone shift or move shift
+      $('.shift-applicable').bind 'DOMNodeInserted ', (event) -> 
+        console.log 'dom node inserted'
+        return if scope.isInitializing
+        date           = $(this).data('date')
+        employeeID     = $(this).parent().data('employee-id')
+        shiftBeforeMod = scope.baseShift
+        if scope.isCloning
+          # make a new shift where clone is at and submit, remove cloned div
+          newShift = {}
 
-  setCalendarDays()
+          attrToClone    = ['startHour','startMin','role','endHour','endMin','breakHours']
 
-  $ ->
-    #trash box functionality
-    $('.rubbish-td').bind 'DOMNodeInserted', (event) ->
-        shiftID = $(this).find('.shift-bar').data('shift-id')
-        $scope.removeShifts([shiftID])
-        $scope.$apply()
-        
-    #close popups on esc keypress
-    $(document).on 'keyup', (e)->
-      if e.keyCode is 27
-        $scope.showPopup     = false
-        $scope.showNewPopup  = false
-        $scope.resetSelected()
-        $scope.$apply()
+          for attr in attrToClone
+            newShift[attr] = shiftBeforeMod[attr]
 
-    #popup handler
+          newShift.date       =  date
+
+          newShift.employeeID = employeeID
+          scope.submitShift(newShift)
+          $('.shift-bar[data-shift-id="' + shiftBeforeMod.id + '"]').first().remove()
+          # We allow angular directives to create this clone
+        else
+          console.log 'modifying previous'
+          shiftBeforeMod.date       = date
+          shiftBeforeMod.employeeID = employeeID
+          scope.$apply()
+
+      #click on date box
+      $('.shift-applicable').on 'click', ->
+        return if $(this).children('.shift-bar').length > 0
+        employeeID = $(this).parent('tr').data('employee-id')
+        date       = $(this).data('date')
+        scope.newShift.date       = date
+        scope.newShift.employeeID = employeeID
+        scope.showNewPopup        = true
+
+        scope.$apply()
+
+app.directive 'calendarSetup', () ->
+  restrict: 'A'
+  link: (scope) ->
+    setCalendarDays = ->
+      #set the calendar start and end times
+      min = scope.calMomentStart
+      i = 0
+      while i < 7
+        increment = if i != 0 then 1 else 0
+        day = scope.calMomentStart.add(increment, 'days')
+        scope.daysInWeek.push([day.format('ddd D MMM'), day.format("D-M-YYYY") ])
+        i++
+
+    setLeaveBars = ->
+      for leave in scope.leaves
+        employeeID   = leave.employeeID
+        employeeRow  = $('tr[data-employee-id="' + employeeID + '"]')
+        employeeTD   = $(employeeRow).find('td.employee-name > span')
+        if leave.fullDay
+          leaveTDs = $(employeeRow).find('td:not(.employee-name)')
+
+        else
+          leaveTDs = $(employeeRow).find('td:not(.employee-name)').filter ()->
+            return parseInt($(this).data('hour')) >= leave.startHour
+
+        $(leaveTDs).each () ->
+          $(this).css('background', 'lightgrey').addClass('mark')
+
+    scope.refreshCalendar = () ->
+      for shift in scope.shifts
+        employeeID      = shift.employeeID
+        employeeRow     =  $('tr[data-employee-id="' + employeeID + '"]')
+        shiftStartingUL = $(employeeRow).find('td[data-date=' +  shift.date + ']')
+        element         = $('.shift-bar[data-shift-id="' + shift.id + '"]')
+        shiftStartingUL.append(element)
+        REDIPS.drag.init('week-view')
+
+    setCalendarDays()
+    $ ->
+      setLeaveBars()
+
+app.directive 'popupHandler', () ->
+  restrict: "A"
+  link: (scope) ->
     $('.fa-minus').on 'click', ->
       $(this).parents('.expand-container').find('ng-form').hide()
       $(this).hide()
@@ -149,48 +209,12 @@ app.controller "weekViewController", ($scope, $timeout) ->
       cursor: 'grabbing !important'
       opacity: 0.6
 
-    #click on date box
-    $('.shift-applicable').on 'click', ->
-      return if $(this).children('.shift-bar').length > 0
-      employeeID = $(this).parent('tr').data('employee-id')
-      date       = $(this).data('date')
-      $scope.newShift.date       = date
-      $scope.newShift.employeeID = employeeID
-      $scope.showNewPopup        = true
-      $scope.$apply()
-
-
-    #set leave bars
-    for leave in $scope.leaves
-      employeeID   = leave.employeeID
-      employeeRow  = $('tr[data-employee-id="' + employeeID + '"]')
-      employeeTD   = $(employeeRow).find('td.employee-name > span')
-      if leave.fullDay
-        leaveTDs = $(employeeRow).find('td:not(.employee-name)')
-
-      else
-        leaveTDs = $(employeeRow).find('td:not(.employee-name)').filter ()->
-          return parseInt($(this).data('hour')) >= leave.startHour
-
-      $(leaveTDs).each () ->
-        $(this).css('background', 'lightgrey').addClass('mark')
-
-
-    $('.shift-applicable').each () ->
-      day                       = $(this).data('day')
-      left                      = $(this).offset().left
-      # $scope.daysAndOffset[day] = left
-
-    # Find top offset for each employee
-    $("tbody tr").each () ->
-      id                            = $(this).data("employee-id")
-      top                           = $(this).offset().top
-      $scope.employeesAndOffset[id] = top
-
-app.filter 'acronymify', () ->
-  return (input) ->
-    return input.match(/\b(\w)/g).join('')
-
+     $(document).on 'keyup', (e)->
+       if e.keyCode is 27
+         scope.showPopup     = false
+         scope.showNewPopup  = false
+         scope.resetSelected()
+         scope.$apply()
 
 app.directive 'shiftBar', ($timeout) ->
   restrict: 'A'
@@ -257,13 +281,29 @@ app.directive 'setDrag', ($timeout) ->
 
       rd.event.moved = ->
         console.log 'moved'
+        shiftID              = $(rd.obj).data('shift-id')
+        shift                = scope.grabShift(shiftID)
+        scope.isInitializing = false
+        scope.baseShift      = shift
+
+        if window.event.shiftKey is true
+          #cloned object is the one that is left behind
+          scope.tdToClone     = rd.td.source
+          scope.isCloning     = true
+          scope.$apply()
+        else
+          scope.movedShift    = true
 
       rd.event.dropped = ->
         console.log 'dropped'
-        shiftID          = $(rd.obj).data('shift-id')
-        shift            = scope.grabShift(shiftID)
-        shift.employeeID = $(rd.td.target).parent().data('employee-id')
-        shift.date       = $(rd.td.target).data('date')
+        scope.isCloning     = false
+        scope.movedShift    = false
+        scope.$apply()
+
+      rd.event.notCloned = ->
+        console.log 'notCloned'
+        scope.isCloning     = false
+        scope.movedShift    = false
         scope.$apply()
 
       rd.event.cloned = (clonedElement)->
