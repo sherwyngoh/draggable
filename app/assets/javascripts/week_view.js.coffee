@@ -2,6 +2,52 @@ app = angular.module "weekView", ['weekViewDirectives']
 
 app.controller "weekViewController", ($scope, $timeout) ->
 
+  $scope.data = 
+    daysInWeek       : []
+    calendarStartDate: '27-12-2014'
+    calMomentStart   : moment($scope.calendarStartDate, "DD-MM-YYYY")
+    
+
+  $scope.func =
+    grabShift: (shiftID) ->
+      for shift in $scope.data.shifts
+        return shift if parseInt(shift.id) is parseInt(shiftID)
+
+    setShift: (shiftID) ->
+      $scope.selectedShift    = $scope.func.grabShift(shiftID)
+      $scope.states.showPopup = true
+
+    updateShift: (updatedShift) ->
+      # oldShift             = grabShift(updatedShift.id)
+      # index                = $scope.shifts.indexOf(oldShift)
+      # $scope.shifts[index] = updatedShift
+      # $scope.$apply()
+      $scope.states.showPopup     = false
+
+    resetSelected: ->
+      $scope.data.toggledShifts = []
+      $scope.states.isSelecting   = false
+
+    submitShift: (shift) ->
+      hours        = shift.endHour - shift.startHour
+      hours        += (shift.endMin - shift.startMin)/60
+      shift.length = hours
+      shift.id     = $scope.data.shifts.length + 1
+      $scope.data.shifts.push(shift)
+      $scope.data.newShift       = {role: $scope.roles[0], breakHours: 1, startHour: 8, startMin: '00', endHour: 17, endMin: '00'}
+      $scope.states.showNewPopup = false
+      $scope.data.baseShift      = {}
+      $scope.$apply()
+      $timeout($scope.func.refreshCalendar, 0)
+
+    removeShifts: (shiftsArray) ->
+      for shiftID in shiftsArray
+        shift = $scope.func.grabShift(shiftID)
+        index = $scope.data.shifts.indexOf(shift)
+        if index > -1
+          $scope.data.shifts.splice(index, 1)
+      $timeout($scope.func.refreshCalendar, 0)
+
   $scope.calendarStartDate    = '27-12-2014'
   $scope.calMomentStart       = moment($scope.calendarStartDate, "DD-MM-YYYY")
   $scope.calMomentEnd         = moment($scope.calendarStartDate, "DD-MM-YYYY").add(6, 'days')
@@ -13,9 +59,6 @@ app.controller "weekViewController", ($scope, $timeout) ->
     {id: '3', name: 'Kan G', hoursExcludingThisWeek: 10, costPerHour: 7, totalHours: 35, currentWeekHours: 0}
     {id: '4', name: 'Lesslyn Yoon', hoursExcludingThisWeek: 10, costPerHour: 12, totalHours: 35, currentWeekHours: 0}
   ]
-
-  $scope.daysInWeek         = []
-  $scope.test = {id: '1', employeeID: "1", length: 5.5, startHour: 10, startMin: 30, role: 'Manager', endHour: 16, endMin: '00', date: '27-12-2014', breakHours: 1}
 
   $scope.shifts = [
     {id: '1', employeeID: "1", length: 5.5, startHour: 10, startMin: 30, role: 'Manager', endHour: 16, endMin: '00', date: '27-12-2014', breakHours: 1},
@@ -31,13 +74,8 @@ app.controller "weekViewController", ($scope, $timeout) ->
 
   $scope.shiftColors   = {'Manager': '#3498DB', 'Asst Manager': '#2ECC71', 'Supervisor': '#9B59B6', 'Crew': '#F39C12'}
   $scope.roles         = ["Manager", "Asst Manager", "Supervisor", "Crew"]
-
-  $scope.selectedShift = {}
-  $scope.baseShift     = {}
-
   $scope.newShift      = {role: $scope.roles[0], breakHours: 1, startHour: 8, startMin: '00', endHour: 17, endMin: '00'}
 
-  $scope.toggledShifts = []
 
   $scope.commonShifts  = [
     {id: '1', title: 'Opening', length: 8, startHour: 7, startMin: 30, endHour: 15, endMin: 30, breakHours: 1, role: "Crew"},

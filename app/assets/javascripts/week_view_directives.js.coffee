@@ -75,7 +75,7 @@ app.directive 'calendarSetup', () ->
       while i < 7
         increment = if i != 0 then 1 else 0
         day = scope.calMomentStart.add(increment, 'days')
-        scope.daysInWeek.push([day.format('ddd D MMM'), day.format("D-M-YYYY") ])
+        scope.data.daysInWeek.push([day.format('ddd D MMM'), day.format("D-M-YYYY") ])
         i++
 
     setLeaveBars = ->
