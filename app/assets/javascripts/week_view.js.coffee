@@ -67,7 +67,7 @@ app.controller "weekViewController", ($scope, $timeout) ->
 
   $scope.resetSelected = ->
     $scope.toggledShifts = []
-    $scope.isSelecting   = false
+    $scope.states.isSelecting   = false
 
   $scope.submitShift = (shift) ->
     hours        = shift.endHour - shift.startHour

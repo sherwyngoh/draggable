@@ -1,10 +1,10 @@
-#week-view ng-app="weekView" ng-controller="weekViewController"
+#week-view ng-app="weekView" ng-controller="weekViewController" week-calendar-states=''
   .row
     .col-xs-12.main-box
       .col-xs-6
         h3
           i.fa.fa-angle-double-left ng-click="redipsInit()"
-          | {{calendarDisplayDate}} {{isCloning}}
+          | {{calendarDisplayDate}}
           i.fa.fa-angle-double-right
       .col-xs-6
         .pull-right
@@ -51,18 +51,20 @@
                 i.fa.fa-plus-square.btn-block ng-click="showNewPopup = !showNewPopup"
             td.rubbish-td.bottom-controls colspan='7' ng-click="removeShifts(toggledShifts)"
               i.fa.fa-trash
-      | {{shifts}}
+      | {{states}}
+      br
+      | {{shifts}} 
   = render 'summary'
 
   .shift-bar.drag shift-bar='' ng-model="shift" ng-repeat="shift in shifts" data-length="{{shift.length}}" ng-class="{'selected': toggledShifts.indexOf({{shift.id}}) > -1}" data-shift-id="{{shift.id}}"
 
-  .popup.expand-container ng-show="showPopup"
+  .popup.expand-container ng-show="states.showEditPopup"
     h3 
       | Edit Shift
       small.pull-right
         i.fa.fa-minus
         i.fa.fa-plus
-        i.fa.fa-close ng-click="showPopup = !showPopup"
+        i.fa.fa-close ng-click="states.showEditPopup = !states.showEditPopup"
 
     ng-form.form name="editShiftForm"
       .form-group

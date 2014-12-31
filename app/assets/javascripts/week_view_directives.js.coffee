@@ -2,13 +2,19 @@ app = angular.module 'weekViewDirectives', []
 
 app.directive 'weekCalendarStates', () ->
   restrict: 'A'
-  compile: (scope) ->
-    scope.showPopup     = false
-    scope.showNewPopup  = false
+  link: (scope) ->
+    scope.states = {}
 
-    scope.isSelecting    = false
-    scope.isCloning      = false
-    scope.isInitializing = true
+    states = [
+      'showEditPopup', 
+      'showNewPopup', 
+      'isSelecting', 
+      'isCloning', 
+      'isNotInitializing'
+    ]
+    
+    for state in states
+      scope.states[state] = false
 
 app.directive 'calendarListener', () ->
   restrict: "A"
@@ -23,11 +29,11 @@ app.directive 'calendarListener', () ->
       #clone shift or move shift
       $('.shift-applicable').bind 'DOMNodeInserted ', (event) -> 
         console.log 'dom node inserted'
-        return if scope.isInitializing
+        return unless scope.isNotInitializing
         date           = $(this).data('date')
         employeeID     = $(this).parent().data('employee-id')
         shiftBeforeMod = scope.baseShift
-        if scope.isCloning
+        if scope.states.isCloning
           # make a new shift where clone is at and submit, remove cloned div
           newShift = {}
 
@@ -55,7 +61,7 @@ app.directive 'calendarListener', () ->
         date       = $(this).data('date')
         scope.newShift.date       = date
         scope.newShift.employeeID = employeeID
-        scope.showNewPopup        = true
+        scope.states.showNewPopup        = true
 
         scope.$apply()
 
@@ -119,8 +125,8 @@ app.directive 'popupHandler', () ->
 
      $(document).on 'keyup', (e)->
        if e.keyCode is 27
-         scope.showPopup     = false
-         scope.showNewPopup  = false
+         scope.states.showEditPopup     = false
+         scope.states.showNewPopup  = false
          scope.resetSelected()
          scope.$apply()
 
@@ -171,10 +177,10 @@ app.directive 'setDrag', ($timeout) ->
         if window.event.metaKey
           shiftID            = $(rd.obj).data('shift-id')
           toggleItemInArray(scope.toggledShifts, shiftID)
-          scope.isSelecting = if scope.toggledShifts.length > 0 then true else false
+          scope.states.isSelecting = if scope.toggledShifts.length > 0 then true else false
           scope.$apply()
         else if currentCell.classList.contains('common-shifts')
-          scope.showPopup     = false
+          scope.states.showEditPopup     = false
           scope.$apply()
 
       rd.event.notCloned = ->
@@ -184,33 +190,33 @@ app.directive 'setDrag', ($timeout) ->
         if !(window.event.ctrlKey or window.event.metaKey)
           shiftID             = $(rd.obj).data('shift-id')
           scope.selectedShift = scope.grabShift(shiftID)
-          scope.showPopup     = true
+          scope.states.showEditPopup     = true
           scope.$apply()
 
       rd.event.moved = ->
         console.log 'moved'
         shiftID              = $(rd.obj).data('shift-id')
         shift                = scope.grabShift(shiftID)
-        scope.isInitializing = false
+        scope.isNotInitializing = true
         scope.baseShift      = shift
 
         if window.event.shiftKey is true
           #cloned object is the one that is left behind
           scope.tdToClone     = rd.td.source
-          scope.isCloning     = true
+          scope.states.isCloning     = true
           scope.$apply()
         else
           scope.movedShift    = true
 
       rd.event.dropped = ->
         console.log 'dropped'
-        scope.isCloning     = false
+        scope.states.isCloning     = false
         scope.movedShift    = false
         scope.$apply()
 
       rd.event.notCloned = ->
         console.log 'notCloned'
-        scope.isCloning     = false
+        scope.states.isCloning     = false
         scope.movedShift    = false
         scope.$apply()
 
@@ -237,7 +243,6 @@ app.directive 'setDrag', ($timeout) ->
     if window.addEventListener
       window.addEventListener "load", redipsInit, false
     else window.attachEvent "onload", redipsInit  if window.attachEvent
-
 
 toggleItemInArray = (array, value) ->
   index = array.indexOf(value)
