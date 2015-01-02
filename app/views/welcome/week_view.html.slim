@@ -13,9 +13,10 @@
               .fa.fa-plus
 
             .selected-options
-              | Selected:
-              span ng-if="data.toggledShifts.length > 0"
-                |  ({{data.toggledShifts.length}})
+              h5
+                | Selected:
+                span ng-if="data.toggledShifts.length > 0"
+                  |  ({{data.toggledShifts.length}})
               button.btn.btn-info.btn-md ng-class="{'disabled': !states.isSelecting}" ng-click="func.resetSelected()"
                 | Deselect all
 
