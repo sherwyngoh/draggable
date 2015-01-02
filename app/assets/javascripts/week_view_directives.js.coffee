@@ -168,6 +168,7 @@ app.directive 'setDrag', ($timeout) ->
       rd.clone.keyDiv   = true
       rd.trash.question = 'Are you sure you want to delete this shift?'
 
+
       rd.event.clicked = (currentCell)->
         console.log 'clicked'
         if window.event.metaKey
@@ -217,6 +218,8 @@ app.directive 'setDrag', ($timeout) ->
         scope.shifts.splice(shift, 1)
         scope.$apply()
         console.log 'deleted'
+
+      scope.states.isInitializing = false
 
     # add onload event listener
     if window.addEventListener

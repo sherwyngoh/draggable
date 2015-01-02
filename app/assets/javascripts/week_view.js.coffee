@@ -1,7 +1,6 @@
 window.app = app = angular.module "weekView", []
 
 app.controller "weekViewController", ($scope, $timeout) ->
-
   $scope.states =
     showEditPopup  : false
     showNewPopup   : false
@@ -36,6 +35,13 @@ app.controller "weekViewController", ($scope, $timeout) ->
     {id: '4', employeeID: "3", length: 8, startHour: 12, startMin: 15, role: 'Crew', endHour: 20, endMin: 15, date: '29-12-2014', breakHours: 1.5}
   ]
 
+  $scope.data.originalShifts = [
+    {id: '1', employeeID: "1", length: 5.5, startHour: 10, startMin: 30, role: 'Manager', endHour: 16, endMin: '00', date: '27-12-2014', breakHours: 1},
+    {id: '2', employeeID: "2", length: 8, startHour: 12, startMin: 15, role: 'Asst Manager', endHour: 20, endMin: 15, date: '28-12-2014', breakHours: 1.5}
+    {id: '3', employeeID: "3", length: 8, startHour: 10, startMin: '00', role: 'Supervisor', endHour: 18, endMin: '00', date: '30-12-2014', breakHours: 2}
+    {id: '4', employeeID: "3", length: 8, startHour: 12, startMin: 15, role: 'Crew', endHour: 20, endMin: 15, date: '29-12-2014', breakHours: 1.5}
+  ]
+
   $scope.data.leaves = [
     {employeeID: '3', fullDay: false, startHour: 12}
     {employeeID: '4', fullDay: true, startHour: 12}
@@ -46,6 +52,37 @@ app.controller "weekViewController", ($scope, $timeout) ->
   $scope.data.newShift      = {role: $scope.data.roles[0], breakHours: 1, startHour: 8, startMin: '00', endHour: 17, endMin: '00'}
 
   $scope.func =
+    deleteAll: ->
+      swal
+        title: "Are you sure?"
+        # text: "You will not be able to recover this imaginary file!"
+        type: "warning"
+        showCancelButton: true
+        confirmButtonColor: "#DD6B55"
+        confirmButtonText: "Yes, delete all shifts!"
+        closeOnConfirm: false
+        , ->
+          $scope.data.shifts = {}
+          $scope.$apply()
+          swal "Deleted!", "All shifts cleared.", "success"
+
+
+    copyShift: (shiftFrom, shiftTo) ->
+
+    resetShifts: ->
+      swal
+        title: "Are you sure?"
+        # text: "You will not be able to recover this imaginary file!"
+        type: "warning"
+        showCancelButton: true
+        confirmButtonColor: "#DD6B55"
+        confirmButtonText: "Yes, reset all changes!"
+        closeOnConfirm: false
+        , ->
+          angular.copy($scope.data.originalShifts, $scope.data.shifts)
+          $timeout($scope.func.refreshCalendar, 0)
+          swal "Reset done!", "All shifts reset.", "success"
+
     toggled: ->
       shifts  = $scope.data.shifts
       toggled = $scope.data.toggledShifts
@@ -77,7 +114,6 @@ app.controller "weekViewController", ($scope, $timeout) ->
       $scope.states.showPopup = true
 
     updateShift: (shiftCopy) ->
-
       shiftToUpdate = $scope.data.selectedShift
 
       attrToClone    = $scope.data.attrToClone

@@ -11,10 +11,10 @@
           button.btn.btn-default.btn-lg
             i.fa.fa-undo Undo
 
-          button.btn.btn-default.btn-lg
+          button.btn.btn-default.btn-lg ng-click="func.resetShifts()"
             i.fa.fa-eraser Reset changes
 
-          button.btn.btn-default.btn-lg
+          button.btn.btn-default.btn-lg ng-click="func.deleteAll()"
             i.fa.fa-trash Delete all
 
       table.table set-drag='' calendar-listener='' popup-handler='' calendar-setup=''
@@ -48,10 +48,8 @@
               i.fa.fa-trash
       | {{states}}
       h3 Selected Shift
-      | {{data.selectedShift}}
-      br
-      h3 Shift Copy
-      | {{data.shiftCopy}}
+      | {{data.shifts}}
+
   = render 'summary'
 
   .shift-bar.drag shift-bar='' ng-model="shift" ng-repeat="shift in data.shifts" data-length="{{shift.length}}" ng-class="{'selected': data.toggledShifts.indexOf({{shift.id}}) > -1}" data-shift-id="{{shift.id}}"
