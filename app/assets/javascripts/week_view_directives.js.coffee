@@ -10,18 +10,10 @@ app.directive 'calendarListener', () ->
 
       $('.rubbish-td').bind 'click', ->
         if scope.data.toggledShifts.length > 0
-          swal
-            title: "Are you sure?"
-            # text: "You will not be able to recover this imaginary file!"
-            type: "warning"
-            showCancelButton: true
-            confirmButtonColor: "#DD6B55"
-            confirmButtonText: "Yes, delete!"
-            closeOnConfirm: false
-            , ->
-              scope.func.removeShifts(scope.data.toggledShifts)
-              scope.$apply()
-              swal "Deleted!", "All shifts cleared.", "success"
+          ifSuccess = ->
+            scope.func.removeShifts(scope.data.toggledShifts)
+            scope.$apply()
+          scope.func.swal(ifSuccess, "Yes, delete!")
 
       #clone shift or move shift
       $('.shift-applicable').bind 'DOMNodeInserted ', (event) ->

@@ -30,9 +30,9 @@ app.controller "weekViewController", ($scope, $timeout) ->
 
   $scope.data.shifts = [
     {id: '1', employeeID: "1", length: 5.5, startHour: 10, startMin: 30, role: 'Manager', endHour: 16, endMin: '00', date: '27-12-2014', breakHours: 1},
-    # {id: '2', employeeID: "2", length: 8, startHour: 12, startMin: 15, role: 'Asst Manager', endHour: 20, endMin: 15, date: '28-12-2014', breakHours: 1.5}
-    # {id: '3', employeeID: "3", length: 8, startHour: 10, startMin: '00', role: 'Supervisor', endHour: 18, endMin: '00', date: '30-12-2014', breakHours: 2}
-    # {id: '4', employeeID: "3", length: 8, startHour: 12, startMin: 15, role: 'Crew', endHour: 20, endMin: 15, date: '29-12-2014', breakHours: 1.5}
+    {id: '2', employeeID: "2", length: 8, startHour: 12, startMin: 15, role: 'Asst Manager', endHour: 20, endMin: 15, date: '28-12-2014', breakHours: 1.5}
+    {id: '3', employeeID: "3", length: 8, startHour: 10, startMin: '00', role: 'Supervisor', endHour: 18, endMin: '00', date: '30-12-2014', breakHours: 2}
+    {id: '4', employeeID: "3", length: 8, startHour: 12, startMin: 15, role: 'Crew', endHour: 20, endMin: 15, date: '29-12-2014', breakHours: 1.5}
   ]
 
   $scope.data.originalShifts = [
@@ -52,33 +52,33 @@ app.controller "weekViewController", ($scope, $timeout) ->
   $scope.data.newShift      = {role: $scope.data.roles[0], breakHours: 1, startHour: 8, startMin: '00', endHour: 17, endMin: '00'}
 
   $scope.func =
-    deleteAll: ->
+    swal: (ifSuccess, confirmButtonText, confirmButtonColor, type) ->
+      confirmButtonColor = "#DD6B55" unless confirmButtonColor
+      type = 'warning' unless type
+      debugger
       swal
         title: "Are you sure?"
         # text: "You will not be able to recover this imaginary file!"
-        type: "warning"
+        type: type
+         # "warning", "error", "success" and "info"
         showCancelButton: true
-        confirmButtonColor: "#DD6B55"
-        confirmButtonText: "Yes, delete all shifts!"
-        closeOnConfirm: false
+        confirmButtonColor: confirmButtonColor
+        confirmButtonText: confirmButtonText
+        closeOnConfirm: true
         , ->
-          $scope.data.shifts = {}
-          $scope.$apply()
-          swal "Deleted!", "All shifts cleared.", "success"
+          ifSuccess()
+
+    deleteAll: ->
+      ifSuccess = ->
+        $scope.data.shifts = []
+        $scope.$apply()
+      $scope.func.swal(ifSuccess, "Yes, delete all shifts!")
 
     resetShifts: ->
-      swal
-        title: "Are you sure?"
-        # text: "You will not be able to recover this imaginary file!"
-        type: "warning"
-        showCancelButton: true
-        confirmButtonColor: "#DD6B55"
-        confirmButtonText: "Yes, reset all changes!"
-        closeOnConfirm: false
-        , ->
-          angular.copy($scope.data.originalShifts, $scope.data.shifts)
-          $timeout($scope.func.refreshCalendar, 0)
-          swal "Reset done!", "All shifts reset.", "success"
+      ifSuccess = ->
+        angular.copy($scope.data.originalShifts, $scope.data.shifts)
+        $timeout($scope.func.refreshCalendar, 0)
+      $scope.func.swal(ifSuccess, "Yes, reset all changes!", '#F1C40F')
 
     toggled: ->
       shifts  = $scope.data.shifts
