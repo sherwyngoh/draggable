@@ -8,50 +8,6 @@ app.controller "weekViewController", ($scope, $timeout) ->
     isSelecting    : false
     isCloning      : false
     isInitializing : true
-
-  $scope.func =
-    grabShift: (shiftID) ->
-      for shift in $scope.data.shifts
-        return shift if parseInt(shift.id) is parseInt(shiftID)
-
-    setShift: (shiftID) ->
-      $scope.selectedShift    = $scope.func.grabShift(shiftID)
-      $scope.states.showPopup = true
-
-    updateShift: (updatedShift) ->
-      $scope.states.showEditPopup = false
-      $timeout($scope.func.refreshCalendar, 0)
-      shiftToUpdate = $scope.func.grabShift(updatedShift.id)
-      shifts        = $scope.data.shifts
-      index         = shifts.indexOf(shiftToUpdate)
-      shifts.splice(index, 1, updatedShift)
-      $scope.func.updateShiftColor(updatedShift)
-      $scope.data.selectedShift = {}
-
-    resetSelected: ->
-      $scope.data.toggledShifts = []
-      $scope.states.isSelecting   = false
-
-    submitShift: (shift) ->
-      hours        = shift.endHour - shift.startHour
-      hours        += (shift.endMin - shift.startMin)/60
-      shift.length = hours
-      shift.id     = $scope.data.shifts.length + 1
-      $scope.data.shifts.push(shift)
-      $scope.data.newShift       = {role: $scope.data.roles[0], breakHours: 1, startHour: 8, startMin: '00', endHour: 17, endMin: '00'}
-      $scope.states.showNewPopup = false
-      $scope.data.baseShift      = {}
-      $scope.$apply()
-      $timeout($scope.func.refreshCalendar, 0)
-
-    removeShifts: (shiftsArray) ->
-      for shiftID in shiftsArray
-        shift = $scope.func.grabShift(shiftID)
-        index = $scope.data.shifts.indexOf(shift)
-        if index > -1
-          $scope.data.shifts.splice(index, 1)
-      $timeout($scope.func.refreshCalendar, 0)
-
   #init
   $scope.data =
     daysInWeek    : []
@@ -86,6 +42,73 @@ app.controller "weekViewController", ($scope, $timeout) ->
   $scope.data.shiftColors   = {'Manager': '#3498DB', 'Asst Manager': '#2ECC71', 'Supervisor': '#9B59B6', 'Crew': '#F39C12'}
   $scope.data.roles         = ["Manager", "Asst Manager", "Supervisor", "Crew"]
   $scope.data.newShift      = {role: $scope.data.roles[0], breakHours: 1, startHour: 8, startMin: '00', endHour: 17, endMin: '00'}
+
+  $scope.func =
+    toggled: ->
+      shifts  = $scope.data.shifts
+      toggled = $scope.data.toggledShifts
+      for shift in shifts
+        shiftBar   =  $('.shift-bar[data-shift-id="' + shift.id + '"]')
+        role       = shift.role
+        shiftColor = $scope.data.shiftColors[role]
+        if toggled.indexOf(parseInt(shift.id)) is -1
+          shiftBar
+            .css('color', shiftColor)
+            .css('background-color', 'white')
+            .css('border', '3px solid ' + shiftColor)
+        else
+          shiftBar
+            .css('color', 'white')
+            .css('background-color', shiftColor)
+            .css('border', '3px solid ' + shiftColor)
+
+    resetForm: (form) ->
+      form.$setPristine()
+      $scope.$apply()
+
+    grabShift: (shiftID) ->
+      for shift in $scope.data.shifts
+        return shift if parseInt(shift.id) is parseInt(shiftID)
+
+    setShift: (shiftID) ->
+      $scope.selectedShift    = $scope.func.grabShift(shiftID)
+      $scope.states.showPopup = true
+
+    updateShift: (updatedShift) ->
+      $scope.states.showEditPopup = false
+      $timeout($scope.func.refreshCalendar, 0)
+      shiftToUpdate = $scope.func.grabShift(updatedShift.id)
+      shifts        = $scope.data.shifts
+      index         = shifts.indexOf(shiftToUpdate)
+      shifts.splice(index, 1, updatedShift)
+      $scope.func.updateShiftColor(updatedShift)
+      $scope.data.selectedShift = {}
+
+    resetSelected: ->
+      $scope.data.toggledShifts = []
+      $scope.states.isSelecting   = false
+      $scope.func.toggled()
+
+    submitShift: (shift) ->
+      hours        = shift.endHour - shift.startHour
+      hours        += (shift.endMin - shift.startMin)/60
+      shift.length = hours
+      shift.id     = $scope.data.shifts.length + 1
+      $scope.data.shifts.push(shift)
+      $scope.data.newShift       = {role: $scope.data.roles[0], breakHours: 1, startHour: 8, startMin: '00', endHour: 17, endMin: '00'}
+      $scope.states.showNewPopup = false
+      $scope.data.baseShift      = {}
+      $scope.$apply()
+      $timeout($scope.func.refreshCalendar, 0)
+
+    removeShifts: (shiftsArray) ->
+      for shiftID in shiftsArray
+        shift = $scope.func.grabShift(shiftID)
+        index = $scope.data.shifts.indexOf(shift)
+        if index > -1
+          $scope.data.shifts.splice(index, 1)
+      $timeout($scope.func.refreshCalendar, 0)
+
 
 app.filter 'acronymify', () ->
   return (input) ->

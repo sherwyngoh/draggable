@@ -48,6 +48,7 @@ app.directive 'calendarListener', () ->
 
         scope.$apply()
 
+
 app.directive 'calendarSetup', () ->
   restrict: 'A'
   link: (scope) ->
@@ -133,7 +134,6 @@ app.directive 'shiftBar', ($timeout) ->
         .html('<span>' + shift.role + "<br/>" + shift.startHour + ':' + shift.startMin + ' - ' + shift.endHour + ':' + shift.endMin + "</span>")
       return
 
-
     setShift = ->
       console.log 'setting shift'
       tdWidth     = parseInt($('.shift-applicable').first().css('width'))
@@ -178,6 +178,8 @@ app.directive 'setDrag', ($timeout) ->
           toggleItemInArray(scope.data.toggledShifts, shiftID)
           scope.states.isSelecting = if scope.data.toggledShifts.length > 0 then true else false
           scope.$apply()
+          scope.func.toggled()
+
 
       rd.event.notCloned = ->
         console.log 'not cloned'

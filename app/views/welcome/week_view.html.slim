@@ -47,11 +47,14 @@
             td.rubbish-td.bottom-controls colspan='7' ng-click="func.removeShifts(data.toggledShifts)"
               i.fa.fa-trash
       | {{states}}
+      h3 Selected Shift
+      | {{data.toggledShifts}}
+      br
+      h3 Shifts
       | {{data.shifts}}
   = render 'summary'
 
   .shift-bar.drag shift-bar='' ng-model="shift" ng-repeat="shift in data.shifts" data-length="{{shift.length}}" ng-class="{'selected': data.toggledShifts.indexOf({{shift.id}}) > -1}" data-shift-id="{{shift.id}}"
-
   .popup.expand-container ng-show="states.showEditPopup"
     h3
       | Edit Shift
@@ -111,5 +114,6 @@
       .form-group
         .col-xs-12
           button.btn.btn-primary.btn-block ng-disabled="editShiftForm.$pristine" ng-click="func.updateShift(data.selectedShift)" Update shift
+          / button ng-click="resetForm({{data.selectedShift}})"
 
   = render 'newShiftPopup'
