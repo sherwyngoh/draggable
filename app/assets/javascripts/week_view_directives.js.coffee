@@ -163,9 +163,6 @@ app.directive 'setDrag', ($timeout) ->
           toggleItemInArray(scope.data.toggledShifts, shiftID)
           scope.states.isSelecting = if scope.data.toggledShifts.length > 0 then true else false
           scope.$apply()
-        else if currentCell.classList.contains('common-shifts')
-          scope.states.showEditPopup     = false
-          scope.$apply()
 
       rd.event.notCloned = ->
         console.log 'not cloned'

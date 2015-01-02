@@ -19,11 +19,6 @@
 
       table.table set-drag='' calendar-listener='' popup-handler='' calendar-setup=''
         thead
-          / tr
-          /   td.mark.common-shifts colspan="8"
-
-          /     .shift-bar.drag.clone shift-bar='' ng-model="commonShift" ng-repeat="commonShift in commonShifts" ng-class="{'selected': toggledShifts.indexOf({{shift.id}}) > -1}" data-common-shift-id="{{commonShift.id}}"
-
           tr
             th.mark
               | Staff
