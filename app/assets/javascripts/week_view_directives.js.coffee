@@ -3,10 +3,8 @@ app.directive 'calendarListener', () ->
   link: (scope) ->
     $ ->
       $('.summary-button').on 'click', ->
-        $('summary ng-form').show()
-        $('summary .fa-plus').hide()
-        $('summary .fa-minus').show()
-        $.scrollTo($(window).height(), 300)
+        $('summary .fa-plus').click()
+        $.scrollTo($('summary').height(), 300)
 
       #trash box functionality
       $('.rubbish-td').bind 'DOMNodeInserted', (event) ->
@@ -26,7 +24,7 @@ app.directive 'calendarListener', () ->
         console.log 'dom node inserted'
         return if scope.states.isInitializing
         date           = $(this).data('date')
-        employeeID     = $(this).parent().data('employee-id')
+        employeeID     = $(this).data('employee-id')
         shiftBeforeMod = scope.data.baseShift
         if scope.states.isCloning
           # make a new shift where clone is at and submit, remove cloned div
@@ -48,6 +46,7 @@ app.directive 'calendarListener', () ->
           console.log 'modifying previous'
           shiftBeforeMod.date       = date
           shiftBeforeMod.employeeID = employeeID
+          scope.func.estimate()
           scope.$apply()
 
       #click on date box
@@ -202,28 +201,33 @@ app.directive 'setDrag', ($timeout) ->
 
       rd.event.moved = ->
         console.log 'moved'
-        shiftID                     = $(rd.obj).data('shift-id')
-        shift                       = scope.func.grabShift(shiftID)
-        scope.data.baseShift        = shift
+        shiftID                 = $(rd.obj).data('shift-id')
+        shift                   = scope.func.grabShift(shiftID)
+        scope.data.baseShift    = shift
+        scope.states.isDragging = true
 
         if window.event.shiftKey is true
-          scope.data.tdToClone     = rd.td.source
-          scope.states.isCloning     = true
-          scope.$apply()
+          scope.data.tdToClone   = rd.td.source
+          scope.states.isCloning = true
+
+        scope.$apply()
 
       rd.event.dropped = ->
         console.log 'dropped'
-        scope.states.isCloning     = false
+        scope.states.isDragging = false
+        scope.states.isCloning  = false
         scope.$apply()
 
       rd.event.notCloned = ->
         console.log 'notCloned'
-        scope.states.isCloning = false
+        scope.states.isDragging = false
+        scope.states.isCloning  = false
         scope.$apply()
 
       rd.event.deleted = (cloned) ->
         shift = scope.func.grabShift($(rd.td).data('shift-id'))
         index = scope.data.shifts.indexOf(shift)
+        scope.states.isDragging  = false
         scope.shifts.splice(shift, 1)
         scope.$apply()
         console.log 'deleted'
@@ -298,9 +302,6 @@ app.directive "ngCurrency", [
         return
     )
 ]
-
-
-
 
 
 toggleItemInArray = (array, value) ->
