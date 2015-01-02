@@ -1,14 +1,13 @@
 window.app = app = angular.module "weekView", []
 
 app.controller "weekViewController", ($scope, $timeout) ->
-
+  #SS new shift breaks estimates, test cloning
   $scope.states =
     showEditPopup  : false
     showNewPopup   : false
     isSelecting    : false
     isCloning      : false
     isInitializing : true
-    isDragging     : false
 
   #init
   $scope.data =
@@ -26,18 +25,18 @@ app.controller "weekViewController", ($scope, $timeout) ->
   $scope.data.calendarDisplayDate  = $scope.data.calMomentStart.format('ddd Do MMM YYYY') + " - " + $scope.data.calMomentEnd.format('ddd Do MMM YYYY')
 
   $scope.data.employees = [
-    {id: '1', name: 'Fordon Ng', hoursExcludingThisWeek: 20, costPerHour: 10, totalHours: 40, currentWeekHours: 0}
-    {id: '2', name: 'Zadwin Feng', hoursExcludingThisWeek: 16, costPerHour: 7.5, totalHours: 40, currentWeekHours: 0}
+    {id: '1', name: 'Fordon Ng', hoursExcludingThisWeek: 20, costPerHour: 10, totalHours: 40, currentWeekHours: 5.5}
+    {id: '2', name: 'Zadwin Feng', hoursExcludingThisWeek: 16, costPerHour: 7.5, totalHours: 40, currentWeekHours: 8}
     {id: '3', name: 'Kan G', hoursExcludingThisWeek: 10, costPerHour: 7, totalHours: 35, currentWeekHours: 0}
     {id: '4', name: 'Lesslyn', hoursExcludingThisWeek: 10, costPerHour: 12, totalHours: 35, currentWeekHours: 0}
-    {id: '5', name: 'Zherwyn', hoursExcludingThisWeek: 10, costPerHour: 15, totalHours: 35, currentWeekHours: 0}
-    {id: '6', name: 'Jebastian', hoursExcludingThisWeek: 10, costPerHour: 15, totalHours: 35, currentWeekHours: 0}
-    {id: '7', name: 'Bnonoz', hoursExcludingThisWeek: 10, costPerHour: 15, totalHours: 35, currentWeekHours: 0}
-    {id: '8', name: 'Zordon', hoursExcludingThisWeek: 10, costPerHour: 15, totalHours: 35, currentWeekHours: 0}
-    # {id: '9', name: 'White Ranger', hoursExcludingThisWeek: 10, costPerHour: 12, totalHours: 35, currentWeekHours: 0}
-    # {id: '10', name: 'Red Ranger', hoursExcludingThisWeek: 10, costPerHour: 12, totalHours: 35, currentWeekHours: 0}
-    # {id: '11', name: 'Black Ranger', hoursExcludingThisWeek: 10, costPerHour: 12, totalHours: 35, currentWeekHours: 0}
-    # {id: '12', name: 'Yellow Ranger', hoursExcludingThisWeek: 10, costPerHour: 12, totalHours: 35, currentWeekHours: 0}
+    {id: '5', name: 'Zherwyn', hoursExcludingThisWeek: 10, costPerHour: 12, totalHours: 35, currentWeekHours: 0}
+    {id: '6', name: 'Jebastian', hoursExcludingThisWeek: 10, costPerHour: 12, totalHours: 35, currentWeekHours: 0}
+    {id: '7', name: 'Bnonoz', hoursExcludingThisWeek: 10, costPerHour: 12, totalHours: 35, currentWeekHours: 0}
+    {id: '8', name: 'Zordon', hoursExcludingThisWeek: 10, costPerHour: 12, totalHours: 35, currentWeekHours: 0}
+    {id: '9', name: 'White Ranger', hoursExcludingThisWeek: 10, costPerHour: 12, totalHours: 35, currentWeekHours: 0}
+    {id: '10', name: 'Red Ranger', hoursExcludingThisWeek: 10, costPerHour: 12, totalHours: 35, currentWeekHours: 0}
+    {id: '11', name: 'Black Ranger', hoursExcludingThisWeek: 10, costPerHour: 12, totalHours: 35, currentWeekHours: 0}
+    {id: '12', name: 'Yellow Ranger', hoursExcludingThisWeek: 10, costPerHour: 12, totalHours: 35, currentWeekHours: 0}
   ]
 
   $scope.data.shifts = [
@@ -79,9 +78,9 @@ app.controller "weekViewController", ($scope, $timeout) ->
 
       for shift in $scope.data.shifts
         employee     = $scope.func.grabEmployee(shift.employeeID)
-        $scope.data.wageEstimate += employee.costPerHour * shift.length
+        $scope.data.wageEstimate += parseInt(employee.costPerHour) * parseInt(shift.length)
 
-        employee.currentWeekHours += shift.length
+        employee.currentWeekHours += parseInt(shift.length)
 
 
 

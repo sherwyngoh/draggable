@@ -26,6 +26,7 @@ app.directive 'calendarListener', () ->
         date           = $(this).data('date')
         employeeID     = $(this).data('employee-id')
         shiftBeforeMod = scope.data.baseShift
+
         if scope.states.isCloning
           # make a new shift where clone is at and submit, remove cloned div
           newShift = {}
@@ -203,11 +204,11 @@ app.directive 'setDrag', ($timeout) ->
         console.log 'moved'
         shiftID                 = $(rd.obj).data('shift-id')
         shift                   = scope.func.grabShift(shiftID)
-        scope.data.baseShift    = shift
+        angular.copy(shift, scope.data.baseShift)
         scope.states.isDragging = true
 
         if window.event.shiftKey is true
-          scope.data.tdToClone   = rd.td.source
+          # scope.data.tdToClone   = rd.td.source
           scope.states.isCloning = true
 
         scope.$apply()
