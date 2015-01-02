@@ -4,9 +4,24 @@ app.directive 'calendarListener', () ->
     $ ->
       #trash box functionality
       $('.rubbish-td').bind 'DOMNodeInserted', (event) ->
-          shiftID = $(this).find('.shift-bar').data('shift-id')
-          scope.func.removeShifts([shiftID])
-          scope.$apply()
+        shiftID = $(this).find('.shift-bar').data('shift-id')
+        scope.func.removeShifts([shiftID])
+        scope.$apply()
+
+      $('.rubbish-td').bind 'click', ->
+        if scope.data.toggledShifts.length > 0
+          swal
+            title: "Are you sure?"
+            # text: "You will not be able to recover this imaginary file!"
+            type: "warning"
+            showCancelButton: true
+            confirmButtonColor: "#DD6B55"
+            confirmButtonText: "Yes, delete!"
+            closeOnConfirm: false
+            , ->
+              scope.func.removeShifts(scope.data.toggledShifts)
+              scope.$apply()
+              swal "Deleted!", "All shifts cleared.", "success"
 
       #clone shift or move shift
       $('.shift-applicable').bind 'DOMNodeInserted ', (event) ->
@@ -27,7 +42,9 @@ app.directive 'calendarListener', () ->
           newShift.employeeID = employeeID
 
           scope.func.submitShift(newShift)
+
           $('.shift-bar[data-shift-id="' + shiftBeforeMod.id + '"]').first().remove()
+
           # We allow angular directives to create this clone
         else
           console.log 'modifying previous'
@@ -73,19 +90,6 @@ app.directive 'calendarSetup', () ->
 
         $(leaveTDs).each () ->
           $(this).css('background', 'lightgrey').addClass('mark')
-
-    scope.func.refreshCalendar = ->
-      console.log 'refreshing calendar'
-      for shift in scope.data.shifts
-        employeeID      = shift.employeeID
-        employeeRow     = $('tr[data-employee-id="' + employeeID + '"]')
-        shiftStartingUL = $(employeeRow).find('td[data-date=' +  shift.date + ']')
-        element         = $('.shift-bar[data-shift-id="' + shift.id + '"]')
-        shiftStartingUL.append(element)
-
-      REDIPS.drag.init('week-view')
-      scope.states.isInitializing = false
-
 
     setCalendarDays()
     $ ->
@@ -174,7 +178,12 @@ app.directive 'setDrag', ($timeout) ->
         if window.event.metaKey
           shiftID            = $(rd.obj).data('shift-id')
           toggleItemInArray(scope.data.toggledShifts, shiftID)
-          scope.states.isSelecting = if scope.data.toggledShifts.length > 0 then true else false
+
+          if scope.data.toggledShifts.length > 0
+            scope.states.isSelecting = true
+          else
+            scope.states.isSelecting = false
+
           scope.$apply()
           scope.func.toggled()
 

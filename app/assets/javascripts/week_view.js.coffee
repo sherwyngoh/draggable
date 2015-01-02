@@ -30,9 +30,9 @@ app.controller "weekViewController", ($scope, $timeout) ->
 
   $scope.data.shifts = [
     {id: '1', employeeID: "1", length: 5.5, startHour: 10, startMin: 30, role: 'Manager', endHour: 16, endMin: '00', date: '27-12-2014', breakHours: 1},
-    {id: '2', employeeID: "2", length: 8, startHour: 12, startMin: 15, role: 'Asst Manager', endHour: 20, endMin: 15, date: '28-12-2014', breakHours: 1.5}
-    {id: '3', employeeID: "3", length: 8, startHour: 10, startMin: '00', role: 'Supervisor', endHour: 18, endMin: '00', date: '30-12-2014', breakHours: 2}
-    {id: '4', employeeID: "3", length: 8, startHour: 12, startMin: 15, role: 'Crew', endHour: 20, endMin: 15, date: '29-12-2014', breakHours: 1.5}
+    # {id: '2', employeeID: "2", length: 8, startHour: 12, startMin: 15, role: 'Asst Manager', endHour: 20, endMin: 15, date: '28-12-2014', breakHours: 1.5}
+    # {id: '3', employeeID: "3", length: 8, startHour: 10, startMin: '00', role: 'Supervisor', endHour: 18, endMin: '00', date: '30-12-2014', breakHours: 2}
+    # {id: '4', employeeID: "3", length: 8, startHour: 12, startMin: 15, role: 'Crew', endHour: 20, endMin: 15, date: '29-12-2014', breakHours: 1.5}
   ]
 
   $scope.data.originalShifts = [
@@ -65,9 +65,6 @@ app.controller "weekViewController", ($scope, $timeout) ->
           $scope.data.shifts = {}
           $scope.$apply()
           swal "Deleted!", "All shifts cleared.", "success"
-
-
-    copyShift: (shiftFrom, shiftTo) ->
 
     resetShifts: ->
       swal
@@ -126,22 +123,27 @@ app.controller "weekViewController", ($scope, $timeout) ->
       $timeout($scope.func.refreshCalendar, 0)
       $scope.func.toggled()
 
-
     resetSelected: ->
       $scope.data.toggledShifts = []
       $scope.states.isSelecting   = false
       $scope.func.toggled()
 
-    submitShift: ->
-      shift        = $scope.data.newShift
+    createFromPopup: ->
+      $scope.data.newShift.id = $scope.data.shifts.length + 1
+      $scope.data.shifts.push($scope.data.newShift)
+      $scope.data.newShift       = {role: $scope.data.roles[0], breakHours: 1, startHour: 8, startMin: '00', endHour: 17, endMin: '00'}
+      $scope.states.showNewPopup = false
+      $scope.$apply()
+      $timeout($scope.func.refreshCalendar, 0)
+
+    submitShift: (shift) ->
       hours        = shift.endHour - shift.startHour
       hours        += (shift.endMin - shift.startMin)/60
       shift.length = hours
       shift.id     = $scope.data.shifts.length + 1
       $scope.data.shifts.push(shift)
-      $scope.data.newShift       = {role: $scope.data.roles[0], breakHours: 1, startHour: 8, startMin: '00', endHour: 17, endMin: '00'}
-      $scope.states.showNewPopup = false
-      $scope.data.baseShift      = {}
+      $scope.data.baseShift = {}
+      $scope.$apply()
       $timeout($scope.func.refreshCalendar, 0)
 
     removeShifts: (shiftsArray) ->
@@ -150,7 +152,21 @@ app.controller "weekViewController", ($scope, $timeout) ->
         index = $scope.data.shifts.indexOf(shift)
         if index > -1
           $scope.data.shifts.splice(index, 1)
+
       $timeout($scope.func.refreshCalendar, 0)
+      $scope.func.resetSelected()
+
+    refreshCalendar: ->
+      console.log 'refreshing calendar'
+      for shift in $scope.data.shifts
+        employeeID      = shift.employeeID
+        employeeRow     = $('tr[data-employee-id="' + employeeID + '"]')
+        shiftStartingUL = $(employeeRow).find('td[data-date=' +  shift.date + ']')
+        element         = $('.shift-bar[data-shift-id="' + shift.id + '"]')
+        shiftStartingUL.append(element)
+
+      REDIPS.drag.init('week-view')
+      $scope.states.isInitializing = false
 
 
 app.filter 'acronymify', () ->

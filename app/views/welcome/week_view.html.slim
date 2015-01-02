@@ -8,14 +8,18 @@
           i.fa.fa-angle-double-right
       .col-xs-6
         .pull-right
-          button.btn.btn-default.btn-lg
-            i.fa.fa-undo Undo
+          button.btn.btn-default.btn-md ng-class="{'disabled': !states.isSelecting}" ng-click="func.resetSelected()"
+            | Deselect all
+            span ng-if="data.toggledShifts.length > 0"
+              |   ({{data.toggledShifts.length}})
 
-          button.btn.btn-default.btn-lg ng-click="func.resetShifts()"
-            i.fa.fa-eraser Reset changes
+          button.btn.btn-default.btn-md ng-click="func.resetShifts()"
+            i.fa.fa-eraser
+            | Reset changes
 
-          button.btn.btn-default.btn-lg ng-click="func.deleteAll()"
-            i.fa.fa-trash Delete all
+          button.btn.btn-default.btn-md ng-click="func.deleteAll()"
+            i.fa.fa-trash
+            | Delete all
 
       table.table set-drag='' calendar-listener='' popup-handler='' calendar-setup=''
         thead
@@ -40,14 +44,12 @@
             td.shift-applicable ng-repeat="day in data.daysInWeek" data-date="{{day[1]}}" ng-model="day"
           tr
             td.mark colspan='1'
-              .undo-td.bottom-controls
-                i.fa.fa-undo.btn-block ng-click="func.resetSelected()"
-              .plus-td.bottom-controls.pull-right
+              .plus-td.bottom-controls
                 i.fa.fa-plus-square.btn-block ng-click="states.showNewPopup = !states.showNewPopup"
-            td.rubbish-td.bottom-controls colspan='7' ng-click="func.removeShifts(data.toggledShifts)"
+            td.rubbish-td.bottom-controls colspan='7' ng-click="func.rubbishClicked()"
               i.fa.fa-trash
       | {{states}}
-      h3 Selected Shift
+      h4 Shifts
       | {{data.shifts}}
 
   = render 'summary'
