@@ -227,6 +227,74 @@ app.directive 'setDrag', ($timeout) ->
       window.addEventListener "load", redipsInit, false
     else window.attachEvent "onload", redipsInit  if window.attachEvent
 
+
+app.directive "ngCurrency", [
+  "$filter"
+  "$locale"
+  ($filter, $locale) ->
+    return (
+      require: "ngModel"
+      scope:
+        min: "=min"
+        max: "=max"
+        currencySymbol: "@"
+        ngRequired: "=ngRequired"
+
+      link: (scope, element, attrs, ngModel) ->
+        decimalRex = (dChar) ->
+          RegExp "\\d|\\-|\\" + dChar, "g"
+        clearRex = (dChar) ->
+          RegExp "\\-{0,1}((\\" + dChar + ")|([0-9]{1,}\\" + dChar + "?))&?[0-9]{0,2}", "g"
+        clearValue = (value) ->
+          value = String(value)
+          dSeparator = $locale.NUMBER_FORMATS.DECIMAL_SEP
+          cleared = null
+          value = "-0"  if RegExp("^-[\\s]*$", "g").test(value)
+          if decimalRex(dSeparator).test(value)
+            cleared = value.match(decimalRex(dSeparator)).join("").match(clearRex(dSeparator))
+            cleared = (if cleared then cleared[0].replace(dSeparator, ".") else null)
+          else
+            cleaned = null
+          cleared
+        currencySymbol = ->
+          return ''
+          if angular.isDefined(scope.currencySymbol)
+            scope.currencySymbol
+          else
+            $locale.NUMBER_FORMATS.CURRENCY_SYM
+        runValidations = (cVal) ->
+          return  if not scope.ngRequired and isNaN(cVal)
+          if scope.min
+            min = parseFloat(scope.min)
+            ngModel.$setValidity "min", cVal >= min
+          if scope.max
+            max = parseFloat(scope.max)
+            ngModel.$setValidity "max", cVal <= max
+          return
+        ngModel.$parsers.push (viewValue) ->
+          cVal = clearValue(viewValue)
+          parseFloat cVal
+
+        element.on "blur", ->
+          element.val $filter("currency")(ngModel.$modelValue, currencySymbol())
+          return
+
+        ngModel.$formatters.unshift (value) ->
+          $filter("currency") value, currencySymbol()
+
+        scope.$watch (->
+          ngModel.$modelValue
+        ), (newValue, oldValue) ->
+          runValidations newValue
+          return
+        return
+    )
+]
+
+
+
+
+
 toggleItemInArray = (array, value) ->
   index = array.indexOf(value)
   if index is -1

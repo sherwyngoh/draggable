@@ -53,6 +53,13 @@ app.controller "weekViewController", ($scope, $timeout) ->
   $scope.data.roles         = ["Manager", "Asst Manager", "Supervisor", "Crew"]
   $scope.data.newShift      = {role: $scope.data.roles[0], breakHours: 1, startHour: 8, startMin: '00', endHour: 17, endMin: '00'}
 
+  $scope.data.salesForecast    = "32400"
+  $scope.data.budgetPercentage = "15"
+  $scope.data.wageBudget       =  ($scope.data.salesForecast/100) *  $scope.data.budgetPercentage
+
+  $scope.$watchGroup ['data.salesForecast', 'data.budgetPercentage'], (newVal, oldVal, scope) ->
+    $scope.data.wageBudget       =  ($scope.data.salesForecast/100) *  $scope.data.budgetPercentage
+
   $scope.func =
     swal: (ifSuccess, confirmButtonText, confirmButtonColor, type) ->
       confirmButtonColor = "#DD6B55" unless confirmButtonColor

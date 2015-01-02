@@ -48,11 +48,11 @@
                 i.fa.fa-plus-square.btn-block ng-click="states.showNewPopup = !states.showNewPopup"
             td.rubbish-td.bottom-controls colspan='7' ng-click="func.rubbishClicked()"
               i.fa.fa-trash
-      | {{states}}
-      h4 Shifts
-      | {{data.shifts}}
+      / | {{states}}
+      / h4 Shifts
+      / | {{data.shifts}}
 
-  = render 'summary'
+      = render 'summary'
 
   .shift-bar.drag shift-bar='' ng-model="shift" ng-repeat="shift in data.shifts" data-length="{{shift.length}}" ng-class="{'selected': data.toggledShifts.indexOf({{shift.id}}) > -1}" data-shift-id="{{shift.id}}"
   .popup.expand-container ng-show="states.showEditPopup"

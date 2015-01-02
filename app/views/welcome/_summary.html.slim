@@ -1,23 +1,38 @@
+summary.drag.expand-container.col-sm-5.pull-right
+  .row
+    .col-xs-6
+      h4 Summary
+    .col-xs-6
+      .pull-right
+        i.fa.fa-plus
+        i.fa.fa-minus
 
-/ summary.expand-container
-/   .col-xs-6
-/     h4 Summary
-/   .col-xs-6
-/     .pull-right
-/       i.fa.fa-plus
-/       i.fa.fa-minus
-/   ng-form.content.col-xs-12
-/     .form-group
-/       label Sales forecast:
-/       input.form-control type='text' ng-model='salesForecast'
-/     .form-group
-/       label Percentage of sales for budget:
-/       input.form-control type='text' ng-model='budgetPercentage'
-/     .form-group
-/       label Wage budget:
-/       p
-/         | {{wageBudget}}
-/     .form-group
-/       label Current estimation:
-/       p
-/         | {{wageEstimation}}
+  ng-form.content
+    .row
+      .col-xs-6
+        label Sales forecast:
+      .col-xs-6
+        .input-group
+          .input-group-addon $
+          input.form-control placeholder="Forecast amount" type="text" ng-model='data.salesForecast' data-ng-currency=''
+
+    .row
+      .col-xs-6
+        label Percentage of sales for budget:
+      .col-xs-6
+        .input-group
+          .input-group-addon %
+          input.form-control placeholder="Forecast amount" type="text" ng-model='data.budgetPercentage'
+
+    .row
+      .col-xs-6
+        label Wage budget:
+      .col-xs-6
+        p
+          | {{data.wageBudget | currency}}
+    .row
+      .col-xs-6
+        label Current estimation:
+      .col-xs-6
+        p
+          | {{data.wageEstimation | currency}}
