@@ -2,6 +2,12 @@ app.directive 'calendarListener', () ->
   restrict: "A"
   link: (scope) ->
     $ ->
+      $('.summary-button').on 'click', ->
+        $('summary ng-form').show()
+        $('summary .fa-plus').hide()
+        $('summary .fa-minus').show()
+        $.scrollTo($(window).height(), 300)
+
       #trash box functionality
       $('.rubbish-td').bind 'DOMNodeInserted', (event) ->
         shiftID = $(this).find('.shift-bar').data('shift-id')
@@ -173,7 +179,6 @@ app.directive 'setDrag', ($timeout) ->
         if window.event.metaKey
           shiftID            = $(rd.obj).data('shift-id')
           toggleItemInArray(scope.data.toggledShifts, shiftID)
-
           if scope.data.toggledShifts.length > 0
             scope.states.isSelecting = true
           else

@@ -1,28 +1,31 @@
 #week-view ng-app="weekView" ng-controller="weekViewController"
   .row
     .col-xs-12.main-box
-      .col-xs-6
-        h3
-          i.fa.fa-angle-double-left ng-click="func.resetShifts()"
-          | {{data.calendarDisplayDate}}
-          i.fa.fa-angle-double-right
-      .col-xs-6.page-buttons
-        .pull-right
-          button.btn.btn-success ng-click="states.showNewPopup = !states.showNewPopup"
-            .fa.fa-plus.btn-block
+      .row
+        .col-xs-6
+          h3
+            i.fa.fa-angle-double-left ng-click="func.resetShifts()"
+            | {{data.calendarDisplayDate}}
+            i.fa.fa-angle-double-right
+        .col-xs-6.page-buttons
+          .pull-right
+            button.btn.btn-success ng-click="states.showNewPopup = !states.showNewPopup"
+              .fa.fa-plus.btn-block
 
-          button.btn.btn-default.btn-md ng-class="{'disabled': !states.isSelecting}" ng-click="func.resetSelected()"
-            | Deselect all
-            span ng-if="data.toggledShifts.length > 0"
-              |   ({{data.toggledShifts.length}})
+            button.btn.btn-default.btn-md ng-class="{'disabled': !states.isSelecting}" ng-click="func.resetSelected()"
+              | Deselect all
+              span ng-if="data.toggledShifts.length > 0"
+                |   ({{data.toggledShifts.length}})
 
-          button.btn.btn-default.btn-md ng-click="func.resetShifts()"
-            i.fa.fa-eraser
-            | Reset changes
+            button.btn.btn-default.btn-md ng-click="func.resetShifts()"
+              i.fa.fa-eraser
+              | Reset changes
 
-          button.btn.btn-default.btn-md ng-click="func.deleteAll()"
-            i.fa.fa-trash
-            | Delete all
+            button.btn.btn-default.btn-md ng-click="func.deleteAll()"
+              i.fa.fa-trash
+              | Delete all
+
+            button.btn.btn-default.btn-md.summary-button View Summary
 
       .scrollable
         table.table set-drag='' calendar-listener='' popup-handler='' calendar-setup=''

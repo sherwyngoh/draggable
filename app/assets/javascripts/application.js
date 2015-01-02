@@ -19,6 +19,7 @@
 //= require jquery-tag-input
 //= require moment
 //= require redips-drag-min
+//= require scrollTo.min
 //= require_tree .
 
 
