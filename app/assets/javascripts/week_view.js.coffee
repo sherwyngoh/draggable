@@ -73,9 +73,16 @@ app.controller "weekViewController", ($scope, $timeout) ->
     estimate: ->
       console.log 'reestimating'
       $scope.data.wageEstimate = 0
+      for employee in $scope.data.employees
+        employee.currentWeekHours = 0
+
       for shift in $scope.data.shifts
-        employeeRate = $scope.func.grabEmployee(shift.employeeID).costPerHour
-        $scope.data.wageEstimate += employeeRate * shift.length
+        employee     = $scope.func.grabEmployee(shift.employeeID)
+        $scope.data.wageEstimate += employee.costPerHour * shift.length
+
+        employee.currentWeekHours += shift.length
+
+
 
     swal: (ifSuccess, confirmButtonText, confirmButtonColor, type) ->
       confirmButtonColor = "#DD6B55" unless confirmButtonColor
