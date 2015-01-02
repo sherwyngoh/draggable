@@ -1,12 +1,14 @@
 window.app = app = angular.module "weekView", []
 
 app.controller "weekViewController", ($scope, $timeout) ->
+
   $scope.states =
     showEditPopup  : false
     showNewPopup   : false
     isSelecting    : false
     isCloning      : false
     isInitializing : true
+
   #init
   $scope.data =
     daysInWeek    : []
@@ -55,7 +57,6 @@ app.controller "weekViewController", ($scope, $timeout) ->
     swal: (ifSuccess, confirmButtonText, confirmButtonColor, type) ->
       confirmButtonColor = "#DD6B55" unless confirmButtonColor
       type = 'warning' unless type
-      debugger
       swal
         title: "Are you sure?"
         # text: "You will not be able to recover this imaginary file!"
@@ -99,7 +100,7 @@ app.controller "weekViewController", ($scope, $timeout) ->
             .css('border', '3px solid ' + shiftColor)
 
     resetForm: (form) ->
-      form.$setPristine()
+      $scope.data.shiftCopy =  angular.copy($scope.data.selectedShift)
       $scope.$apply()
 
     grabShift: (shiftID) ->
