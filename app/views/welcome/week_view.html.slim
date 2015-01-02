@@ -3,8 +3,8 @@
     .col-xs-12.main-box
       .col-xs-6
         h3
-          i.fa.fa-angle-double-left ng-click="redipsInit()"
-          | {{calendarDisplayDate}}
+          i.fa.fa-angle-double-left
+          | {{data.calendarDisplayDate}}
           i.fa.fa-angle-double-right
       .col-xs-6
         .pull-right
@@ -30,7 +30,7 @@
             th.mark ng-repeat="day in data.daysInWeek" data-date="{{day[1]}}"
               | {{day[0]}}
         tbody
-          tr ng-repeat="employee in employees" data-employee-id="{{employee.id}}"
+          tr ng-repeat="employee in data.employees" data-employee-id="{{employee.id}}"
             td.employee-name.mark
               span
                 | {{employee.name}}
@@ -46,16 +46,16 @@
           tr
             td.mark colspan='1'
               .undo-td.bottom-controls
-                i.fa.fa-undo.btn-block ng-click="resetSelected()"
+                i.fa.fa-undo.btn-block ng-click="func.resetSelected()"
               .plus-td.bottom-controls.pull-right
-                i.fa.fa-plus-square.btn-block ng-click="showNewPopup = !showNewPopup"
-            td.rubbish-td.bottom-controls colspan='7' ng-click="removeShifts(toggledShifts)"
+                i.fa.fa-plus-square.btn-block ng-click="states.showNewPopup = !states.showNewPopup"
+            td.rubbish-td.bottom-controls colspan='7' ng-click="func.removeShifts(toggledShifts)"
               i.fa.fa-trash
       | {{states}}
-      | {{shifts}}
+      | {{data.shifts}}
   = render 'summary'
 
-  .shift-bar.drag shift-bar='' ng-model="shift" ng-repeat="shift in shifts" data-length="{{shift.length}}" ng-class="{'selected': toggledShifts.indexOf({{shift.id}}) > -1}" data-shift-id="{{shift.id}}"
+  .shift-bar.drag shift-bar='' ng-model="shift" ng-repeat="shift in data.shifts" data-length="{{shift.length}}" ng-class="{'selected': data.toggledShifts.indexOf({{shift.id}}) > -1}" data-shift-id="{{shift.id}}"
 
   .popup.expand-container ng-show="states.showEditPopup"
     h3
@@ -69,13 +69,13 @@
       .form-group
         .col-xs-5
           label Role
-          select.form-control ng-model="selectedShift.role"
-            option ng-repeat="role in roles" value="{{role}}"
+          select.form-control ng-model="data.selectedShift.role"
+            option ng-repeat="role in data.roles" value="{{role}}"
               | {{role}}
         .col-xs-5.col-xs-offset-2
           label Employee
-          select.form-control ng-model="selectedShift.employeeID"
-            option ng-repeat="employee in employees" value="{{employee.id}}" ng-selected="selectedShift.employeeID == employee.id"
+          select.form-control ng-model="data.selectedShift.employeeID"
+            option ng-repeat="employee in data.employees" value="{{employee.id}}" ng-selected="data.selectedShift.employeeID == employee.id"
               | {{employee.name}}
 
       .form-group
@@ -85,12 +85,12 @@
               | Start
               small
                 | (h)
-            input.form-control type='text' ng-model="selectedShift.startHour"
+            input.form-control type='text' ng-model="data.selectedShift.startHour"
           .col-xs-6
             label
               small
                 | (min)
-            input.form-control type='text' ng-model="selectedShift.startMin"
+            input.form-control type='text' ng-model="data.selectedShift.startMin"
 
         .col-xs-5.col-xs-offset-2
           .col-xs-6
@@ -98,23 +98,23 @@
               | End
               small
                 | (h)
-            input.form-control type='text' ng-model="selectedShift.endHour"
+            input.form-control type='text' ng-model="data.selectedShift.endHour"
           .col-xs-6
             label
               small
                 | (min)
-            input.form-control type='text' ng-model="selectedShift.endMin"
+            input.form-control type='text' ng-model="data.selectedShift.endMin"
       .form-group
         .col-xs-5
           label Date
-          input.form-control type='text' ng-model="selectedShift.date"
+          input.form-control type='text' ng-model="data.selectedShift.date"
 
         .col-xs-5.col-xs-offset-2
           label Break Hours
-          input.form-control type='text' ng-model="selectedShift.breakHours"
+          input.form-control type='text' ng-model="data.selectedShift.breakHours"
 
       .form-group
         .col-xs-12
-          button.btn.btn-primary.btn-block ng-disabled="editShiftForm.$pristine" ng-click="updateShift(selectedShift)" Update shift
+          button.btn.btn-primary.btn-block ng-disabled="editShiftForm.$pristine" ng-click="func.updateShift(selectedShift)" Update shift
 
   = render 'newShiftPopup'
