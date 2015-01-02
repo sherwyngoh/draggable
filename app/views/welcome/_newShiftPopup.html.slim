@@ -1,5 +1,5 @@
 .popup.expand-container ng-show="states.showNewPopup"
-  h3 
+  h3
     | New Shift
     small.pull-right
       i.fa.fa-minus
@@ -10,13 +10,13 @@
     .form-group
       .col-xs-5
         label Role
-        select.form-control ng-model="newShift.role"
-          option ng-repeat="role in roles" value="{{role}}"
+        select.form-control ng-model="data.newShift.role"
+          option ng-repeat="role in data.roles" value="{{role}}"
             | {{role}}
       .col-xs-5.col-xs-offset-2
         label Employee
-        select.form-control ng-model="newShift.employeeID"
-          option ng-repeat="employee in employees" value="{{employee.id}}" ng-selected="newShift.employeeID == employee.id" 
+        select.form-control ng-model="data.newShift.employeeID"
+          option ng-repeat="employee in data.employees" value="{{employee.id}}" ng-selected="data.newShift.employeeID == employee.id"
             | {{employee.name}}
 
     .form-group
@@ -24,37 +24,37 @@
         .col-xs-6
           label
             | Start
-            small 
+            small
               | (h)
-          input.form-control type='text' ng-model="newShift.startHour"
+          input.form-control type='text' ng-model="data.newShift.startHour"
         .col-xs-6
-          label 
-            small 
+          label
+            small
               | (min)
-          input.form-control type='text' ng-model="newShift.startMin"
+          input.form-control type='text' ng-model="data.newShift.startMin"
 
       .col-xs-5.col-xs-offset-2
         .col-xs-6
           label
             | End
-            small 
+            small
               | (h)
-          input.form-control type='text' ng-model="newShift.endHour"
+          input.form-control type='text' ng-model="data.newShift.endHour"
         .col-xs-6
           label
-            small 
+            small
               | (min)
-          input.form-control type='text' ng-model="newShift.endMin"
+          input.form-control type='text' ng-model="data.newShift.endMin"
     .form-group
       .col-xs-5
         label Date
-        input.form-control type='text' ng-model="newShift.date"
+        input.form-control type='text' ng-model="data.newShift.date"
 
       .col-xs-5.col-xs-offset-2
         label Break Hours
-        input.form-control type='text' ng-model="newShift.breakHours" 
+        input.form-control type='text' ng-model="data.newShift.breakHours"
 
     .form-group
       .col-xs-12
-        button.btn.btn-success.btn-block  ng-click="submitShift(newShift)" Submit
+        button.btn.btn-success.btn-block  ng-click="func.submitShift()" Submit
 

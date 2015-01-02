@@ -13,7 +13,9 @@ app.controller "weekViewController", ($scope, $timeout) ->
     daysInWeek    : []
     toggledShifts : []
     selectedShift : {}
+    shiftCopy     : {}
     baseShift     : {}
+    attrToClone   : ['startHour','startMin','role','endHour','endMin','breakHours', 'employeeID', 'date']
 
   $scope.data.calendarStartDate    = '27-12-2014'
   $scope.data.calMomentStart       = moment($scope.data.calendarStartDate, "DD-MM-YYYY")
@@ -74,22 +76,28 @@ app.controller "weekViewController", ($scope, $timeout) ->
       $scope.selectedShift    = $scope.func.grabShift(shiftID)
       $scope.states.showPopup = true
 
-    updateShift: (updatedShift) ->
+    updateShift: (shiftCopy) ->
+
+      shiftToUpdate = $scope.data.selectedShift
+
+      attrToClone    = $scope.data.attrToClone
+      for attr in attrToClone
+        shiftToUpdate[attr] = shiftCopy[attr]
+
+      $scope.func.updateShiftColor(shiftToUpdate)
+      $scope.data.selectedShift = {}
       $scope.states.showEditPopup = false
       $timeout($scope.func.refreshCalendar, 0)
-      shiftToUpdate = $scope.func.grabShift(updatedShift.id)
-      shifts        = $scope.data.shifts
-      index         = shifts.indexOf(shiftToUpdate)
-      shifts.splice(index, 1, updatedShift)
-      $scope.func.updateShiftColor(updatedShift)
-      $scope.data.selectedShift = {}
+      $scope.func.toggled()
+
 
     resetSelected: ->
       $scope.data.toggledShifts = []
       $scope.states.isSelecting   = false
       $scope.func.toggled()
 
-    submitShift: (shift) ->
+    submitShift: ->
+      shift        = $scope.data.newShift
       hours        = shift.endHour - shift.startHour
       hours        += (shift.endMin - shift.startMin)/60
       shift.length = hours
@@ -98,7 +106,6 @@ app.controller "weekViewController", ($scope, $timeout) ->
       $scope.data.newShift       = {role: $scope.data.roles[0], breakHours: 1, startHour: 8, startMin: '00', endHour: 17, endMin: '00'}
       $scope.states.showNewPopup = false
       $scope.data.baseShift      = {}
-      $scope.$apply()
       $timeout($scope.func.refreshCalendar, 0)
 
     removeShifts: (shiftsArray) ->

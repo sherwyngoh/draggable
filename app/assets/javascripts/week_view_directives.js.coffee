@@ -19,9 +19,7 @@ app.directive 'calendarListener', () ->
           # make a new shift where clone is at and submit, remove cloned div
           newShift = {}
 
-          attrToClone    = ['startHour','startMin','role','endHour','endMin','breakHours']
-
-          for attr in attrToClone
+          for attr in scope.data.attrToClone
             newShift[attr] = shiftBeforeMod[attr]
 
           newShift.date       =  date
@@ -40,12 +38,11 @@ app.directive 'calendarListener', () ->
       #click on date box
       $('.shift-applicable').on 'click', ->
         return if $(this).children('.shift-bar').length > 0
-        employeeID = $(this).parent('tr').data('employee-id')
-        date       = $(this).data('date')
+        employeeID                     = $(this).parent('tr').data('employee-id')
+        date                           = $(this).data('date')
         scope.data.newShift.date       = date
         scope.data.newShift.employeeID = employeeID
-        scope.states.showNewPopup        = true
-
+        scope.states.showNewPopup      = true
         scope.$apply()
 
 
@@ -186,8 +183,10 @@ app.directive 'setDrag', ($timeout) ->
 
       rd.event.notMoved = ->
         if !(window.event.ctrlKey or window.event.metaKey)
-          shiftID                    = $(rd.obj).data('shift-id')
-          angular.copy(scope.func.grabShift(shiftID), scope.data.selectedShift)
+          shiftID                  = $(rd.obj).data('shift-id')
+          scope.data.selectedShift = scope.func.grabShift(shiftID)
+          angular.copy(scope.data.selectedShift , scope.data.shiftCopy)
+
           scope.states.showEditPopup = true
           scope.$apply()
 

@@ -3,7 +3,7 @@
     .col-xs-12.main-box
       .col-xs-6
         h3
-          i.fa.fa-angle-double-left
+          i.fa.fa-angle-double-left ng-click="func.resetShifts()"
           | {{data.calendarDisplayDate}}
           i.fa.fa-angle-double-right
       .col-xs-6
@@ -48,10 +48,10 @@
               i.fa.fa-trash
       | {{states}}
       h3 Selected Shift
-      | {{data.toggledShifts}}
+      | {{data.selectedShift}}
       br
-      h3 Shifts
-      | {{data.shifts}}
+      h3 Shift Copy
+      | {{data.shiftCopy}}
   = render 'summary'
 
   .shift-bar.drag shift-bar='' ng-model="shift" ng-repeat="shift in data.shifts" data-length="{{shift.length}}" ng-class="{'selected': data.toggledShifts.indexOf({{shift.id}}) > -1}" data-shift-id="{{shift.id}}"
@@ -67,13 +67,13 @@
       .form-group
         .col-xs-5
           label Role
-          select.form-control ng-model="data.selectedShift.role"
+          select.form-control ng-model="data.shiftCopy.role"
             option ng-repeat="role in data.roles" value="{{role}}"
               | {{role}}
         .col-xs-5.col-xs-offset-2
           label Employee
-          select.form-control ng-model="data.selectedShift.employeeID"
-            option ng-repeat="employee in data.employees" value="{{employee.id}}" ng-selected="data.selectedShift.employeeID == employee.id"
+          select.form-control ng-model="data.shiftCopy.employeeID"
+            option ng-repeat="employee in data.employees" value="{{employee.id}}" ng-selected="data.shiftCopy.employeeID == employee.id"
               | {{employee.name}}
 
       .form-group
@@ -83,12 +83,12 @@
               | Start
               small
                 | (h)
-            input.form-control type='text' ng-model="data.selectedShift.startHour"
+            input.form-control type='text' ng-model="data.shiftCopy.startHour"
           .col-xs-6
             label
               small
                 | (min)
-            input.form-control type='text' ng-model="data.selectedShift.startMin"
+            input.form-control type='text' ng-model="data.shiftCopy.startMin"
 
         .col-xs-5.col-xs-offset-2
           .col-xs-6
@@ -96,24 +96,24 @@
               | End
               small
                 | (h)
-            input.form-control type='text' ng-model="data.selectedShift.endHour"
+            input.form-control type='text' ng-model="data.shiftCopy.endHour"
           .col-xs-6
             label
               small
                 | (min)
-            input.form-control type='text' ng-model="data.selectedShift.endMin"
+            input.form-control type='text' ng-model="data.shiftCopy.endMin"
       .form-group
         .col-xs-5
           label Date
-          input.form-control type='text' ng-model="data.selectedShift.date"
+          input.form-control type='text' ng-model="data.shiftCopy.date"
 
         .col-xs-5.col-xs-offset-2
           label Break Hours
-          input.form-control type='text' ng-model="data.selectedShift.breakHours"
+          input.form-control type='text' ng-model="data.shiftCopy.breakHours"
 
       .form-group
         .col-xs-12
-          button.btn.btn-primary.btn-block ng-disabled="editShiftForm.$pristine" ng-click="func.updateShift(data.selectedShift)" Update shift
-          / button ng-click="resetForm({{data.selectedShift}})"
+          button.btn.btn-primary.btn-block ng-disabled="editShiftForm.$pristine" ng-click="func.updateShift(data.shiftCopy)" Update shift
+          / button ng-click="resetForm({{data.shiftCopy}})"
 
   = render 'newShiftPopup'
