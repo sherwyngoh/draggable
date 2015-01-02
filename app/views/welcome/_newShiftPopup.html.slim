@@ -20,31 +20,34 @@
             | {{employee.name}}
 
     .form-group
+
       .col-xs-5
-        .col-xs-6
-          label
-            | Start
-            small
-              | (h)
-          input.form-control type='text' ng-model="data.newShift.startHour"
-        .col-xs-6
-          label
-            small
-              | (min)
-          input.form-control type='text' ng-model="data.newShift.startMin"
+        .row
+          .col-xs-6
+            label
+              | Start
+              small
+                | (h)
+            input.form-control type='text' ng-model="data.newShift.startHour"
+          .col-xs-6
+            label
+              small
+                | (min)
+            input.form-control type='text' ng-model="data.newShift.startMin"
 
       .col-xs-5.col-xs-offset-2
-        .col-xs-6
-          label
-            | End
-            small
-              | (h)
-          input.form-control type='text' ng-model="data.newShift.endHour"
-        .col-xs-6
-          label
-            small
-              | (min)
-          input.form-control type='text' ng-model="data.newShift.endMin"
+        .row
+          .col-xs-6
+            label
+              | End
+              small
+                | (h)
+            input.form-control type='text' ng-model="data.newShift.endHour"
+          .col-xs-6
+            label
+              small
+                | (min)
+            input.form-control type='text' ng-model="data.newShift.endMin"
     .form-group
       .col-xs-5
         label Date

@@ -91,13 +91,13 @@ app.directive 'calendarSetup', () ->
 app.directive 'popupHandler', () ->
   restrict: "A"
   link: (scope) ->
-    $('.fa-minus').on 'click', (e) ->
+    $('i.fa-minus').on 'click', (e) ->
       e.preventDefault()
       $(this).parents('.expand-container').find('ng-form').hide()
       $(this).hide()
       $(this).siblings('.fa-plus').css('display', 'inline-block')
 
-    $('.fa-plus').on 'click', (e) ->
+    $('i.fa-plus').on 'click', (e) ->
       e.preventDefault()
       $(this).parents('.expand-container').find('ng-form').show()
       $(this).hide()

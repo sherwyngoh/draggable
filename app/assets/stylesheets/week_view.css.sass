@@ -36,7 +36,7 @@
       border: 2px solid lightgrey
       border-radius: 3px
       padding-left: 10px
-      margin-bottom: 20px
+      margin: 20px auto
       background: rgba(255,255,255, 0.7)
       z-index: 1002
       &:hover:not(i)
@@ -62,11 +62,18 @@
 
       p.danger
         color: $level-1-color
+    .scrollable
+      overflow: auto
+      position: relative
+      width: 100%
+      max-height: 600px
+      border: 2px solid lightgrey
 
     table
-      width: 99%
-      margin: 10px auto
-      border: 2px solid lightgrey
+      height: 300px
+      width: 100%
+      margin: 0px
+      border: 1px solid lightgrey
       thead
         background: lighten(lightgrey, 10)
         th:not(:first-of-type)
@@ -77,6 +84,9 @@
           border-right: 1px solid lighten(lightgrey, 5)
           small
             font-weight: normal
+        th:last-of-type
+          font-size: 20px
+
       tbody
         .employee-name
           z-index: 101
@@ -96,37 +106,23 @@
           td
             padding: 5px
             border-right: 1px solid lighten(lightgrey, 5)
-          td
-            width: 11% !important
+            width: 10% !important
             overflow: hidden
-          td:not(:first-of-type)
-
-            text-align: center
-
-        tr:last-of-type
-          td
-            padding: 0px !important
-          &:hover
-            cursor: pointer
-          .bottom-controls
-            text-align: center
-            font-size: 25px
-            color: white
-            height: 50px
-            i
-              line-height: 50px
             &.rubbish-td
-              width: 99%
+              color: white
+              font-size: 30px
               background: lighten($level-1-color, 10%)
+              i
+                line-height: 50px
               &:hover
-                background: lighten($level-1-color, 20%) !important
+                background: lighten($level-1-color, 20%)
 
-            &.plus-td
-              width: 100%
-              display: inline-block
-              background: lighten($level-2-color, 10%)
-              &:hover
-                background: lighten($level-2-color, 20%)
+          td:not(:first-of-type)
+            text-align: center
+
+          td:last-of-type
+            width: 4% !important
+
 
       .mark
         background: white

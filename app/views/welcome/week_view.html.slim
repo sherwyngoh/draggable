@@ -8,6 +8,9 @@
           i.fa.fa-angle-double-right
       .col-xs-6.page-buttons
         .pull-right
+          button.btn.btn-success ng-click="states.showNewPopup = !states.showNewPopup"
+            .fa.fa-plus.btn-block
+
           button.btn.btn-default.btn-md ng-class="{'disabled': !states.isSelecting}" ng-click="func.resetSelected()"
             | Deselect all
             span ng-if="data.toggledShifts.length > 0"
@@ -21,33 +24,33 @@
             i.fa.fa-trash
             | Delete all
 
-      table.table set-drag='' calendar-listener='' popup-handler='' calendar-setup=''
-        thead
-          tr
-            th.mark
-              | Staff
-            th.mark ng-repeat="day in data.daysInWeek" data-date="{{day[1]}}"
-              | {{day[0]}}
-        tbody
-          tr ng-repeat="employee in data.employees" data-employee-id="{{employee.id}}"
-            td.employee-name.mark
-              span
-                | {{employee.name}}
-              br
-              small
-                i.fa.fa-clock-o
-                .employee-hours
-                  | {{employee.hoursExcludingThisWeek + employee.currentWeekHours}}/{{employee.totalHours}} hours
-                i.fa.fa-dollar
-                .employee-cost
-                  | {{employee.costPerHour * (employee.hoursExcludingThisWeek + employee.currentWeekHours)}}
-            td.shift-applicable ng-repeat="day in data.daysInWeek" data-date="{{day[1]}}" ng-model="day"
-          tr
-            td.mark colspan='1'
-              .plus-td.bottom-controls
-                i.fa.fa-plus-square.btn-block ng-click="states.showNewPopup = !states.showNewPopup"
-            td.rubbish-td.bottom-controls colspan='7' ng-click="func.rubbishClicked()"
-              i.fa.fa-trash
+      .scrollable
+        table.table set-drag='' calendar-listener='' popup-handler='' calendar-setup=''
+          thead
+            tr
+              th.mark
+                | Staff
+              th.mark ng-repeat="day in data.daysInWeek" data-date="{{day[1]}}"
+                | {{day[0]}}
+              th.mark
+                i.fa.fa-trash
+          tbody
+            tr ng-repeat="employee in data.employees" data-employee-id="{{employee.id}}"
+              td.employee-name.mark
+                span
+                  | {{employee.name}}
+                br
+                small
+                  i.fa.fa-clock-o
+                  .employee-hours
+                    | {{employee.hoursExcludingThisWeek + employee.currentWeekHours}}/{{employee.totalHours}} hours
+                  i.fa.fa-dollar
+                  .employee-cost
+                    | {{employee.costPerHour * (employee.hoursExcludingThisWeek + employee.currentWeekHours)}}
+
+              td.shift-applicable ng-repeat="day in data.daysInWeek" data-date="{{day[1]}}" ng-model="day"
+              td.rubbish-td ng-if="$first" rowspan="{{data.employees.length}}" ng-click="func.rubbishClicked()"
+
       / | {{states}}
       / h4 Shifts
       / | {{data.shifts}}
