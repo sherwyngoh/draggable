@@ -2,11 +2,18 @@ app = angular.module "weekView", ['weekViewDirectives']
 
 app.controller "weekViewController", ($scope, $timeout) ->
 
-  $scope.data = 
+  $scope.states =
+    showEditPopup  : false
+    showNewPopup   : false
+    isSelecting    : false
+    isCloning      : false
+    isInitializing : true
+
+  $scope.data =
     daysInWeek       : []
     calendarStartDate: '27-12-2014'
     calMomentStart   : moment($scope.calendarStartDate, "DD-MM-YYYY")
-    
+
 
   $scope.func =
     grabShift: (shiftID) ->

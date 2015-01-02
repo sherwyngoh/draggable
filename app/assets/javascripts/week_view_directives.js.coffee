@@ -1,21 +1,5 @@
 app = angular.module 'weekViewDirectives', []
 
-app.directive 'weekCalendarStates', () ->
-  restrict: 'A'
-  link: (scope) ->
-    scope.states = {}
-
-    states = [
-      'showEditPopup', 
-      'showNewPopup', 
-      'isSelecting', 
-      'isCloning', 
-      'isNotInitializing'
-    ]
-    
-    for state in states
-      scope.states[state] = false
-
 app.directive 'calendarListener', () ->
   restrict: "A"
   link: (scope) ->
@@ -25,11 +9,11 @@ app.directive 'calendarListener', () ->
           shiftID = $(this).find('.shift-bar').data('shift-id')
           scope.removeShifts([shiftID])
           scope.$apply()
-          
+
       #clone shift or move shift
-      $('.shift-applicable').bind 'DOMNodeInserted ', (event) -> 
+      $('.shift-applicable').bind 'DOMNodeInserted ', (event) ->
         console.log 'dom node inserted'
-        return unless scope.isNotInitializing
+        return if scope.states.isInitializing
         date           = $(this).data('date')
         employeeID     = $(this).parent().data('employee-id')
         shiftBeforeMod = scope.baseShift
@@ -153,7 +137,7 @@ app.directive 'shiftBar', ($timeout) ->
 
       employeeID   = shift.employeeID
       employeeRow  =  $('tr[data-employee-id="' + employeeID + '"]')
-      
+
       date            = shift.date
       shiftStartingUL = $(employeeRow).find('td[data-date=' +  date + ']')
       shiftStartingUL.append(element)
@@ -197,7 +181,7 @@ app.directive 'setDrag', ($timeout) ->
         console.log 'moved'
         shiftID              = $(rd.obj).data('shift-id')
         shift                = scope.grabShift(shiftID)
-        scope.isNotInitializing = true
+        scope.isInitializing = false
         scope.baseShift      = shift
 
         if window.event.shiftKey is true
