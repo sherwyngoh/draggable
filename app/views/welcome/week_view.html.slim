@@ -6,7 +6,7 @@
           i.fa.fa-angle-double-left ng-click="func.resetShifts()"
           | {{data.calendarDisplayDate}}
           i.fa.fa-angle-double-right
-      .col-xs-6
+      .col-xs-6.page-buttons
         .pull-right
           button.btn.btn-default.btn-md ng-class="{'disabled': !states.isSelecting}" ng-click="func.resetSelected()"
             | Deselect all
@@ -55,6 +55,7 @@
       = render 'summary'
 
   .shift-bar.drag shift-bar='' ng-model="shift" ng-repeat="shift in data.shifts" data-length="{{shift.length}}" ng-class="{'selected': data.toggledShifts.indexOf({{shift.id}}) > -1}" data-shift-id="{{shift.id}}"
+
   .popup.expand-container ng-show="states.showEditPopup"
     h3
       | Edit Shift
@@ -78,30 +79,32 @@
 
       .form-group
         .col-xs-5
-          .col-xs-6
-            label
-              | Start
-              small
-                | (h)
-            input.form-control type='text' ng-model="data.shiftCopy.startHour"
-          .col-xs-6
-            label
-              small
-                | (min)
-            input.form-control type='text' ng-model="data.shiftCopy.startMin"
+          .row
+            .col-xs-6
+              label
+                | Start
+                small
+                  | (h)
+              input.form-control type='text' ng-model="data.shiftCopy.startHour"
+            .col-xs-6
+              label
+                small
+                  | (min)
+              input.form-control type='text' ng-model="data.shiftCopy.startMin"
 
         .col-xs-5.col-xs-offset-2
-          .col-xs-6
-            label
-              | End
-              small
-                | (h)
-            input.form-control type='text' ng-model="data.shiftCopy.endHour"
-          .col-xs-6
-            label
-              small
-                | (min)
-            input.form-control type='text' ng-model="data.shiftCopy.endMin"
+          .row
+            .col-xs-6
+              label
+                | End
+                small
+                  | (h)
+              input.form-control type='text' ng-model="data.shiftCopy.endHour"
+            .col-xs-6
+              label
+                small
+                  | (min)
+              input.form-control type='text' ng-model="data.shiftCopy.endMin"
       .form-group
         .col-xs-5
           label Date

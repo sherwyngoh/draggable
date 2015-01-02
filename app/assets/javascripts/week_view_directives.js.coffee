@@ -86,27 +86,30 @@ app.directive 'calendarSetup', () ->
     setCalendarDays()
     $ ->
       setLeaveBars()
+      scope.func.estimate()
 
 app.directive 'popupHandler', () ->
   restrict: "A"
   link: (scope) ->
-    $('.fa-minus').on 'click', ->
+    $('.fa-minus').on 'click', (e) ->
+      e.preventDefault()
       $(this).parents('.expand-container').find('ng-form').hide()
       $(this).hide()
       $(this).siblings('.fa-plus').css('display', 'inline-block')
 
-    $('.fa-plus').on 'click', ->
+    $('.fa-plus').on 'click', (e) ->
+      e.preventDefault()
       $(this).parents('.expand-container').find('ng-form').show()
       $(this).hide()
       $(this).siblings('.fa-minus').css('display', 'inline-block')
 
-    $('.popup').draggable
+    $('.popup, summary').draggable
       cursor: 'grabbing !important'
       opacity: 0.6
 
      $(document).on 'keyup', (e)->
        if e.keyCode is 27
-         scope.states.showEditPopup     = false
+         scope.states.showEditPopup = false
          scope.states.showNewPopup  = false
          scope.func.resetSelected()
          scope.$apply()

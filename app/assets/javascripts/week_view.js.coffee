@@ -17,6 +17,7 @@ app.controller "weekViewController", ($scope, $timeout) ->
     shiftCopy     : {}
     baseShift     : {}
     attrToClone   : ['startHour','startMin','role','endHour','endMin','breakHours', 'employeeID', 'date']
+    wageEstimate  : 0
 
   $scope.data.calendarStartDate    = '27-12-2014'
   $scope.data.calMomentStart       = moment($scope.data.calendarStartDate, "DD-MM-YYYY")
@@ -53,7 +54,7 @@ app.controller "weekViewController", ($scope, $timeout) ->
   $scope.data.roles         = ["Manager", "Asst Manager", "Supervisor", "Crew"]
   $scope.data.newShift      = {role: $scope.data.roles[0], breakHours: 1, startHour: 8, startMin: '00', endHour: 17, endMin: '00'}
 
-  $scope.data.salesForecast    = "32400"
+  $scope.data.salesForecast    = "2000"
   $scope.data.budgetPercentage = "15"
   $scope.data.wageBudget       =  ($scope.data.salesForecast/100) *  $scope.data.budgetPercentage
 
@@ -61,6 +62,13 @@ app.controller "weekViewController", ($scope, $timeout) ->
     $scope.data.wageBudget       =  ($scope.data.salesForecast/100) *  $scope.data.budgetPercentage
 
   $scope.func =
+    estimate: ->
+      console.log 'reestimating'
+      $scope.data.wageEstimate = 0
+      for shift in $scope.data.shifts
+        employeeRate = $scope.func.grabEmployee(shift.employeeID).costPerHour
+        $scope.data.wageEstimate += employeeRate * shift.length
+
     swal: (ifSuccess, confirmButtonText, confirmButtonColor, type) ->
       confirmButtonColor = "#DD6B55" unless confirmButtonColor
       type = 'warning' unless type
@@ -75,6 +83,7 @@ app.controller "weekViewController", ($scope, $timeout) ->
         closeOnConfirm: true
         , ->
           ifSuccess()
+          $scope.func.estimate()
 
     deleteAll: ->
       ifSuccess = ->
@@ -110,6 +119,10 @@ app.controller "weekViewController", ($scope, $timeout) ->
       $scope.data.shiftCopy =  angular.copy($scope.data.selectedShift)
       $scope.$apply()
 
+    grabEmployee: (employeeID) ->
+      for employee in $scope.data.employees
+        return employee if parseInt(employee.id) is parseInt(employeeID)
+
     grabShift: (shiftID) ->
       for shift in $scope.data.shifts
         return shift if parseInt(shift.id) is parseInt(shiftID)
@@ -132,6 +145,7 @@ app.controller "weekViewController", ($scope, $timeout) ->
       $scope.func.toggled()
 
     resetSelected: ->
+      $scope.data.selectedShift = {}
       $scope.data.toggledShifts = []
       $scope.states.isSelecting   = false
       $scope.func.toggled()
@@ -175,6 +189,7 @@ app.controller "weekViewController", ($scope, $timeout) ->
 
       REDIPS.drag.init('week-view')
       $scope.states.isInitializing = false
+      $scope.func.estimate()
 
 
 app.filter 'acronymify', () ->

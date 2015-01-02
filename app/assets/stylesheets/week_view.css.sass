@@ -21,20 +21,30 @@
     background: white
     min-height: 700px
 
+    .page-buttons
+      button
+        margin: 20px 3px
+        &:last-of-type
+          margin-right: 10px
+        i
+          font-size: 15px
+
     h3, summary
       margin-left: 10px
 
     summary
-      overflow: hidden
       border: 2px solid lightgrey
       border-radius: 3px
       padding-left: 10px
       margin-bottom: 20px
+      background: rgba(255,255,255, 0.7)
+      z-index: 1002
+      &:hover:not(i)
+        cursor: move
       .row
         margin-bottom: 10px
         label
           padding-top: 10px
-
       i
         font-size: 18px
         margin-top: 10px
@@ -49,17 +59,9 @@
         &.fa-minus
           &:hover
             color: $level-1-color
-      .content
-        text-align: left
 
-
-    .col-xs-6
-      button
-        margin: 20px 3px
-        &:last-of-type
-          margin-right: 10px
-        i
-          font-size: 15px
+      p.danger
+        color: $level-1-color
 
     table
       width: 99%
