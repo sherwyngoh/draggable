@@ -77,13 +77,17 @@ app.directive 'calendarSetup', () ->
           $(this).css('background', 'lightgrey').addClass('mark')
 
     scope.func.refreshCalendar = ->
+      console.log 'refreshing calendar'
       for shift in scope.data.shifts
         employeeID      = shift.employeeID
-        employeeRow     =  $('tr[data-employee-id="' + employeeID + '"]')
+        employeeRow     = $('tr[data-employee-id="' + employeeID + '"]')
         shiftStartingUL = $(employeeRow).find('td[data-date=' +  shift.date + ']')
         element         = $('.shift-bar[data-shift-id="' + shift.id + '"]')
         shiftStartingUL.append(element)
-        REDIPS.drag.init('week-view')
+
+      REDIPS.drag.init('week-view')
+      scope.states.isInitializing = false
+
 
     setCalendarDays()
     $ ->
@@ -118,9 +122,20 @@ app.directive 'shiftBar', ($timeout) ->
   require: 'ngModel'
   link: (scope, element, attrs) ->
     shiftID = attrs.shiftId
-    shift = scope.func.grabShift(shiftID)
+    shift   = scope.func.grabShift(shiftID)
+
+    scope.func.updateShiftColor = (shift) ->
+      #find shift bar and update color
+      shiftBar = $('.shift-bar[data-shift-id="' + shift.id + '"]')
+      shiftColor = scope.data.shiftColors[shift.role]
+      shiftBar.css('color', shiftColor)
+        .css('border', '3px solid ' + shiftColor)
+        .html('<span>' + shift.role + "<br/>" + shift.startHour + ':' + shift.startMin + ' - ' + shift.endHour + ':' + shift.endMin + "</span>")
+      return
+
 
     setShift = ->
+      console.log 'setting shift'
       tdWidth     = parseInt($('.shift-applicable').first().css('width'))
       tdHeight    = parseInt($('.shift-applicable').first().css('height'))
       shiftWidth  =  '130px'
@@ -141,9 +156,9 @@ app.directive 'shiftBar', ($timeout) ->
       date            = shift.date
       shiftStartingUL = $(employeeRow).find('td[data-date=' +  date + ']')
       shiftStartingUL.append(element)
-      return
 
     $timeout(setShift, 0)
+
 
 app.directive 'setDrag', ($timeout) ->
   restrict: 'A'
@@ -170,48 +185,30 @@ app.directive 'setDrag', ($timeout) ->
       rd.event.notMoved = ->
         if !(window.event.ctrlKey or window.event.metaKey)
           shiftID                    = $(rd.obj).data('shift-id')
-          scope.data.selectedShift   = scope.func.grabShift(shiftID)
+          angular.copy(scope.func.grabShift(shiftID), scope.data.selectedShift)
           scope.states.showEditPopup = true
           scope.$apply()
 
       rd.event.moved = ->
         console.log 'moved'
-        shiftID              = $(rd.obj).data('shift-id')
-        shift                = scope.func.grabShift(shiftID)
-        scope.states.isInitializing = false
-        scope.data.baseShift      = shift
+        shiftID                     = $(rd.obj).data('shift-id')
+        shift                       = scope.func.grabShift(shiftID)
+        scope.data.baseShift        = shift
 
         if window.event.shiftKey is true
-          #cloned object is the one that is left behind
           scope.data.tdToClone     = rd.td.source
           scope.states.isCloning     = true
           scope.$apply()
-        else
-          scope.states.movedShift    = true
 
       rd.event.dropped = ->
         console.log 'dropped'
         scope.states.isCloning     = false
-        scope.states.movedShift    = false
         scope.$apply()
 
       rd.event.notCloned = ->
         console.log 'notCloned'
         scope.states.isCloning = false
-        scope.movedShift       = false
         scope.$apply()
-
-      rd.event.cloned = (clonedElement)->
-        console.log 'cloned'
-
-      rd.event.clonedDropped = (targetCell)->
-        console.log 'clone dropped'
-
-      rd.event.clonedEnd1 = ->
-        console.log 'clone end 1'
-
-      rd.event.clonedEnd2 = ->
-        console.log 'clone end 2'
 
       rd.event.deleted = (cloned) ->
         shift = scope.func.grabShift($(rd.td).data('shift-id'))

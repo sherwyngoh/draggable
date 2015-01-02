@@ -19,11 +19,14 @@ app.controller "weekViewController", ($scope, $timeout) ->
       $scope.states.showPopup = true
 
     updateShift: (updatedShift) ->
-      # oldShift             = grabShift(updatedShift.id)
-      # index                = $scope.shifts.indexOf(oldShift)
-      # $scope.shifts[index] = updatedShift
-      # $scope.$apply()
-      $scope.states.showPopup     = false
+      $scope.states.showEditPopup = false
+      $timeout($scope.func.refreshCalendar, 0)
+      shiftToUpdate = $scope.func.grabShift(updatedShift.id)
+      shifts        = $scope.data.shifts
+      index         = shifts.indexOf(shiftToUpdate)
+      shifts.splice(index, 1, updatedShift)
+      $scope.func.updateShiftColor(updatedShift)
+      $scope.data.selectedShift = {}
 
     resetSelected: ->
       $scope.data.toggledShifts = []
@@ -49,12 +52,12 @@ app.controller "weekViewController", ($scope, $timeout) ->
           $scope.data.shifts.splice(index, 1)
       $timeout($scope.func.refreshCalendar, 0)
 
-  $scope.data = {
+  #init
+  $scope.data =
     daysInWeek    : []
     toggledShifts : []
     selectedShift : {}
     baseShift     : {}
-  }
 
   $scope.data.calendarStartDate    = '27-12-2014'
   $scope.data.calMomentStart       = moment($scope.data.calendarStartDate, "DD-MM-YYYY")
@@ -70,9 +73,9 @@ app.controller "weekViewController", ($scope, $timeout) ->
 
   $scope.data.shifts = [
     {id: '1', employeeID: "1", length: 5.5, startHour: 10, startMin: 30, role: 'Manager', endHour: 16, endMin: '00', date: '27-12-2014', breakHours: 1},
-    # {id: '2', employeeID: "2", length: 8, startHour: 12, startMin: 15, role: 'Asst Manager', endHour: 20, endMin: 15, date: '28-12-2014', breakHours: 1.5}
-    # {id: '3', employeeID: "3", length: 8, startHour: 10, startMin: '00', role: 'Supervisor', endHour: 18, endMin: '00', date: '30-12-2014', breakHours: 2}
-    # {id: '4', employeeID: "3", length: 8, startHour: 12, startMin: 15, role: 'Crew', endHour: 20, endMin: 15, date: '29-12-2014', breakHours: 1.5}
+    {id: '2', employeeID: "2", length: 8, startHour: 12, startMin: 15, role: 'Asst Manager', endHour: 20, endMin: 15, date: '28-12-2014', breakHours: 1.5}
+    {id: '3', employeeID: "3", length: 8, startHour: 10, startMin: '00', role: 'Supervisor', endHour: 18, endMin: '00', date: '30-12-2014', breakHours: 2}
+    {id: '4', employeeID: "3", length: 8, startHour: 12, startMin: 15, role: 'Crew', endHour: 20, endMin: 15, date: '29-12-2014', breakHours: 1.5}
   ]
 
   $scope.data.leaves = [
