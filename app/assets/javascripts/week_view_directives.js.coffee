@@ -108,6 +108,7 @@ app.directive 'popupHandler', () ->
         scope.states.showNewPopup     = false
         scope.states.showMenu         = false
         scope.states.showTemplateMenu = false
+        scope.states.showHelp         = false
         scope.func.resetSelected()
         scope.$apply()
       if (e.keyCode is 8) or (e.keyCode is 46)

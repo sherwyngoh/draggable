@@ -8,7 +8,7 @@
             | {{data.calendarDisplayDate}}
             i.fa.fa-angle-double-right
 
-          .commands-list.drag ng-if="states.showHelp"
+          .commands-list ng-if="states.showHelp"
             .btn ng-click="states.showHelp = !states.showHelp"
               i.fa.fa-close
             h3 Keyboard shortcuts
@@ -32,19 +32,20 @@
                   br
                   span.keyboard Ctrl/ Command + Click
 
-        .col-xs-6.page-buttons
+        .col-xs-3.page-buttons
           .pull-right
 
-            i.fa.fa-puzzle-piece ng-click="states.showTemplateMenu = !states.showTemplateMenu" ng-class="{'menuOpen': states.showTemplateMenu}" Template
+            i.fa.fa-puzzle-piece ng-click="states.showTemplateMenu = !states.showTemplateMenu" ng-class="{'menuOpen': states.showTemplateMenu}" Template Menu
 
+        .col-xs-3.page-buttons
+          .pull-right
+            i.fa.fa-bars ng-click="states.showMenu = !states.showMenu" ng-class="{'menuOpen': states.showMenu}" Options
             .page-options.template-menu ng-if="states.showTemplateMenu"
                 button.add ng-click="states.showHelp = !states.showHelp" Save as template
                 button.help ng-click="states.showHelp = !states.showHelp" Load template A
                 button.help ng-click="states.showNewPopup = !states.showNewPopup" Load template B
                 button.reset ng-click="func.resetShifts()" Edit template
                 button.del ng-click="func.deleteAll()" Delete template
-
-            i.fa.fa-bars ng-click="states.showMenu = !states.showMenu" ng-class="{'menuOpen': states.showMenu}" Options
 
             .page-options ng-if="states.showMenu"
                 button.help ng-click="states.showHelp = !states.showHelp" ng-if="!states.showHelp" Show help
@@ -53,6 +54,7 @@
                 button.reset ng-click="func.resetShifts()" Reset changes
                 button.del ng-click="func.deleteAll()" Delete all
                 button.summary-button.summary View Summary
+
 
 
       .table-headers
@@ -93,10 +95,10 @@
   .popup.expand-container ng-show="states.showEditPopup"
     h3
       | Edit Shift
-      small.pull-right
-        i.fa.fa-minus
-        i.fa.fa-plus
-        i.fa.fa-close ng-click="states.showEditPopup = !states.showEditPopup"
+    small.pull-right
+      i.fa.fa-minus
+      i.fa.fa-plus
+      i.fa.fa-close ng-click="states.showEditPopup = !states.showEditPopup"
 
     ng-form.form name="editShiftForm"
       .form-group
