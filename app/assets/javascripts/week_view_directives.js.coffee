@@ -6,19 +6,6 @@ app.directive 'calendarListener', () ->
         $('summary .fa-plus').click()
         $.scrollTo($('summary').height() + 100, 300)
 
-      #trash box functionality
-      $('.rubbish-td').bind 'DOMNodeInserted', (event) ->
-        shiftID = $(this).find('.shift-bar').data('shift-id')
-        scope.func.removeShifts([shiftID])
-        scope.$apply()
-
-      $('.rubbish-td').bind 'click', ->
-        if scope.data.toggledShifts.length > 0
-          ifSuccess = ->
-            scope.func.removeShifts(scope.data.toggledShifts)
-            scope.$apply()
-          scope.func.swal(ifSuccess, "Yes, delete!")
-
       #clone shift or move shift
       $('.shift-applicable').bind 'DOMNodeInserted ', (event) ->
         console.log 'dom node inserted'
