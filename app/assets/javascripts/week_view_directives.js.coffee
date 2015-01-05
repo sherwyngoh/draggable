@@ -117,11 +117,12 @@ app.directive 'popupHandler', () ->
 
      $(document).on 'keyup', (e)->
        if e.keyCode is 27
-         scope.states.showEditPopup = false
-         scope.states.showNewPopup  = false
-         scope.states.showMenu  = false
-         scope.func.resetSelected()
-         scope.$apply()
+        scope.states.showEditPopup    = false
+        scope.states.showNewPopup     = false
+        scope.states.showMenu         = false
+        scope.states.showTemplateMenu = false
+        scope.func.resetSelected()
+        scope.$apply()
 
 app.directive 'shiftBar', ($timeout) ->
   restrict: 'A'

@@ -3,13 +3,14 @@ window.app = app = angular.module "weekView", []
 app.controller "weekViewController", ($scope, $timeout) ->
   #SS new shift breaks estimates, test cloning
   $scope.states =
-    showEditPopup  : false
-    showNewPopup   : false
-    isSelecting    : false
-    isCloning      : false
-    isInitializing : true
-    showMenu       : false
-    showHelp       : false
+    showEditPopup    : false
+    showNewPopup     : false
+    isSelecting      : false
+    isCloning        : false
+    isInitializing   : true
+    showMenu         : false
+    showHelp         : false
+    showTemplateMenu : false
 
   #init
   $scope.data =

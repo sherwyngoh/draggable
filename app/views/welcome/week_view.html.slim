@@ -8,7 +8,7 @@
             | {{data.calendarDisplayDate}}
             / | {{states}}
             i.fa.fa-angle-double-right
-        .col-xs-7
+        .col-xs-5
           .commands-list ng-if="states.showHelp"
             p
               span.command Close all windows:
@@ -23,7 +23,6 @@
               br
               span.keyboard Shift + Click(drag)
 
-        .col-xs-1.page-buttons
           .pull-right
             .selected-options ng-if="data.toggledShifts.length > 0"
               h5
@@ -36,7 +35,9 @@
               button.btn.btn-danger.btn-md ng-class="{'disabled': !states.isSelecting}" ng-click="func.removeShifts(data.toggledShifts)"
                 | Delete selected
 
-            i.fa.fa-bars ng-click="states.showMenu = !states.showMenu" ng-class="{'menuOpen': states.showMenu}"
+        .col-xs-3.page-buttons
+
+            i.fa.fa-bars ng-click="states.showMenu = !states.showMenu" ng-class="{'menuOpen': states.showMenu}" Options
 
             .page-options ng-if="states.showMenu"
                 button.help ng-click="states.showHelp = !states.showHelp" ng-if="!states.showHelp" Show help
@@ -46,6 +47,15 @@
                 button.del ng-click="func.deleteAll()" Delete all
                 button.summary-button.summary View Summary
 
+            i.fa.fa-puzzle-piece ng-click="states.showTemplateMenu = !states.showTemplateMenu" ng-class="{'menuOpen': states.showTemplateMenu}" Template
+
+            .page-options.template-menu ng-if="states.showTemplateMenu"
+                button.add ng-click="states.showHelp = !states.showHelp" Save as template
+                button.help ng-click="states.showHelp = !states.showHelp" Load template A
+                button.help ng-click="states.showNewPopup = !states.showNewPopup" Load template B
+                button.reset ng-click="func.resetShifts()" Edit template
+                button.del ng-click="func.deleteAll()" Delete template
+                / button.summary-button.summary View Summary
 
 
       .table-headers
@@ -53,14 +63,12 @@
           | Staff
         .days ng-repeat="day in data.daysInWeek" data-date="{{day[1]}}"
           | {{day[0]}}
-        .trash
-          i.fa.fa-trash
+        / .trash
+        /   i.fa.fa-trash
       .scrollable
         table.table set-drag='' calendar-listener='' popup-handler='' calendar-setup=''
 
           tbody
-            tr
-              td Other Branches
 
             tr ng-repeat="employee in data.employees" data-employee-id="{{employee.id}}"
               td.employee-name.mark
@@ -74,13 +82,12 @@
                   i.fa.fa-dollar
                   .employee-cost
                     | {{employee.costPerHour * employee.currentWeekHours}}
-                    / | {{employee.costPerHour | currency}}/hour
 
               td.shift-applicable ng-repeat="day in data.daysInWeek" data-date="{{day[1]}}" ng-model="day" data-employee-id="{{employee.id}}"
-              td.rubbish-td ng-if="$first" rowspan="{{data.employees.length}}" ng-click="func.rubbishClicked()" ng-class="{'highlight': (states.isSelecting || states.isDragging) }"
-                | Drag here to delete
-                br
-                i.fa.fa-trash
+              / td.rubbish-td ng-if="$first" rowspan="{{data.employees.length}}" ng-click="func.rubbishClicked()" ng-class="{'highlight': (states.isSelecting || states.isDragging) }"
+              /   | Drag here to delete
+              /   br
+              /   i.fa.fa-trash
 
 
       | Baseshift:

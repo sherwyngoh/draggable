@@ -47,7 +47,7 @@
       display: inline-block
 
 
-      i.fa.fa-bars
+      i
         font-size: 20px
         margin: 0px 20px
         cursor: pointer
@@ -62,7 +62,7 @@
         border: 2px solid white
 
         &:hover
-          color: #222
+          color: darkgrey
 
         &.menuOpen
           border: 2px solid #222
@@ -78,6 +78,9 @@
         border-radius: 3px
         z-index: 1003
         overflow: hidden
+
+        &.template-menu
+          right: 300px
 
         button
           display: block
@@ -223,24 +226,24 @@
             border-right: 1px solid lighten(lightgrey, 5)
             width: 11% !important
             overflow: hidden
-            &.rubbish-td
-              color: white
-              font-size: 30px
-              background: lighten($level-1-color, 30%)
-              &.highlight
-                background: lighten($level-1-color, 5%)
-              i
-                line-height: 50px
-              &:hover
-                background: lighten($level-1-color, 20%)
-                border: 2px solid lighten($level-1-color, 15%) !important
-                border-color: lighten($level-1-color, 15%) !important
-              i.fa.fa-trash
-                transform: translate(-50%, -50%)
-                top: 50%
-                color: white
-                font-size: 30px
-                position: absolute
+            // &.rubbish-td
+            //   color: white
+            //   font-size: 30px
+            //   background: lighten($level-1-color, 30%)
+            //   &.highlight
+            //     background: lighten($level-1-color, 5%)
+            //   i
+            //     line-height: 50px
+            //   &:hover
+            //     background: lighten($level-1-color, 20%)
+            //     border: 2px solid lighten($level-1-color, 15%) !important
+            //     border-color: lighten($level-1-color, 15%) !important
+            //   i.fa.fa-trash
+            //     transform: translate(-50%, -50%)
+            //     top: 50%
+            //     color: white
+            //     font-size: 30px
+            //     position: absolute
 
 
           td:not(:first-of-type)
