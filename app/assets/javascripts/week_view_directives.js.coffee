@@ -2,9 +2,9 @@ app.directive 'calendarListener', () ->
   restrict: "A"
   link: (scope) ->
     $ ->
-      $('.summary-button').on 'click', ->
+      $('.page-buttons').on 'click', '.summary-button',->
         $('summary .fa-plus').click()
-        $.scrollTo($('summary').height(), 300)
+        $.scrollTo($('summary').height() + 100, 300)
 
       #trash box functionality
       $('.rubbish-td').bind 'DOMNodeInserted', (event) ->
