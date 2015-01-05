@@ -18,6 +18,7 @@
       cursor: pointer
 
   .selected-options
+    display: inline-block
     h5
       display: inline-block
       margin-right: 20px
@@ -26,16 +27,93 @@
     background: white
     min-height: 700px
 
-    .page-buttons
-      div
+    .commands-list
+      p
         display: inline-block
-        margin: 0px 10px
-      button
-        margin: 20px 3px
-        &:last-of-type
-          margin-right: 10px
-        i
-          font-size: 15px
+        line-height: 32px
+        span.command
+          margin-top: 5px
+          font-weight: bold
+        span.keyboard
+          padding: 6px
+          margin-left: 10px
+          border: 1px solid lightgrey
+          margin-right: 20px
+          border-radius: 2px
+
+    .page-buttons
+      padding-top: 15px
+      padding-bottom: 15px
+      display: inline-block
+
+
+      i.fa.fa-bars
+        font-size: 20px
+        margin: 0px 20px
+        cursor: pointer
+        -webkit-user-select: none
+        -khtml-user-select: none
+        -moz-user-select: none
+        -o-user-select: none
+        user-select: none
+        color: grey
+        padding: 7px
+        border-radius: 3px
+        border: 2px solid white
+
+        &:hover
+          color: #222
+
+        &.menuOpen
+          border: 2px solid #222
+          color: #222
+
+      .page-options
+        position: absolute
+        min-width: 300px
+        top: 100%
+        right: 15px
+        background: white
+        border: 2px solid lighten(lightgrey, 5%)
+        border-radius: 3px
+        z-index: 1003
+        overflow: hidden
+
+        button
+          display: block
+          padding: 10px 0px
+          width: 100%
+          border: 1px solid
+          color: white
+          font-size: 16px
+          &:focus
+            outline: none !important
+          &.help
+            &:hover
+              background-color: lighten($level-6-color, 10%)
+            &:active
+              background-color: lighten($level-6-color, 0%)
+          &.add
+            &:hover
+              background-color: lighten($level-2-color, 10%)
+            &:active
+              background-color: lighten($level-2-color, 0%)
+          &.reset
+            &:hover
+              background-color: lighten($level-5-color, 10%)
+            &:active
+              background-color: lighten($level-5-color, 0%)
+          &.del
+            &:hover
+              background-color: lighten($level-1-color, 10%)
+            &:active
+              background-color: lighten($level-1-color, 0%)
+          &.summary
+            &:hover
+              background-color: lighten($level-3-color, 10%)
+            &:active
+              background-color: lighten($level-3-color, 0%)
+
 
     h4
       margin-top: 30px
@@ -79,7 +157,6 @@
 
     .table-headers
       border: 2px solid lighten(lightgrey, 5)
-      border-bottom: none
       border-radius: 1px
 
       div
@@ -151,11 +228,20 @@
               font-size: 30px
               background: lighten($level-1-color, 30%)
               &.highlight
-                background: lighten($level-1-color, 10%)
+                background: lighten($level-1-color, 5%)
               i
                 line-height: 50px
               &:hover
                 background: lighten($level-1-color, 20%)
+                border: 2px solid lighten($level-1-color, 15%) !important
+                border-color: lighten($level-1-color, 15%) !important
+              i.fa.fa-trash
+                transform: translate(-50%, -50%)
+                top: 50%
+                color: white
+                font-size: 30px
+                position: absolute
+
 
           td:not(:first-of-type)
             text-align: center

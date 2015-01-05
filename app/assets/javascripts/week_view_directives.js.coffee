@@ -41,14 +41,16 @@ app.directive 'calendarListener', () ->
           scope.func.submitShift(newShift)
 
           $('.shift-bar[data-shift-id="' + shiftBeforeMod.id + '"]').first().remove()
-
+          scope.data.baseShift = {}
           # We allow angular directives to create this clone
         else
           console.log 'modifying previous'
           shiftBeforeMod.date       = date
           shiftBeforeMod.employeeID = employeeID
           scope.func.estimate()
+          scope.data.baseShift = {}
           scope.$apply()
+
 
       #click on date box
       $('.shift-applicable').on 'click', ->
@@ -117,6 +119,7 @@ app.directive 'popupHandler', () ->
        if e.keyCode is 27
          scope.states.showEditPopup = false
          scope.states.showNewPopup  = false
+         scope.states.showMenu  = false
          scope.func.resetSelected()
          scope.$apply()
 
@@ -203,8 +206,7 @@ app.directive 'setDrag', ($timeout) ->
       rd.event.moved = ->
         console.log 'moved'
         shiftID                 = $(rd.obj).data('shift-id')
-        shift                   = scope.func.grabShift(shiftID)
-        angular.copy(shift, scope.data.baseShift)
+        scope.data.baseShift    = scope.func.grabShift(shiftID)
         scope.states.isDragging = true
 
         if window.event.shiftKey is true

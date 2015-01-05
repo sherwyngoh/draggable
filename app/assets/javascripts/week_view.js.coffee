@@ -8,6 +8,8 @@ app.controller "weekViewController", ($scope, $timeout) ->
     isSelecting    : false
     isCloning      : false
     isInitializing : true
+    showMenu       : false
+    showHelp       : false
 
   #init
   $scope.data =
@@ -70,6 +72,8 @@ app.controller "weekViewController", ($scope, $timeout) ->
     $scope.data.wageBudget       =  ($scope.data.salesForecast/100) *  $scope.data.budgetPercentage
 
   $scope.func =
+    init: ->
+      #get data
     estimate: ->
       console.log 'estimating'
       $scope.data.wageEstimate = 0
@@ -108,13 +112,14 @@ app.controller "weekViewController", ($scope, $timeout) ->
       ifSuccess = ->
         angular.copy($scope.data.originalShifts, $scope.data.shifts)
         $timeout($scope.func.refreshCalendar, 0)
+        $scope.$apply()
       $scope.func.swal(ifSuccess, "Yes, reset all changes!", '#F1C40F')
 
     toggled: ->
       shifts  = $scope.data.shifts
       toggled = $scope.data.toggledShifts
       for shift in shifts
-        shiftBar   =  $('.shift-bar[data-shift-id="' + shift.id + '"]')
+        shiftBar   = $('.shift-bar[data-shift-id="' + shift.id + '"]')
         role       = shift.role
         shiftColor = $scope.data.shiftColors[role]
         if toggled.indexOf(parseInt(shift.id)) is -1

@@ -6,16 +6,29 @@
           h4
             i.fa.fa-angle-double-left ng-click="func.resetShifts()"
             | {{data.calendarDisplayDate}}
+            / | {{states}}
             i.fa.fa-angle-double-right
-        .col-xs-8.page-buttons
-          .pull-right
-            button.btn.btn-success ng-click="states.showNewPopup = !states.showNewPopup"
-              .fa.fa-plus
+        .col-xs-7
+          .commands-list ng-if="states.showHelp"
+            p
+              span.command Close all windows:
+              br
+              span.command Select multiple:
+              br
+              span.command Clone shift:
+            p
+              span.keyboard Esc
+              br
+              span.keyboard Ctrl/Cmd + Click
+              br
+              span.keyboard Shift + Click(drag)
 
-            .selected-options
+        .col-xs-1.page-buttons
+          .pull-right
+            .selected-options ng-if="data.toggledShifts.length > 0"
               h5
                 | Selected:
-                span ng-if="data.toggledShifts.length > 0"
+                span
                   |  ({{data.toggledShifts.length}})
               button.btn.btn-info.btn-md ng-class="{'disabled': !states.isSelecting}" ng-click="func.resetSelected()"
                 | Deselect all
@@ -23,15 +36,18 @@
               button.btn.btn-danger.btn-md ng-class="{'disabled': !states.isSelecting}" ng-click="func.removeShifts(data.toggledShifts)"
                 | Delete selected
 
-            button.btn.btn-default.btn-md ng-click="func.resetShifts()"
-              / i.fa.fa-eraser
-              | Reset changes
+            i.fa.fa-bars ng-click="states.showMenu = !states.showMenu" ng-class="{'menuOpen': states.showMenu}"
 
-            button.btn.btn-default.btn-md ng-click="func.deleteAll()"
-              / i.fa.fa-trash
-              | Delete all
+            .page-options ng-if="states.showMenu"
+                button.help ng-click="states.showHelp = !states.showHelp" ng-if="!states.showHelp" Show help
+                button.help ng-click="states.showHelp = !states.showHelp" ng-if="states.showHelp" Hide help
+                button.add ng-click="states.showNewPopup = !states.showNewPopup" Add new shift
+                button.reset ng-click="func.resetShifts()" Reset changes
+                button.del ng-click="func.deleteAll()" Delete all
+                button.summary-button.summary View Summary
 
-            button.btn.btn-default.btn-md.summary-button View Summary
+
+
       .table-headers
         .staff
           | Staff
@@ -41,15 +57,11 @@
           i.fa.fa-trash
       .scrollable
         table.table set-drag='' calendar-listener='' popup-handler='' calendar-setup=''
-          / thead.sr-only
-          /   tr
-          /     th.mark
-          /       | Staff
-          /     th.mark ng-repeat="day in data.daysInWeek" data-date="{{day[1]}}"
-          /       | {{day[0]}}
-          /     th.mark
-          /       i.fa.fa-trash
+
           tbody
+            tr
+              td Other Branches
+
             tr ng-repeat="employee in data.employees" data-employee-id="{{employee.id}}"
               td.employee-name.mark
                 span
@@ -66,11 +78,16 @@
 
               td.shift-applicable ng-repeat="day in data.daysInWeek" data-date="{{day[1]}}" ng-model="day" data-employee-id="{{employee.id}}"
               td.rubbish-td ng-if="$first" rowspan="{{data.employees.length}}" ng-click="func.rubbishClicked()" ng-class="{'highlight': (states.isSelecting || states.isDragging) }"
+                | Drag here to delete
+                br
+                i.fa.fa-trash
 
 
-      / | {{states}}
+      | Baseshift:
+      |    {{data.baseShift}}
+      br
       / h4 Shifts
-      / | {{data.shifts}}
+      | {{data.shifts}}
 
       = render 'summary'
 
