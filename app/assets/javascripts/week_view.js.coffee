@@ -71,18 +71,16 @@ app.controller "weekViewController", ($scope, $timeout) ->
 
   $scope.func =
     estimate: ->
-      console.log 'reestimating'
+      console.log 'estimating'
       $scope.data.wageEstimate = 0
+
       for employee in $scope.data.employees
         employee.currentWeekHours = 0
 
       for shift in $scope.data.shifts
         employee     = $scope.func.grabEmployee(shift.employeeID)
         $scope.data.wageEstimate += parseInt(employee.costPerHour) * parseInt(shift.length)
-
         employee.currentWeekHours += parseInt(shift.length)
-
-
 
     swal: (ifSuccess, confirmButtonText, confirmButtonColor, type) ->
       confirmButtonColor = "#DD6B55" unless confirmButtonColor
@@ -166,22 +164,30 @@ app.controller "weekViewController", ($scope, $timeout) ->
       $scope.func.toggled()
 
     createFromPopup: ->
-      $scope.data.newShift.id = $scope.data.shifts.length + 1
-      $scope.data.shifts.push($scope.data.newShift)
+      shiftToPush = {}
+      angular.copy($scope.data.newShift, shiftToPush)
+
+      shiftToPush = $scope.func.setIdAndLength(shiftToPush)
+      $scope.data.shifts.push(shiftToPush)
+
+      #reset new shift and close popup
       $scope.data.newShift       = {role: $scope.data.roles[0], breakHours: 1, startHour: 8, startMin: '00', endHour: 17, endMin: '00'}
       $scope.states.showNewPopup = false
-      $scope.$apply()
       $timeout($scope.func.refreshCalendar, 0)
 
     submitShift: (shift) ->
-      hours        = shift.endHour - shift.startHour
-      hours        += (shift.endMin - shift.startMin)/60
-      shift.length = hours
-      shift.id     = $scope.data.shifts.length + 1
+      shift = $scope.func.setIdAndLength(shift)
       $scope.data.shifts.push(shift)
       $scope.data.baseShift = {}
       $scope.$apply()
       $timeout($scope.func.refreshCalendar, 0)
+
+    setIdAndLength: (shift) ->
+      hours        = shift.endHour - shift.startHour
+      hours        += (shift.endMin - shift.startMin)/60
+      shift.length = hours
+      shift.id     = String($scope.data.shifts.length + 1)
+      return shift
 
     removeShifts: (shiftsArray) ->
       for shiftID in shiftsArray
