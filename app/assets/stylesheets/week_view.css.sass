@@ -8,7 +8,7 @@
   div[class^="col-xs"]
     height: 100%
 
-  h4
+  h3
     display: inline-block
   .fa-angle-double-left
     margin-right: 20px
@@ -29,9 +29,27 @@
     background: white
     min-height: 700px
 
+    .row:first-of-type, .table-headers
+      position: fixed
+      width: 100%
+      margin-left: -15px
+      padding-left: 15px
+      padding-right: 25px
+      z-index: 1010
+      background: white
+
+    .row:first-of-type
+      height: 50px
+
+    .table-headers
+      margin-top: 50px
+
+      height: 50px
+
     .commands-list
       position: absolute
       min-width: 500px
+      top: 100px
       border: 1px solid grey
       border-radius: 3px
       padding: 0px 30px 30px 30px
@@ -84,14 +102,13 @@
           color: darkgrey
 
         &.menuOpen
-          border: 2px solid #222
           color: #222
 
       .page-options
         position: absolute
         min-width: 300px
-        top: 100%
-        right: 15px
+        top: 100px
+        right: 0px
         background: white
         border: 2px solid lighten(lightgrey, 5%)
         border-radius: 3px
@@ -178,8 +195,6 @@
         bottom: 0
 
     .table-headers
-      border: 2px solid lighten(lightgrey, 5)
-      border-radius: 1px
 
       div
         padding: 15px 0px 5px
@@ -189,15 +204,14 @@
         font-size: 16px
 
       .staff
-        width: 15%
+        width: 16%
       .days
-        width: 11%
-      .trash
-        width: 8%
+        width: 12%
         i
           font-size: 20px
 
     .scrollable
+      margin-top: 100px
       overflow: auto
       position: relative
       width: 100%
@@ -224,20 +238,17 @@
 
         tr
           td:first-of-type
-            width: 15% !important
+            width: 16% !important
             small
               font-weight: normal
           td
             padding: 5px
             border-right: 1px solid lighten(lightgrey, 5)
-            width: 11% !important
+            width: 12% !important
             overflow: hidden
 
           td:not(:first-of-type)
             text-align: center
-
-          td:last-of-type
-            width: 8% !important
 
 
       .mark
