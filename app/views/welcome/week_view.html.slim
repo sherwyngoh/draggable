@@ -6,36 +6,43 @@
           h4
             i.fa.fa-angle-double-left ng-click="func.resetShifts()"
             | {{data.calendarDisplayDate}}
-            / | {{states}}
             i.fa.fa-angle-double-right
-        .col-xs-5
+
           .commands-list ng-if="states.showHelp"
-            p
-              span.command Close all windows:
-              br
-              span.command Select multiple:
-              br
-              span.command Clone shift:
-            p
-              span.keyboard Esc
-              br
-              span.keyboard Ctrl/Cmd + Click
-              br
-              span.keyboard Shift + Click(drag)
+            .btn ng-click="states.showHelp = !states.showHelp"
+              i.fa.fa-close
+            h3 Keyboard shortcuts
+            .row
+              .col-xs-6
+                p
+                  span.command Close all windows:
+                  br
+                  span.command Select multiple
+                  br
+                  span.command Clone shift:
+                  br
+                  span.command Delete shift(s):
+              .col-xs-6
+                p
+                  span.keyboard Shift + Click(drag)
+                  br
+                  span.keyboard Delete/Backspace
+                  br
+                  span.keyboard Esc
+                  br
+                  span.keyboard Ctrl/ Command + Click
 
+        .col-xs-4.col-xs-offset-4.page-buttons
           .pull-right
-            .selected-options ng-if="data.toggledShifts.length > 0"
-              h5
-                | Selected:
-                span
-                  |  ({{data.toggledShifts.length}})
-              button.btn.btn-info.btn-md ng-class="{'disabled': !states.isSelecting}" ng-click="func.resetSelected()"
-                | Deselect all
 
-              button.btn.btn-danger.btn-md ng-class="{'disabled': !states.isSelecting}" ng-click="func.removeShifts(data.toggledShifts)"
-                | Delete selected
+            i.fa.fa-puzzle-piece ng-click="states.showTemplateMenu = !states.showTemplateMenu" ng-class="{'menuOpen': states.showTemplateMenu}" Template
 
-        .col-xs-3.page-buttons
+            .page-options.template-menu ng-if="states.showTemplateMenu"
+                button.add ng-click="states.showHelp = !states.showHelp" Save as template
+                button.help ng-click="states.showHelp = !states.showHelp" Load template A
+                button.help ng-click="states.showNewPopup = !states.showNewPopup" Load template B
+                button.reset ng-click="func.resetShifts()" Edit template
+                button.del ng-click="func.deleteAll()" Delete template
 
             i.fa.fa-bars ng-click="states.showMenu = !states.showMenu" ng-class="{'menuOpen': states.showMenu}" Options
 
@@ -46,16 +53,6 @@
                 button.reset ng-click="func.resetShifts()" Reset changes
                 button.del ng-click="func.deleteAll()" Delete all
                 button.summary-button.summary View Summary
-
-            i.fa.fa-puzzle-piece ng-click="states.showTemplateMenu = !states.showTemplateMenu" ng-class="{'menuOpen': states.showTemplateMenu}" Template
-
-            .page-options.template-menu ng-if="states.showTemplateMenu"
-                button.add ng-click="states.showHelp = !states.showHelp" Save as template
-                button.help ng-click="states.showHelp = !states.showHelp" Load template A
-                button.help ng-click="states.showNewPopup = !states.showNewPopup" Load template B
-                button.reset ng-click="func.resetShifts()" Edit template
-                button.del ng-click="func.deleteAll()" Delete template
-                / button.summary-button.summary View Summary
 
 
       .table-headers
@@ -84,14 +81,9 @@
                     | {{employee.costPerHour * employee.currentWeekHours}}
 
               td.shift-applicable ng-repeat="day in data.daysInWeek" data-date="{{day[1]}}" ng-model="day" data-employee-id="{{employee.id}}"
-              / td.rubbish-td ng-if="$first" rowspan="{{data.employees.length}}" ng-click="func.rubbishClicked()" ng-class="{'highlight': (states.isSelecting || states.isDragging) }"
-              /   | Drag here to delete
-              /   br
-              /   i.fa.fa-trash
-
 
       | Baseshift:
-      |    {{data.baseShift}}
+      |    {{baseShift}}
       br
       / h4 Shifts
       | {{data.shifts}}

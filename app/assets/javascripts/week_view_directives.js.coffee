@@ -102,14 +102,22 @@ app.directive 'popupHandler', () ->
       cursor: 'grabbing !important'
       opacity: 0.6
 
-     $(document).on 'keyup', (e)->
-       if e.keyCode is 27
+     $(window).on 'keydown', (e)->
+      if e.keyCode is 27
         scope.states.showEditPopup    = false
         scope.states.showNewPopup     = false
         scope.states.showMenu         = false
         scope.states.showTemplateMenu = false
         scope.func.resetSelected()
         scope.$apply()
+      if (e.keyCode is 8) or (e.keyCode is 46)
+        e.preventDefault()
+        if scope.data.toggledShifts.length > 0
+          ifSuccess = ->
+            scope.func.removeShifts(scope.data.toggledShifts)
+            scope.$apply()
+          scope.func.swal(ifSuccess, "Yes, delete!")
+
 
 app.directive 'shiftBar', ($timeout) ->
   restrict: 'A'
