@@ -29,7 +29,7 @@
     background: white
     min-height: 700px
 
-    .row:first-of-type, .table-headers
+    .top-header, .table-headers
       position: fixed
       width: 100%
       margin-left: -15px
@@ -38,7 +38,7 @@
       z-index: 1010
       background: white
 
-    .row:first-of-type
+    .top-header
       height: 50px
 
     .table-headers
@@ -158,43 +158,6 @@
     h4
       margin-top: 30px
 
-
-    summary
-      border: 2px solid lightgrey
-      border-radius: 3px
-      padding-left: 10px
-      margin: 20px 0px
-      background: rgba(255,255,255, 0.7)
-      z-index: 1002
-      &:hover:not(i)
-        cursor: move
-      .row
-        margin-bottom: 10px
-        label
-          padding-top: 10px
-      i
-        font-size: 18px
-        margin-top: 20px
-        margin-right: 30px
-        &:hover
-          cursor: pointer
-
-        &.fa-plus
-          &:hover
-            color: $level-2-color
-        &.fa-minus
-          display: none
-          &:hover
-            color: $level-1-color
-      p.danger
-        color: $level-1-color
-
-      ng-form
-        display: none
-      .summary-footer
-        position: absolute
-        bottom: 0
-
     .table-headers
 
       div
@@ -216,7 +179,6 @@
       overflow: auto
       position: relative
       width: 100%
-      max-height: 600px
       border: 2px solid lighten(lightgrey, 5)
       border-top: none
 
@@ -254,6 +216,41 @@
       .mark
         background: white
 
+    summary
+      border: 2px solid lightgrey
+      border-radius: 3px
+      padding-left: 10px
+      margin: 20px 0px
+      background: rgba(255,255,255, 0.7)
+      z-index: 1002
+      &:hover:not(i)
+        cursor: move
+      .row
+        margin-bottom: 10px
+        label
+          padding-top: 10px
+      i
+        font-size: 18px
+        margin-top: 20px
+        margin-right: 30px
+        &:hover
+          cursor: pointer
+
+        &.fa-plus
+          &:hover
+            color: $level-2-color
+        &.fa-minus
+          display: none
+          &:hover
+            color: $level-1-color
+      p.danger
+        color: $level-1-color
+
+      ng-form
+        display: none
+      .summary-footer
+        position: absolute
+        bottom: 0
 
   .shift-bar
     z-index: 10

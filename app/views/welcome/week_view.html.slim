@@ -1,7 +1,7 @@
 #week-view ng-app="weekView" ng-controller="weekViewController"
   .row
     .col-xs-12.main-box
-      .row
+      .row.top-header
         .col-xs-6
           h3
             i.fa.fa-angle-double-left ng-click="func.resetShifts()"
@@ -61,6 +61,7 @@
         .staff
           | Staff
         .days ng-repeat="day in data.daysInWeek" data-date="{{day[1]}}"
+
           | {{day[0]}}
       .scrollable
         table.table set-drag='' calendar-listener='' popup-handler='' calendar-setup=''
@@ -81,13 +82,6 @@
                     | {{employee.costPerHour * employee.currentWeekHours}}
 
               td.shift-applicable ng-repeat="day in data.daysInWeek" data-date="{{day[1]}}" ng-model="day" data-employee-id="{{employee.id}}"
-
-      | Baseshift:
-      |    {{baseShift}}
-      br
-      / h4 Shifts
-      | {{data.shifts}}
-
       = render 'summary'
 
   .shift-bar.drag shift-bar='' ng-model="shift" ng-repeat="shift in data.shifts" data-length="{{shift.length}}" ng-class="{'selected': data.toggledShifts.indexOf({{shift.id}}) > -1}" data-shift-id="{{shift.id}}"
