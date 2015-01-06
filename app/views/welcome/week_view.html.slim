@@ -44,12 +44,30 @@
                 button.del ng-click="func.deleteAll()" Delete template
 
             .page-options.animate-if ng-if="states.showMenu"
-                button.help ng-click="states.showHelp = !states.showHelp" ng-if="!states.showHelp" Show help (f1)
-                button.help ng-click="states.showHelp = !states.showHelp" ng-if="states.showHelp" Hide help (f1)
-                button.add ng-click="states.showNewPopup = !states.showNewPopup" Add new shift (shift + n)
-                button.reset ng-click="func.resetShifts()" Reset changes (shift + r)
-                button.del ng-click="func.deleteAll()" Delete all (shift + backspace)
-                button.summary-button.summary View Summary (shift + s)
+                button.help ng-click="states.showHelp = !states.showHelp" ng-if="!states.showHelp"
+                  | Show help
+                  span.shortcut
+                    | (f1)
+                button.help ng-click="states.showHelp = !states.showHelp" ng-if="states.showHelp"
+                  | Hide help
+                  span.shortcut
+                    | (f1)
+                button.add ng-click="states.showNewPopup = !states.showNewPopup"
+                  | Add new shift
+                  span.shortcut
+                    | (shift + n)
+                button.reset ng-click="func.resetShifts()"
+                  | Reset changes
+                  span.shortcut
+                    | (shift + r)
+                button.del ng-click="func.deleteAll()"
+                  | Delete all
+                  span.shortcut
+                    | (shift + backspace)
+                button.summary-button.summary
+                  | View Summary
+                  span.shortcut
+                    | (shift + s)
 
 
 
