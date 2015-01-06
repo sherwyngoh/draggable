@@ -79,9 +79,9 @@
               i.fa.fa-sort-up ng-if='!states.showSortMenu'
               i.fa.fa-sort-down ng-if='states.showSortMenu'
             .sort-options ng-if="states.showSortMenu" ng-mouseleave="states.showSortMenu = false"
-              button.btn.btn-block.btn-default ng-click="states.showSortMenu = false; data.predicate = 'name'; data.reverse = !data.reverse" Name
-              button.btn.btn-block.btn-default ng-click="states.showSortMenu = false; data.predicate = 'defaultRole'; data.reverse = !data.reverse" Job Title
-              button.btn.btn-block.btn-default ng-click="states.showSortMenu = false; data.predicate = 'id';data.reverse = false" None
+              button.btn.btn-block.btn-default ng-click="states.showSortMenu = false; data.predicate = 'name'" Name
+              button.btn.btn-block.btn-default ng-click="states.showSortMenu = false; data.predicate = 'defaultRole';" Job Title
+              button.btn.btn-block.btn-default ng-click="states.showSortMenu = false; data.predicate = 'id'" None
 
 
         .days ng-repeat="day in data.daysInWeek" data-date="{{day[1]}}"
@@ -92,7 +92,7 @@
 
             tbody
 
-              tr ng-repeat="employee in data.employees | orderBy:data.predicate:reverse " data-employee-id="{{employee.id}}"
+              tr ng-repeat="employee in data.employees | orderBy:data.predicate " data-employee-id="{{employee.id}}"
                 td.employee-name.mark
                   span
                     | {{employee.name}}
@@ -138,7 +138,7 @@
         .col-xs-5.col-xs-offset-2
           label Employee
           select.form-control ng-model="data.shiftCopy.employeeID"
-            option ng-repeat="employee in data.employees | orderBy:data.predicate:reverse" value="{{employee.id}}" ng-selected="data.shiftCopy.employeeID == employee.id"
+            option ng-repeat="employee in data.employees | orderBy:data.predicate" value="{{employee.id}}" ng-selected="data.shiftCopy.employeeID == employee.id"
               | {{employee.name}}
 
       .form-group
