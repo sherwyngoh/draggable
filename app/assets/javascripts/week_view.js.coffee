@@ -85,13 +85,14 @@ app.controller "weekViewController", ($scope, $timeout) ->
         employee.currentWeekHours = 0
 
       for day in $scope.data.daysInWeek
-        day[2] = 0
+        day[2] = day[3] = 0
         shiftBars = $('.shift-bar[data-date="' + day[1] + '"')
         angular.forEach shiftBars, (shiftBar) ->
           shift                     = $scope.func.grabShift($(shiftBar).data('shift-id'))
           employee                  = $scope.func.grabEmployee(shift.employeeID)
           wageCost                  = parseInt(employee.costPerHour) * parseInt(shift.length)
           day[2]                    += wageCost
+          day[3]                    += shift.length
 
           $scope.data.wageEstimate  += wageCost
 
