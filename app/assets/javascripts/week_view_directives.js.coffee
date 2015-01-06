@@ -102,6 +102,7 @@ app.directive 'popupHandler', () ->
         angular.forEach scope.states, (state, key) ->
           scope.states[key] = false
 
+        $('.fa-minus').click()
         scope.func.resetSelected()
         scope.$apply()
 
