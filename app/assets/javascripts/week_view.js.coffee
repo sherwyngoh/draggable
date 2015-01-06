@@ -78,17 +78,28 @@ app.controller "weekViewController", ($scope, $timeout) ->
       $.scrollTo($('summary').height() + 150, 300)
 
     estimate: ->
-      console.log 'estimating'
+      console.log 'estimating wagecost and setting employee current working hours'
       $scope.data.wageEstimate = 0
 
       for employee in $scope.data.employees
         employee.currentWeekHours = 0
 
-      for shift in $scope.data.shifts
-        employee                  = $scope.func.grabEmployee(shift.employeeID)
-        $scope.data.wageEstimate  += parseInt(employee.costPerHour) * parseInt(shift.length)
-        employee.currentWeekHours += parseInt(shift.length)
-        #add daily estimations here
+      for day in $scope.data.daysInWeek
+        day[2] = 0
+        shiftBars = $('.shift-bar[data-date="' + day[1] + '"')
+        angular.forEach shiftBars, (shiftBar) ->
+          shift                     = $scope.func.grabShift($(shiftBar).data('shift-id'))
+          employee                  = $scope.func.grabEmployee(shift.employeeID)
+          wageCost                  = parseInt(employee.costPerHour) * parseInt(shift.length)
+          day[2]                    += wageCost
+
+          $scope.data.wageEstimate  += wageCost
+
+          employee.currentWeekHours += parseInt(shift.length)
+
+
+
+
 
     swal: (ifSuccess, confirmButtonText, confirmButtonColor, type) ->
       confirmButtonColor = "#DD6B55" unless confirmButtonColor

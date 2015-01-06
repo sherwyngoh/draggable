@@ -3,9 +3,10 @@
     .col-xs-12.main-box
       .row.top-header
         .col-xs-6
-          h3
-            i.fa.fa-angle-double-left ng-click="func.resetShifts()"
-            | {{data.calendarDisplayDate}}
+          p
+            i.fa.fa-angle-double-left ng-click="func.estimate()"
+            / | {{data.calendarDisplayDate}}
+            | {{data.daysInWeek}}
             i.fa.fa-angle-double-right
 
           .commands-list ng-if="states.showHelp"
@@ -95,10 +96,15 @@
                   .employee-cost
                     | {{employee.costPerHour * employee.currentWeekHours}}
 
+
               td.shift-applicable ng-repeat="day in data.daysInWeek" data-date="{{day[1]}}" ng-model="day" data-employee-id="{{employee.id}}"
+            tr
+              td Cost
+              td ng-repeat="day in data.daysInWeek"
+                | {{day[2] | currency}}
       = render 'summary'
 
-  .shift-bar.drag shift-bar='' ng-model="shift" ng-repeat="shift in data.shifts" data-length="{{shift.length}}" ng-class="{'selected': data.toggledShifts.indexOf({{shift.id}}) > -1}" data-shift-id="{{shift.id}}"
+  .shift-bar.drag shift-bar='' ng-model="shift" ng-repeat="shift in data.shifts" data-length="{{shift.length}}" ng-class="{'selected': data.toggledShifts.indexOf({{shift.id}}) > -1}" data-shift-id="{{shift.id}}" data-date="{{shift.date}}"
 
   .popup.expand-container ng-show="states.showEditPopup"
     h3
