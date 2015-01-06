@@ -78,10 +78,15 @@ app.directive 'calendarSetup', () ->
         $(leaveTDs).each () ->
           $(this).css('background', 'lightgrey').addClass('mark')
 
+    setDraggableArea = ->
+      height = $('.draggable-area').height()
+      $('.draggable-area').height(height+ 150)
     setCalendarDays()
     $ ->
       setLeaveBars()
+      setDraggableArea()
       scope.func.estimate()
+
 
 app.directive 'popupHandler', () ->
   restrict: "A"
@@ -96,6 +101,7 @@ app.directive 'popupHandler', () ->
 
     $('.popup, summary').draggable
       cursor: 'grabbing !important'
+      containment: '.draggable-area'
       opacity: 0.6
 
      $(window).on 'keyup', (e)->
