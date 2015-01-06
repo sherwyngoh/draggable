@@ -73,8 +73,10 @@ app.controller "weekViewController", ($scope, $timeout) ->
     $scope.data.wageBudget       =  ($scope.data.salesForecast/100) *  $scope.data.budgetPercentage
 
   $scope.func =
-    init: ->
-      #get data
+    goToSummary: ->
+      $('summary .fa-plus').click()
+      $.scrollTo($('summary').height() + 150, 300)
+
     estimate: ->
       console.log 'estimating'
       $scope.data.wageEstimate = 0
@@ -83,9 +85,10 @@ app.controller "weekViewController", ($scope, $timeout) ->
         employee.currentWeekHours = 0
 
       for shift in $scope.data.shifts
-        employee     = $scope.func.grabEmployee(shift.employeeID)
-        $scope.data.wageEstimate += parseInt(employee.costPerHour) * parseInt(shift.length)
+        employee                  = $scope.func.grabEmployee(shift.employeeID)
+        $scope.data.wageEstimate  += parseInt(employee.costPerHour) * parseInt(shift.length)
         employee.currentWeekHours += parseInt(shift.length)
+        #add daily estimations here
 
     swal: (ifSuccess, confirmButtonText, confirmButtonColor, type) ->
       confirmButtonColor = "#DD6B55" unless confirmButtonColor

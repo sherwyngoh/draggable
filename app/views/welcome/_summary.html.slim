@@ -1,11 +1,18 @@
+.daily-summary.row
+  .col-xs-12
+    .employee
+    .day-summary ng-repeat="cost in data.daySummaries"
+      | {{cost}}
 summary.expand-container.col-sm-5.pull-right
   .row
     .col-xs-6
       h4 Weekly Summary
     .col-xs-6
-      .pull-right
-        i.fa.fa-plus
-        i.fa.fa-minus
+      small.pull-right
+        .btn
+          i.fa.fa-plus
+        .btn
+          i.fa.fa-minus
 
   ng-form
     .row

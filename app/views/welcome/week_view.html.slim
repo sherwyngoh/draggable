@@ -15,45 +15,41 @@
             .row
               .col-xs-6
                 p
-                  span.command Close all windows:
-                  br
                   span.command Select multiple
                   br
                   span.command Clone shift:
                   br
                   span.command Delete shift(s):
+                  br
+                  span.command Close all windows:
               .col-xs-6
                 p
+                  span.keyboard Ctrl/ Command + Click
+                  br
                   span.keyboard Shift + Click(drag)
                   br
                   span.keyboard Delete/Backspace
                   br
                   span.keyboard Esc
-                  br
-                  span.keyboard Ctrl/ Command + Click
 
-        .col-xs-3.page-buttons
+        .col-xs-6.page-buttons
           .pull-right
-
-            i.fa.fa-puzzle-piece ng-click="states.showTemplateMenu = !states.showTemplateMenu" ng-class="{'menuOpen': states.showTemplateMenu}" Template Menu
-
-        .col-xs-3.page-buttons
-          .pull-right
-            i.fa.fa-bars ng-click="states.showMenu = !states.showMenu" ng-class="{'menuOpen': states.showMenu}" Options
-            .page-options.template-menu ng-if="states.showTemplateMenu"
+            i.fa.fa-puzzle-piece ng-click="states.showTemplateMenu = !states.showTemplateMenu; states.showMenu = false" ng-class="{'menuOpen': states.showTemplateMenu}"
+            i.fa.fa-bars ng-click="states.showMenu = !states.showMenu; states.showTemplateMenu = false" ng-class="{'menuOpen': states.showMenu}"
+            .page-options ng-if="states.showTemplateMenu"
                 button.add ng-click="states.showHelp = !states.showHelp" Save as template
                 button.help ng-click="states.showHelp = !states.showHelp" Load template A
                 button.help ng-click="states.showNewPopup = !states.showNewPopup" Load template B
                 button.reset ng-click="func.resetShifts()" Edit template
                 button.del ng-click="func.deleteAll()" Delete template
 
-            .page-options ng-if="states.showMenu"
-                button.help ng-click="states.showHelp = !states.showHelp" ng-if="!states.showHelp" Show help
-                button.help ng-click="states.showHelp = !states.showHelp" ng-if="states.showHelp" Hide help
-                button.add ng-click="states.showNewPopup = !states.showNewPopup" Add new shift
-                button.reset ng-click="func.resetShifts()" Reset changes
-                button.del ng-click="func.deleteAll()" Delete all
-                button.summary-button.summary View Summary
+            .page-options.animate-if ng-if="states.showMenu"
+                button.help ng-click="states.showHelp = !states.showHelp" ng-if="!states.showHelp" Show help (f1)
+                button.help ng-click="states.showHelp = !states.showHelp" ng-if="states.showHelp" Hide help (f1)
+                button.add ng-click="states.showNewPopup = !states.showNewPopup" Add new shift (shift + n)
+                button.reset ng-click="func.resetShifts()" Reset changes (shift + r)
+                button.del ng-click="func.deleteAll()" Delete all (shift + backspace)
+                button.summary-button.summary View Summary (shift + s)
 
 
 
@@ -90,9 +86,12 @@
     h3
       | Edit Shift
     small.pull-right
-      i.fa.fa-minus
-      i.fa.fa-plus
-      i.fa.fa-close ng-click="states.showEditPopup = !states.showEditPopup"
+      .btn
+        i.fa.fa-minus
+      .btn
+        i.fa.fa-plus
+      .btn
+        i.fa.fa-close ng-click="states.showEditPopup = !states.showEditPopup"
 
     ng-form.form name="editShiftForm"
       .form-group

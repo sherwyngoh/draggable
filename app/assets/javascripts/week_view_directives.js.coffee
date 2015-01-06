@@ -3,8 +3,7 @@ app.directive 'calendarListener', () ->
   link: (scope) ->
     $ ->
       $('.page-buttons').on 'click', '.summary-button',->
-        $('summary .fa-plus').click()
-        $.scrollTo($('summary').height() + 100, 300)
+        scope.func.goToSummary()
 
       #clone shift or move shift
       $('.shift-applicable').bind 'DOMNodeInserted ', (event) ->
@@ -86,23 +85,23 @@ app.directive 'calendarSetup', () ->
 app.directive 'popupHandler', () ->
   restrict: "A"
   link: (scope) ->
-    $('i.fa-minus').on 'click', (e) ->
+    $('i.fa-minus').parents('.btn').on 'click', (e) ->
       e.preventDefault()
       $(this).parents('.expand-container').find('ng-form').hide()
       $(this).hide()
-      $(this).siblings('.fa-plus').css('display', 'inline-block')
+      $(this).parents('small').find('.fa-plus').css('display', 'inline-block')
 
-    $('i.fa-plus').on 'click', (e) ->
+    $('i.fa-plus').parents('.btn').on 'click', (e) ->
       e.preventDefault()
       $(this).parents('.expand-container').find('ng-form').show()
       $(this).hide()
-      $(this).siblings('.fa-minus').css('display', 'inline-block')
+      $(this).parents('small').find('.fa-minus').css('display', 'inline-block')
 
     $('.popup, summary').draggable
       cursor: 'grabbing !important'
       opacity: 0.6
 
-     $(window).on 'keydown', (e)->
+     $(window).on 'keyup', (e)->
       if e.keyCode is 27
         scope.states.showEditPopup    = false
         scope.states.showNewPopup     = false
@@ -118,6 +117,22 @@ app.directive 'popupHandler', () ->
             scope.func.removeShifts(scope.data.toggledShifts)
             scope.$apply()
           scope.func.swal(ifSuccess, "Yes, delete!")
+
+      if e.keyCode is 112
+        scope.states.showHelp =  if scope.states.showHelp then false else true
+        scope.$apply()
+
+      if (e.shiftKey)
+        if e.keyCode is 83
+          scope.func.goToSummary()
+
+        if e.keyCode is 78
+          scope.states.showNewPopup = true
+          scope.$apply()
+
+        if e.keyCode is 82
+          scope.func.resetShifts()
+
 
 
 app.directive 'shiftBar', ($timeout) ->
