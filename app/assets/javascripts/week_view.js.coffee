@@ -75,7 +75,7 @@ app.controller "weekViewController", ($scope, $timeout) ->
   $scope.func =
     goToSummary: ->
       $('summary .fa-plus').click()
-      $.scrollTo($('summary').height() + 150, 300)
+      $.scrollTo($('summary').offset().top - 120, 300)
 
     estimate: ->
       console.log 'estimating wagecost and setting employee current working hours'

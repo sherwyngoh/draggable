@@ -3,10 +3,9 @@
     .col-xs-12.main-box
       .row.top-header
         .col-xs-6
-          p
-            i.fa.fa-angle-double-left ng-click="func.estimate()"
-            / | {{data.calendarDisplayDate}}
-            | {{data.daysInWeek}}
+          h3
+            i.fa.fa-angle-double-left
+            | {{data.calendarDisplayDate}}
             i.fa.fa-angle-double-right
 
           .commands-list ng-if="states.showHelp"
