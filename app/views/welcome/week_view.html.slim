@@ -116,7 +116,7 @@
 
   .shift-bar.drag shift-bar='' ng-model="shift" ng-repeat="shift in data.shifts" data-length="{{shift.length}}" ng-class="{'selected': data.toggledShifts.indexOf({{shift.id}}) > -1}" data-shift-id="{{shift.id}}" data-date="{{shift.date}}"
 
-  .popup.expand-container ng-show="states.showEditPopup"
+  .popup.expand-container#editPopup ng-show="states.showEditPopup"
     h3
       | Edit Shift
     small.pull-right

@@ -46,6 +46,7 @@ app.directive 'calendarListener', () ->
         scope.data.newShift.date       = date
         scope.data.newShift.employeeID = employeeID
         scope.states.showNewPopup      = true
+        $('#newPopup').find('ng-form').show()
         scope.$apply()
 
 
@@ -211,6 +212,7 @@ app.directive 'setDrag', ($timeout) ->
           angular.copy(scope.data.selectedShift , scope.data.shiftCopy)
 
           scope.states.showEditPopup = true
+          $('#editPopup').find('ng-form').show()
           scope.$apply()
 
       rd.event.moved = ->
