@@ -88,14 +88,10 @@ app.directive 'popupHandler', () ->
     $('i.fa-minus').parents('.btn').on 'click', (e) ->
       e.preventDefault()
       $(this).parents('.expand-container').find('ng-form').hide()
-      $(this).hide()
-      $(this).parents('small').find('.fa-plus').css('display', 'inline-block')
 
     $('i.fa-plus').parents('.btn').on 'click', (e) ->
       e.preventDefault()
       $(this).parents('.expand-container').find('ng-form').show()
-      $(this).hide()
-      $(this).parents('small').find('.fa-minus').css('display', 'inline-block')
 
     $('.popup, summary').draggable
       cursor: 'grabbing !important'
@@ -103,20 +99,11 @@ app.directive 'popupHandler', () ->
 
      $(window).on 'keyup', (e)->
       if e.keyCode is 27
-        scope.states.showEditPopup    = false
-        scope.states.showNewPopup     = false
-        scope.states.showMenu         = false
-        scope.states.showTemplateMenu = false
-        scope.states.showHelp         = false
+        angular.forEach scope.states, (state, key) ->
+          scope.states[key] = false
+
         scope.func.resetSelected()
         scope.$apply()
-      if (e.keyCode is 8) or (e.keyCode is 46)
-        e.preventDefault()
-        if scope.data.toggledShifts.length > 0
-          ifSuccess = ->
-            scope.func.removeShifts(scope.data.toggledShifts)
-            scope.$apply()
-          scope.func.swal(ifSuccess, "Yes, delete!")
 
       if e.keyCode is 112
         scope.states.showHelp =  if scope.states.showHelp then false else true
@@ -132,6 +119,16 @@ app.directive 'popupHandler', () ->
 
         if e.keyCode is 82
           scope.func.resetShifts()
+
+    $(window).on 'keydown', (e) ->
+      return if $(document.activeElement).is('input')
+      if (e.keyCode is 8) or (e.keyCode is 46)
+        e.preventDefault()
+        if scope.data.toggledShifts.length > 0
+          ifSuccess = ->
+            scope.func.removeShifts(scope.data.toggledShifts)
+            scope.$apply()
+          scope.func.swal(ifSuccess, "Yes, delete!")
 
 
 
