@@ -80,6 +80,7 @@ app.controller "weekViewController", ($scope, $timeout) ->
       if val is true
         scope.states.showMenu = false
         scope.states.showTemplateMenu = false
+        scope.func.resetSelected()
 
   $scope.func =
     goToSummary: ->
