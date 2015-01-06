@@ -11,6 +11,7 @@ app.controller "weekViewController", ($scope, $timeout) ->
     showMenu         : false
     showHelp         : false
     showTemplateMenu : false
+    showSortMenu     : false
 
   #init
   $scope.data =
@@ -21,6 +22,8 @@ app.controller "weekViewController", ($scope, $timeout) ->
     baseShift     : {}
     attrToClone   : ['startHour','startMin','role','endHour','endMin','breakHours', 'employeeID', 'date']
     wageEstimate  : 0
+    predicate     : 'id'
+    reverse       : false
 
   $scope.data.calendarStartDate    = '27-12-2014'
   $scope.data.calMomentStart       = moment($scope.data.calendarStartDate, "DD-MM-YYYY")
@@ -28,18 +31,18 @@ app.controller "weekViewController", ($scope, $timeout) ->
   $scope.data.calendarDisplayDate  = $scope.data.calMomentStart.format('ddd Do MMM YYYY') + " - " + $scope.data.calMomentEnd.format('ddd Do MMM YYYY')
 
   $scope.data.employees = [
-    {id: '1', name: 'Fordon Ng', hoursExcludingThisWeek: 20, costPerHour: 10, totalHours: 40, currentWeekHours: 5.5}
-    {id: '2', name: 'Zadwin Feng', hoursExcludingThisWeek: 16, costPerHour: 7.5, totalHours: 40, currentWeekHours: 8}
-    {id: '3', name: 'Kan G', hoursExcludingThisWeek: 10, costPerHour: 7, totalHours: 35, currentWeekHours: 0}
-    {id: '4', name: 'Lesslyn', hoursExcludingThisWeek: 10, costPerHour: 12, totalHours: 35, currentWeekHours: 0}
-    {id: '5', name: 'Zherwyn', hoursExcludingThisWeek: 10, costPerHour: 12, totalHours: 35, currentWeekHours: 0}
-    {id: '6', name: 'Jebastian', hoursExcludingThisWeek: 10, costPerHour: 12, totalHours: 35, currentWeekHours: 0}
-    {id: '7', name: 'Bnonoz', hoursExcludingThisWeek: 10, costPerHour: 12, totalHours: 35, currentWeekHours: 0}
-    {id: '8', name: 'Zordon', hoursExcludingThisWeek: 10, costPerHour: 12, totalHours: 35, currentWeekHours: 0}
-    {id: '9', name: 'White Ranger', hoursExcludingThisWeek: 10, costPerHour: 12, totalHours: 35, currentWeekHours: 0}
-    {id: '10', name: 'Red Ranger', hoursExcludingThisWeek: 10, costPerHour: 12, totalHours: 35, currentWeekHours: 0}
-    {id: '11', name: 'Black Ranger', hoursExcludingThisWeek: 10, costPerHour: 12, totalHours: 35, currentWeekHours: 0}
-    {id: '12', name: 'Yellow Ranger', hoursExcludingThisWeek: 10, costPerHour: 12, totalHours: 35, currentWeekHours: 0}
+    {id: '1', name: 'Fordon Ng', hoursExcludingThisWeek: 20, costPerHour: 10, totalHours: 40, currentWeekHours: 5.5, defaultRole: 'Manager'}
+    {id: '2', name: 'Zadwin Feng', hoursExcludingThisWeek: 16, costPerHour: 7.5, totalHours: 40, currentWeekHours: 8, defaultRole: 'Crew'}
+    {id: '3', name: 'Kan G', hoursExcludingThisWeek: 10, costPerHour: 7, totalHours: 35, currentWeekHours: 0, defaultRole: 'Asst Manager' }
+    {id: '4', name: 'Lesslyn', hoursExcludingThisWeek: 10, costPerHour: 12, totalHours: 35, currentWeekHours: 0, defaultRole: 'Asst Manager'}
+    {id: '5', name: 'Zherwyn', hoursExcludingThisWeek: 10, costPerHour: 12, totalHours: 35, currentWeekHours: 0, defaultRole: 'Supervisor'}
+    {id: '6', name: 'Jebastian', hoursExcludingThisWeek: 10, costPerHour: 12, totalHours: 35, currentWeekHours: 0, defaultRole: 'Supervisor'}
+    {id: '7', name: 'Bnonoz', hoursExcludingThisWeek: 10, costPerHour: 12, totalHours: 35, currentWeekHours: 0, defaultRole: 'Crew' }
+    {id: '8', name: 'Zordon', hoursExcludingThisWeek: 10, costPerHour: 12, totalHours: 35, currentWeekHours: 0, defaultRole: 'Supervisor'}
+    {id: '9', name: 'White Ranger', hoursExcludingThisWeek: 10, costPerHour: 12, totalHours: 35, currentWeekHours: 0, defaultRole: 'Supervisor'}
+    {id: '10', name: 'Red Ranger', hoursExcludingThisWeek: 10, costPerHour: 12, totalHours: 35, currentWeekHours: 0, defaultRole: 'Manager'}
+    {id: '11', name: 'Black Ranger', hoursExcludingThisWeek: 10, costPerHour: 12, totalHours: 35, currentWeekHours: 0, defaultRole: 'Crew'}
+    {id: '12', name: 'Yellow Ranger', hoursExcludingThisWeek: 10, costPerHour: 12, totalHours: 35, currentWeekHours: 0, defaultRole: 'Crew'}
   ]
 
   $scope.data.shifts = [
@@ -70,7 +73,13 @@ app.controller "weekViewController", ($scope, $timeout) ->
   $scope.data.wageBudget       =  ($scope.data.salesForecast/100) *  $scope.data.budgetPercentage
 
   $scope.$watchGroup ['data.salesForecast', 'data.budgetPercentage'], (newVal, oldVal, scope) ->
-    $scope.data.wageBudget       =  ($scope.data.salesForecast/100) *  $scope.data.budgetPercentage
+    scope.data.wageBudget       =  ($scope.data.salesForecast/100) *  $scope.data.budgetPercentage
+
+  $scope.$watchGroup ['states.showNewPopup', 'states.showEditPopup'], (newVal, oldVal, scope) ->
+    for val in newVal
+      if val is true
+        scope.states.showMenu = false
+        scope.states.showTemplateMenu = false
 
   $scope.func =
     goToSummary: ->
