@@ -1,9 +1,2 @@
-| BaseShift(clone): {{data.shiftCopy}}
-br
-| newShift(popup): {{data.baseShift}}
-br
-| selectedShift(editing): {{data.selectedShift}}
-/ | Template: {{data.templates.length}}
-/ br
-p ng-repeat="shift in data.shifts"
-  |  {{shift}}
+/ | {{data.shifts}}
+/ | {{states.createForMultiple}}
