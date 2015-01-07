@@ -123,6 +123,7 @@ app.directive 'popupHandler', ($timeout) ->
 
         $('.fa-minus').click()
         scope.func.resetSelected()
+        $('td.selected').removeClass('selected')
         scope.$apply()
 
       if e.keyCode is 112
@@ -137,6 +138,7 @@ app.directive 'popupHandler', ($timeout) ->
 
         if e.keyCode is 78
           scope.states.showNewPopup = true
+          $('#newPopup').find('ng-form').show()
           scope.$apply()
 
         if e.keyCode is 82
