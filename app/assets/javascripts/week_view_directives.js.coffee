@@ -268,14 +268,6 @@ app.directive 'setDrag', ($timeout) ->
         scope.states.isCloning  = false
         scope.$apply()
 
-      rd.event.deleted = (cloned) ->
-        shift = scope.func.grabShift($(rd.td).data('shift-id'))
-        index = scope.data.shifts.indexOf(shift)
-        scope.states.isDragging  = false
-        scope.shifts.splice(shift, 1)
-        scope.$apply()
-        console.log 'deleted'
-
       scope.states.isInitializing = false
 
     # add onload event listener
