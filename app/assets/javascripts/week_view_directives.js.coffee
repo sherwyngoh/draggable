@@ -42,6 +42,8 @@ app.directive 'calendarListener', () ->
         date                           = $(this).data('date')
         scope.data.newShift.date       = date
         scope.data.newShift.employeeID = employeeID
+        $('td.selected').removeClass('selected')
+        $(this).addClass('selected')
         scope.states.showNewPopup      = true
         scope.$apply()
 
@@ -229,6 +231,9 @@ app.directive 'setDrag', ($timeout) ->
           shiftID                  = $(rd.obj).data('shift-id')
           scope.data.selectedShiftToEdit = scope.func.grabShift(shiftID)
           angular.copy(scope.data.selectedShiftToEdit , scope.data.shiftCopy)
+
+          $('td.selected').removeClass('selected')
+          $(rd.td.current).addClass('selected')
 
           scope.states.showEditPopup = true
           popup                      = $(rd.obj)
