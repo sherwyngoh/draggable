@@ -97,16 +97,18 @@ app.directive 'popupHandler', ($timeout) ->
   link: (scope) ->
     $('.popup').on 'reposition', (e, tdOffset) ->
       console.log tdOffset
+      windowWidth = $(window).width()
+      spaceFromLeft = windowWidth - tdOffset.left
+      if spaceFromLeft < 500
+        tdOffset.left += -600 + windowWidth - tdOffset.left
       move = ->
         $('#newPopup, #editPopup').offset(tdOffset)
       $timeout(move, 0)
 
     $('i.fa-minus').parents('.btn').on 'click', (e) ->
-      e.preventDefault()
       $(this).parents('.expand-container').find('ng-form').hide()
 
     $('i.fa-plus').parents('.btn').on 'click', (e) ->
-      e.preventDefault()
       $(this).parents('.expand-container').find('ng-form').show()
 
     $('.popup, summary').draggable
@@ -238,7 +240,6 @@ app.directive 'setDrag', ($timeout) ->
           tdOffset.left              += parseInt(popup.css('width'))/2
           $('.popup').trigger 'reposition', [tdOffset]
           $('#editPopup').find('ng-form').show()
-
 
           scope.$apply()
 
