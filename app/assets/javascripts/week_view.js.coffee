@@ -98,7 +98,26 @@ app.controller "weekViewController", ($scope, $timeout) ->
     unless newVal
       scope.data.baseShift = {}
 
+  $scope.$watchCollection 'data.shifts', (newVal, oldVal, scope) ->
+    unless $scope.states.isUndoing
+      console.log 'storing state'
+      shiftHistory = []
+      angular.copy($scope.data.shifts, shiftHistory)
+      $scope.data.shiftStates.push(shiftHistory)
+      $scope.data.shiftStates.pop() if $scope.data.shiftStates.length > 20
+
   $scope.func =
+    undo: () ->
+      console.log 'undoing'
+      $scope.data.shifts = []
+      #last state
+      shiftStatesCount = $scope.data.shiftStates.length
+      stateToRevertTo  = $scope.data.shiftStates[shiftStatesCount - 2]
+      angular.copy(stateToRevertTo, $scope.data.shifts)
+      #remove current state, undo currently without redo
+      $scope.data.shiftStates.pop()
+      $timeout($scope.func.refreshCalendar, 0)
+
     hideMenus: () ->
       $scope.states.showMenu         = false
       $scope.states.showTemplateMenu = false

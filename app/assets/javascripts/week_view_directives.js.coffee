@@ -144,6 +144,15 @@ app.directive 'popupHandler', ($timeout) ->
         if e.keyCode is 82
           scope.func.resetShifts()
 
+      if e.metaKey
+        if e.keyCode is 90
+          scope.states.isUndoing = true
+          $('.fa-undo').click()
+          stopUndo = ->
+            scope.states.isUndoing = false
+          $timeout(stopUndo, 0)
+
+
       return if $(document.activeElement).is('input')
       if (e.keyCode is 8) or (e.keyCode is 46)
         e.preventDefault()
@@ -207,7 +216,7 @@ app.directive 'setDrag', ($timeout) ->
       rd.hover.colorTd  = 'blank'
       rd.hover.borderTd = '3px solid #9bb3da'
       rd.clone.keyDiv   = true
-      rd.trash.question = 'Are you sure you want to delete this shift?'
+      # rd.trash.question = 'Are you sure you want to delete this shift?'
 
 
       rd.event.clicked = (currentCell)->

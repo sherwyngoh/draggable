@@ -1,7 +1,10 @@
 .pull-right
+  i.fa.fa-undo ng-click="func.undo()" ng-class="{'menuOpen': states.showMenu}" ng-mouseenter='states.isUndoing = true' ng-mouseleave="states.isUndoing = false"
   i.fa.fa-puzzle-piece ng-click="states.showTemplateMenu = !states.showTemplateMenu; states.showMenu = false" ng-class="{'menuOpen': states.showTemplateMenu}" ng-mouseenter='states.showTemplateMenu = true; states.showMenu = false'
   i.fa.fa-bars ng-click="states.showMenu = !states.showMenu; states.showTemplateMenu = false" ng-class="{'menuOpen': states.showMenu}" ng-mouseenter='states.showMenu = true; states.showTemplateMenu = false'
-  .page-options ng-if="states.showTemplateMenu"
+
+
+  .page-options ng-if="states.showTemplateMenu" ng-mouseleave="states.showTemplateMenu = false"
       button.add ng-click="states.isSavingTemplate = true"
         span ng-if="!states.isSavingTemplate" Save as template
         span ng-if="states.isSavingTemplate"
@@ -14,8 +17,7 @@
           small
             a.pull-right.delete-template ng-click="func.deleteTemplate(template)" Delete
 
-
-  .page-options.animate-if ng-if="states.showMenu"
+  .page-options ng-if="states.showMenu" ng-mouseleave="states.showMenu = false"
       button.help ng-click="states.showHelp = !states.showHelp" ng-if="!states.showHelp"
         | Show help
         span.shortcut
