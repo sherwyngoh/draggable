@@ -45,8 +45,13 @@ app.directive 'calendarListener', () ->
         scope.data.newShift.date       = date
         scope.data.newShift.employeeID = employeeID
         scope.states.showNewPopup      = true
-        $('#newPopup').find('ng-form').show()
         scope.$apply()
+
+        tdOffset      =$(this).offset()
+        tdOffset.top  += parseInt($(this).css('height'))/2
+        tdOffset.left += parseInt($(this).css('width'))/2
+        $('.popup').trigger 'reposition', [tdOffset]
+        $('#newPopup').find('ng-form').show()
 
 
 app.directive 'calendarSetup', () ->
@@ -87,9 +92,15 @@ app.directive 'calendarSetup', () ->
       scope.func.estimate()
 
 
-app.directive 'popupHandler', () ->
+app.directive 'popupHandler', ($timeout) ->
   restrict: "A"
   link: (scope) ->
+    $('.popup').on 'reposition', (e, tdOffset) ->
+      console.log tdOffset
+      move = ->
+        $('#newPopup, #editPopup').offset(tdOffset)
+      $timeout(move, 0)
+
     $('i.fa-minus').parents('.btn').on 'click', (e) ->
       e.preventDefault()
       $(this).parents('.expand-container').find('ng-form').hide()
@@ -116,6 +127,8 @@ app.directive 'popupHandler', () ->
         scope.states.showHelp =  if scope.states.showHelp then false else true
         scope.$apply()
 
+
+    $(window).on 'keydown', (e) ->
       if (e.shiftKey)
         if e.keyCode is 83
           scope.func.goToSummary()
@@ -127,7 +140,6 @@ app.directive 'popupHandler', () ->
         if e.keyCode is 82
           scope.func.resetShifts()
 
-    $(window).on 'keydown', (e) ->
       return if $(document.activeElement).is('input')
       if (e.keyCode is 8) or (e.keyCode is 46)
         e.preventDefault()
@@ -216,10 +228,18 @@ app.directive 'setDrag', ($timeout) ->
       rd.event.notMoved = ->
         if !(window.event.ctrlKey or window.event.metaKey)
           shiftID                  = $(rd.obj).data('shift-id')
-          scope.states.showEditPopup = true
-          $('#editPopup').find('ng-form').show()
           scope.data.selectedShift = scope.func.grabShift(shiftID)
           angular.copy(scope.data.selectedShift , scope.data.shiftCopy)
+
+          scope.states.showEditPopup = true
+          popup                      = $(rd.obj)
+          tdOffset                   = popup.offset()
+          tdOffset.top               += parseInt(popup.css('height'))/2
+          tdOffset.left              += parseInt(popup.css('width'))/2
+          $('.popup').trigger 'reposition', [tdOffset]
+          $('#editPopup').find('ng-form').show()
+
+
           scope.$apply()
 
       rd.event.moved = ->

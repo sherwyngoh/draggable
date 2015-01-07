@@ -79,18 +79,15 @@ app.controller "weekViewController", ($scope, $timeout) ->
   $scope.$watchGroup ['data.salesForecast', 'data.budgetPercentage'], (newVal, oldVal, scope) ->
     scope.data.wageBudget       =  ($scope.data.salesForecast/100) *  $scope.data.budgetPercentage
 
-  $scope.$watchGroup ['states.showNewPopup', 'states.showEditPopup'], (newVal, oldVal, scope) ->
-    if newVal[0] || newVal[1]
-      $scope.states.showMenu         = false
-      $scope.states.showTemplateMenu = false
-      $scope.func.resetSelected()
+  $scope.$watch 'states.showNewPopup', (newVal, oldVal, scope) ->
+    if newVal
+      $scope.states.showEditPopup    = false
+      $scope.func.hideMenus()
 
-      if newVal[0]
-        console.log 'new popup'
-      else
-        console.log 'edit popup'
-
-
+  $scope.$watch 'states.showEditPopup', (newVal, oldVal, scope) ->
+    if newVal
+      $scope.states.showNewPopup     = false
+      $scope.func.hideMenus()
 
   $scope.$watch 'states.isSavingTemplate', (newValue, oldValue, scope) ->
     if newValue
@@ -99,6 +96,11 @@ app.controller "weekViewController", ($scope, $timeout) ->
       $timeout(focusInput, 0)
 
   $scope.func =
+    hideMenus: () ->
+      $scope.states.showMenu         = false
+      $scope.states.showTemplateMenu = false
+      $scope.func.resetSelected()
+
     convertToTemplate: (shifts, name) ->
       template      = {}
       angular.copy($scope.data.newTemplate, template)
@@ -127,12 +129,12 @@ app.controller "weekViewController", ($scope, $timeout) ->
       for template in $scope.data.templates
         if template.name is templateName
           $scope.data.currentTemplate = template
-      shifts =  $scope.func.copyShifts($scope.data.calendarStartDate, template)
+      shifts =  $scope.func.copyShifts($scope.data.calendarStartDate, $scope.data.currentTemplate)
 
       $timeout($scope.func.refreshCalendar, 0)
 
       swal
-        title:  template.name + " has been loaded!"
+        title:  $scope.data.currentTemplate.name + " has been loaded!"
         timer: 1000
 
     copyShifts: (startDate, template) ->
