@@ -11,6 +11,23 @@
 
   ng-form.form name="newShiftForm"
     .form-group
+      .col-xs-12
+        .checkbox
+          label
+            input type='checkbox' ng-model="states.createForMultiple"
+              | Create for multiple days
+        .row ng-if="states.createForMultiple"
+          .col-xs-6
+            .checkbox ng-repeat="day in data.daysInWeek" ng-if="$index < 4"
+              label
+                input type="checkbox" ng-checked="data.newShift.date == day[1]" ng-model="day[4]"
+                  | {{day[0]}}
+          .col-xs-6
+            .checkbox ng-repeat="day in data.daysInWeek" ng-if="$index > 3"
+              label
+                input type="checkbox" ng-checked="data.newShift.date == day[1]" ng-model="day[4]"
+                  | {{day[0]}}
+    .form-group
       .col-xs-5
         label Role
         select.form-control ng-model="data.newShift.role"
@@ -52,15 +69,17 @@
                 | (min)
             input.form-control type='text' ng-model="data.newShift.endMin"
     .form-group
-      .col-xs-5
+      .col-xs-5 ng-if="!states.createForMultiple"
         label Date
         input.form-control type='text' ng-model="data.newShift.date"
 
-      .col-xs-5.col-xs-offset-2
+      .col-xs-5 ng-class="{'col-xs-offset-2': !states.createForMultiple}"
         label Break Hours
         input.form-control type='text' ng-model="data.newShift.breakHours"
 
+
     .form-group
-      .col-xs-12
-        button.btn.btn-success.btn-block ng-click="func.createFromPopup()" Submit
+      .col-xs-5.col-xs-offset-7
+        button.btn.btn-success.btn-block ng-click="func.createMultipleFromPopup()" ng-if="states.createForMultiple"  Create multiple shifts
+        button.btn.btn-success.btn-block ng-click="func.createFromPopup()" ng-if="!states.createForMultiple" Create single shift
 

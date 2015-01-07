@@ -3,17 +3,18 @@ window.app = app = angular.module "weekView", []
 app.controller "weekViewController", ($scope, $timeout) ->
   #SS new shift breaks estimates, test cloning
   $scope.states =
-    showEditPopup    : false
-    showNewPopup     : false
-    isSelecting      : false
-    isCloning        : false
-    isInitializing   : true
-    showMenu         : false
-    showHelp         : false
-    showTemplateMenu : false
-    showSortMenu     : false
-    isSavingTemplate : false
-    isUndoing        : false
+    showEditPopup     : false
+    showNewPopup      : false
+    isSelecting       : false
+    isCloning         : false
+    isInitializing    : true
+    showMenu          : false
+    showHelp          : false
+    showTemplateMenu  : false
+    showSortMenu      : false
+    isSavingTemplate  : false
+    isUndoing         : false
+    createForMultiple : false
 
   #init
   $scope.data =
@@ -45,21 +46,21 @@ app.controller "weekViewController", ($scope, $timeout) ->
     {id: '2', name: 'Zadwin Feng', hoursExcludingThisWeek: 16, costPerHour: 7.5, totalHours: 40, currentWeekHours: 8, defaultRole: 'Crew'}
     {id: '3', name: 'Kan G', hoursExcludingThisWeek: 10, costPerHour: 7, totalHours: 35, currentWeekHours: 0, defaultRole: 'Asst Manager' }
     {id: '4', name: 'Lesslyn', hoursExcludingThisWeek: 10, costPerHour: 12, totalHours: 35, currentWeekHours: 0, defaultRole: 'Asst Manager'}
-    # {id: '5', name: 'Zherwyn', hoursExcludingThisWeek: 10, costPerHour: 12, totalHours: 35, currentWeekHours: 0, defaultRole: 'Supervisor'}
-    # {id: '6', name: 'Jebastian', hoursExcludingThisWeek: 10, costPerHour: 12, totalHours: 35, currentWeekHours: 0, defaultRole: 'Supervisor'}
-    # {id: '7', name: 'Bnonoz', hoursExcludingThisWeek: 10, costPerHour: 12, totalHours: 35, currentWeekHours: 0, defaultRole: 'Crew' }
-    # {id: '8', name: 'Zordon', hoursExcludingThisWeek: 10, costPerHour: 12, totalHours: 35, currentWeekHours: 0, defaultRole: 'Supervisor'}
-    # {id: '9', name: 'White Ranger', hoursExcludingThisWeek: 10, costPerHour: 12, totalHours: 35, currentWeekHours: 0, defaultRole: 'Supervisor'}
-    # {id: '10', name: 'Red Ranger', hoursExcludingThisWeek: 10, costPerHour: 12, totalHours: 35, currentWeekHours: 0, defaultRole: 'Manager'}
-    # {id: '11', name: 'Black Ranger', hoursExcludingThisWeek: 10, costPerHour: 12, totalHours: 35, currentWeekHours: 0, defaultRole: 'Crew'}
-    # {id: '12', name: 'Yellow Ranger', hoursExcludingThisWeek: 10, costPerHour: 12, totalHours: 35, currentWeekHours: 0, defaultRole: 'Crew'}
+    {id: '5', name: 'Zherwyn', hoursExcludingThisWeek: 10, costPerHour: 12, totalHours: 35, currentWeekHours: 0, defaultRole: 'Supervisor'}
+    {id: '6', name: 'Jebastian', hoursExcludingThisWeek: 10, costPerHour: 12, totalHours: 35, currentWeekHours: 0, defaultRole: 'Supervisor'}
+    {id: '7', name: 'Bnonoz', hoursExcludingThisWeek: 10, costPerHour: 12, totalHours: 35, currentWeekHours: 0, defaultRole: 'Crew' }
+    {id: '8', name: 'Zordon', hoursExcludingThisWeek: 10, costPerHour: 12, totalHours: 35, currentWeekHours: 0, defaultRole: 'Supervisor'}
+    {id: '9', name: 'White Ranger', hoursExcludingThisWeek: 10, costPerHour: 12, totalHours: 35, currentWeekHours: 0, defaultRole: 'Supervisor'}
+    {id: '10', name: 'Red Ranger', hoursExcludingThisWeek: 10, costPerHour: 12, totalHours: 35, currentWeekHours: 0, defaultRole: 'Manager'}
+    {id: '11', name: 'Black Ranger', hoursExcludingThisWeek: 10, costPerHour: 12, totalHours: 35, currentWeekHours: 0, defaultRole: 'Crew'}
+    {id: '12', name: 'Yellow Ranger', hoursExcludingThisWeek: 10, costPerHour: 12, totalHours: 35, currentWeekHours: 0, defaultRole: 'Crew'}
   ]
 
   $scope.data.shifts = [
     {id: '1', employeeID: "1", length: 5.5, startHour: 10, startMin: 30, role: 'Manager', endHour: 16, endMin: '00', date: "04-01-2015", breakHours: 1},
     {id: '2', employeeID: "2", length: 8, startHour: 12, startMin: 15, role: 'Asst Manager', endHour: 20, endMin: 15, date: "05-01-2015", breakHours: 1.5}
-    # {id: '3', employeeID: "3", length: 8, startHour: 10, startMin: '00', role: 'Supervisor', endHour: 18, endMin: '00', date: "04-01-2015", breakHours: 2}
-    # {id: '4', employeeID: "3", length: 8, startHour: 12, startMin: 15, role: 'Crew', endHour: 20, endMin: 15, date: '05-01-2015', breakHours: 1.5}
+    {id: '3', employeeID: "3", length: 8, startHour: 10, startMin: '00', role: 'Supervisor', endHour: 18, endMin: '00', date: "04-01-2015", breakHours: 2}
+    {id: '4', employeeID: "3", length: 8, startHour: 12, startMin: 15, role: 'Crew', endHour: 20, endMin: 15, date: '05-01-2015', breakHours: 1.5}
   ]
 
   $scope.data.leaves = [
@@ -79,8 +80,9 @@ app.controller "weekViewController", ($scope, $timeout) ->
     scope.data.wageBudget       =  ($scope.data.salesForecast/100) *  $scope.data.budgetPercentage
 
   $scope.$watch 'states.showNewPopup', (newVal, oldVal, scope) ->
+    $scope.states.createForMultiple = false
     if newVal
-      $scope.states.showEditPopup    = false
+      $scope.states.showEditPopup  = false
       $scope.func.hideMenus()
 
   $scope.$watch 'states.showEditPopup', (newVal, oldVal, scope) ->
@@ -293,13 +295,26 @@ app.controller "weekViewController", ($scope, $timeout) ->
     createFromPopup: ->
       shiftToPush = {}
       angular.copy($scope.data.newShift, shiftToPush)
-
       shiftToPush = $scope.func.setIdAndLength(shiftToPush)
       $scope.data.shifts.push(shiftToPush)
 
       #reset new shift and close popup
       $scope.data.newShift       = {role: $scope.data.roles[0], breakHours: 1, startHour: 8, startMin: '00', endHour: 17, endMin: '00'}
       $scope.states.showNewPopup = false
+      $timeout($scope.func.refreshCalendar, 0)
+
+    createMultipleFromPopup: ->
+      for day in $scope.data.daysInWeek
+        if day[4]
+          shiftToPush = {}
+          angular.copy($scope.data.newShift, shiftToPush)
+          shiftToPush.date = day[1]
+          shiftToPush      = $scope.func.setIdAndLength(shiftToPush)
+          $scope.data.shifts.push(shiftToPush)
+      $scope.data.newShift          = {role: $scope.data.roles[0], breakHours: 1, startHour: 8, startMin: '00', endHour: 17, endMin: '00'}
+      $scope.states.showNewPopup    = false
+      $scope.data.createForMultiple = false
+      $scope.func.resetSelected()
       $timeout($scope.func.refreshCalendar, 0)
 
     submitShift: (shift) ->

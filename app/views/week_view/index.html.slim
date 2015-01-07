@@ -39,10 +39,12 @@
 
               tr ng-repeat="employee in data.employees | orderBy:data.predicate " data-employee-id="{{employee.id}}"
                 td.employee-name.mark
+                  small ng-if="data.predicate == 'defaultRole'"
+                    | [{{employee.defaultRole}}]
+                  br ng-if="data.predicate == 'defaultRole'"
                   span
                     | {{employee.name}}
-                    small
-                      |   ({{employee.defaultRole}})
+
                   br
                   small
                     i.fa.fa-clock-o

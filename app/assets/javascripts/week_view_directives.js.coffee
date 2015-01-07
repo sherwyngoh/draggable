@@ -42,9 +42,17 @@ app.directive 'calendarListener', () ->
         date                           = $(this).data('date')
         scope.data.newShift.date       = date
         scope.data.newShift.employeeID = employeeID
+
         $('td.selected').removeClass('selected')
         $(this).addClass('selected')
-        scope.states.showNewPopup      = true
+
+        #Reset for creating multiple
+        dayInteger = moment($(this).data('date'), "DD-MM-YYYY").format('d')
+        for day in scope.data.daysInWeek
+          day[4] = false
+        scope.data.daysInWeek[dayInteger][4] = true
+
+        scope.states.showNewPopup            = true
         scope.$apply()
 
         tdOffset      = $(this).offset()
@@ -64,7 +72,8 @@ app.directive 'calendarSetup', () ->
       while i < 7
         increment = if i != 0 then 1 else 0
         day = scope.data.calMomentStart.add(increment, 'days')
-        scope.data.daysInWeek.push([day.format('ddd D MMM'), day.format("DD-MM-YYYY") ])
+        #undefined are for estimations, d is for weekday integer, boolean is for whether to multi-create for this day
+        scope.data.daysInWeek.push([day.format('ddd D MMM'), day.format("DD-MM-YYYY"), undefined, undefined, false])
         i++
 
     setLeaveBars = ->
@@ -84,7 +93,7 @@ app.directive 'calendarSetup', () ->
 
     setDraggableArea = ->
       height = $('.draggable-area').height()
-      $('.draggable-area').height(height+ 150)
+      $('.draggable-area').height(height + 400)
     setCalendarDays()
     $ ->
       setLeaveBars()
