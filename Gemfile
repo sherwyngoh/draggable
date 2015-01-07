@@ -4,11 +4,12 @@ ruby '2.1.5'
 gem 'rails', '4.2.0'
 # Use sqlite3 as the database for Active Record
 group :development do
-  gem 'thin'
   gem 'sqlite3'
   gem 'better_errors'
   gem 'binding_of_caller'
 end
+
+gem 'thin'
 
 group :production do
   gem 'pg', '0.15.1'
