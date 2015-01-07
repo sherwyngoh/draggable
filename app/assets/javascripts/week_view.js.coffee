@@ -12,20 +12,24 @@ app.controller "weekViewController", ($scope, $timeout) ->
     showHelp         : false
     showTemplateMenu : false
     showSortMenu     : false
+    isSavingTemplate   : false
 
   #init
   $scope.data =
-    daysInWeek    : []
-    toggledShifts : []
-    selectedShift : {}
-    shiftCopy     : {}
-    baseShift     : {}
-    attrToClone   : ['startHour','startMin','role','endHour','endMin','breakHours', 'employeeID', 'date']
-    wageEstimate  : 0
-    predicate     : 'id'
-    reverse       : false
+    daysInWeek      : []
+    toggledShifts   : []
+    selectedShift   : {}
+    shiftCopy       : {}
+    baseShift       : {}
+    attrToClone     : ['startHour','startMin','role','endHour','endMin','breakHours', 'employeeID', 'date']
+    wageEstimate    : 0
+    predicate       : 'id'
+    newTemplateName : ''
+    templates       : []
+    newTemplate     : {0: [], 1: [], 2: [], 3: [], 4: [], 5: [], 6: [] }
+    currentTemplate : {}
 
-  $scope.data.calendarStartDate    = '27-12-2014'
+  $scope.data.calendarStartDate    = '04-01-2015'
   $scope.data.calMomentStart       = moment($scope.data.calendarStartDate, "DD-MM-YYYY")
   $scope.data.calMomentEnd         = moment($scope.data.calendarStartDate, "DD-MM-YYYY").add(6, 'days')
   $scope.data.calendarDisplayDate  = $scope.data.calMomentStart.format('ddd Do MMM YYYY') + " - " + $scope.data.calMomentEnd.format('ddd Do MMM YYYY')
@@ -35,28 +39,28 @@ app.controller "weekViewController", ($scope, $timeout) ->
     {id: '2', name: 'Zadwin Feng', hoursExcludingThisWeek: 16, costPerHour: 7.5, totalHours: 40, currentWeekHours: 8, defaultRole: 'Crew'}
     {id: '3', name: 'Kan G', hoursExcludingThisWeek: 10, costPerHour: 7, totalHours: 35, currentWeekHours: 0, defaultRole: 'Asst Manager' }
     {id: '4', name: 'Lesslyn', hoursExcludingThisWeek: 10, costPerHour: 12, totalHours: 35, currentWeekHours: 0, defaultRole: 'Asst Manager'}
-    {id: '5', name: 'Zherwyn', hoursExcludingThisWeek: 10, costPerHour: 12, totalHours: 35, currentWeekHours: 0, defaultRole: 'Supervisor'}
-    {id: '6', name: 'Jebastian', hoursExcludingThisWeek: 10, costPerHour: 12, totalHours: 35, currentWeekHours: 0, defaultRole: 'Supervisor'}
-    {id: '7', name: 'Bnonoz', hoursExcludingThisWeek: 10, costPerHour: 12, totalHours: 35, currentWeekHours: 0, defaultRole: 'Crew' }
-    {id: '8', name: 'Zordon', hoursExcludingThisWeek: 10, costPerHour: 12, totalHours: 35, currentWeekHours: 0, defaultRole: 'Supervisor'}
-    {id: '9', name: 'White Ranger', hoursExcludingThisWeek: 10, costPerHour: 12, totalHours: 35, currentWeekHours: 0, defaultRole: 'Supervisor'}
-    {id: '10', name: 'Red Ranger', hoursExcludingThisWeek: 10, costPerHour: 12, totalHours: 35, currentWeekHours: 0, defaultRole: 'Manager'}
-    {id: '11', name: 'Black Ranger', hoursExcludingThisWeek: 10, costPerHour: 12, totalHours: 35, currentWeekHours: 0, defaultRole: 'Crew'}
-    {id: '12', name: 'Yellow Ranger', hoursExcludingThisWeek: 10, costPerHour: 12, totalHours: 35, currentWeekHours: 0, defaultRole: 'Crew'}
+    # {id: '5', name: 'Zherwyn', hoursExcludingThisWeek: 10, costPerHour: 12, totalHours: 35, currentWeekHours: 0, defaultRole: 'Supervisor'}
+    # {id: '6', name: 'Jebastian', hoursExcludingThisWeek: 10, costPerHour: 12, totalHours: 35, currentWeekHours: 0, defaultRole: 'Supervisor'}
+    # {id: '7', name: 'Bnonoz', hoursExcludingThisWeek: 10, costPerHour: 12, totalHours: 35, currentWeekHours: 0, defaultRole: 'Crew' }
+    # {id: '8', name: 'Zordon', hoursExcludingThisWeek: 10, costPerHour: 12, totalHours: 35, currentWeekHours: 0, defaultRole: 'Supervisor'}
+    # {id: '9', name: 'White Ranger', hoursExcludingThisWeek: 10, costPerHour: 12, totalHours: 35, currentWeekHours: 0, defaultRole: 'Supervisor'}
+    # {id: '10', name: 'Red Ranger', hoursExcludingThisWeek: 10, costPerHour: 12, totalHours: 35, currentWeekHours: 0, defaultRole: 'Manager'}
+    # {id: '11', name: 'Black Ranger', hoursExcludingThisWeek: 10, costPerHour: 12, totalHours: 35, currentWeekHours: 0, defaultRole: 'Crew'}
+    # {id: '12', name: 'Yellow Ranger', hoursExcludingThisWeek: 10, costPerHour: 12, totalHours: 35, currentWeekHours: 0, defaultRole: 'Crew'}
   ]
 
   $scope.data.shifts = [
-    {id: '1', employeeID: "1", length: 5.5, startHour: 10, startMin: 30, role: 'Manager', endHour: 16, endMin: '00', date: '27-12-2014', breakHours: 1},
-    {id: '2', employeeID: "2", length: 8, startHour: 12, startMin: 15, role: 'Asst Manager', endHour: 20, endMin: 15, date: '28-12-2014', breakHours: 1.5}
-    {id: '3', employeeID: "3", length: 8, startHour: 10, startMin: '00', role: 'Supervisor', endHour: 18, endMin: '00', date: '30-12-2014', breakHours: 2}
-    {id: '4', employeeID: "3", length: 8, startHour: 12, startMin: 15, role: 'Crew', endHour: 20, endMin: 15, date: '29-12-2014', breakHours: 1.5}
+    {id: '1', employeeID: "1", length: 5.5, startHour: 10, startMin: 30, role: 'Manager', endHour: 16, endMin: '00', date: "04-01-2015", breakHours: 1},
+    {id: '2', employeeID: "2", length: 8, startHour: 12, startMin: 15, role: 'Asst Manager', endHour: 20, endMin: 15, date: "05-01-2015", breakHours: 1.5}
+    # {id: '3', employeeID: "3", length: 8, startHour: 10, startMin: '00', role: 'Supervisor', endHour: 18, endMin: '00', date: "04-01-2015", breakHours: 2}
+    # {id: '4', employeeID: "3", length: 8, startHour: 12, startMin: 15, role: 'Crew', endHour: 20, endMin: 15, date: '05-01-2015', breakHours: 1.5}
   ]
 
   $scope.data.originalShifts = [
-    {id: '1', employeeID: "1", length: 5.5, startHour: 10, startMin: 30, role: 'Manager', endHour: 16, endMin: '00', date: '27-12-2014', breakHours: 1},
-    {id: '2', employeeID: "2", length: 8, startHour: 12, startMin: 15, role: 'Asst Manager', endHour: 20, endMin: 15, date: '28-12-2014', breakHours: 1.5}
-    {id: '3', employeeID: "3", length: 8, startHour: 10, startMin: '00', role: 'Supervisor', endHour: 18, endMin: '00', date: '30-12-2014', breakHours: 2}
-    {id: '4', employeeID: "3", length: 8, startHour: 12, startMin: 15, role: 'Crew', endHour: 20, endMin: 15, date: '29-12-2014', breakHours: 1.5}
+    {id: '1', employeeID: "1", length: 5.5, startHour: 10, startMin: 30, role: 'Manager', endHour: 16, endMin: '00', date: "04-01-2015", breakHours: 1},
+    {id: '2', employeeID: "2", length: 8, startHour: 12, startMin: 15, role: 'Asst Manager', endHour: 20, endMin: 15, date: "05-01-2015", breakHours: 1.5}
+    {id: '3', employeeID: "3", length: 8, startHour: 10, startMin: '00', role: 'Supervisor', endHour: 18, endMin: '00', date: "04-01-2015", breakHours: 2}
+    {id: '4', employeeID: "3", length: 8, startHour: 12, startMin: 15, role: 'Crew', endHour: 20, endMin: 15, date: '05-01-2015', breakHours: 1.5}
   ]
 
   $scope.data.leaves = [
@@ -76,13 +80,77 @@ app.controller "weekViewController", ($scope, $timeout) ->
     scope.data.wageBudget       =  ($scope.data.salesForecast/100) *  $scope.data.budgetPercentage
 
   $scope.$watchGroup ['states.showNewPopup', 'states.showEditPopup'], (newVal, oldVal, scope) ->
-    for val in newVal
-      if val is true
-        scope.states.showMenu = false
-        scope.states.showTemplateMenu = false
-        scope.func.resetSelected()
+    if newVal[0] || newVal[1]
+      $scope.states.showMenu         = false
+      $scope.states.showTemplateMenu = false
+      $scope.func.resetSelected()
+
+      if newVal[0]
+        console.log 'new popup'
+      else
+        console.log 'edit popup'
+
+
+
+  $scope.$watch 'states.isSavingTemplate', (newValue, oldValue, scope) ->
+    if newValue
+      focusInput = ->
+        $('input.template-name').focus()
+      $timeout(focusInput, 0)
 
   $scope.func =
+    convertToTemplate: (shifts, name) ->
+      template      = {}
+      angular.copy($scope.data.newTemplate, template)
+      template.name = name
+      #sort shifts into days, and place to 1, which is monday, 2 = tueday, and so on
+      for shift in shifts
+        dayInteger       = moment(shift.date, 'DD-MM-YYYY').format('d') #starts at 0 for sunday, 1 for monday
+        shift.dayInteger = dayInteger
+        template[dayInteger].push(shift)
+
+      return template
+
+    saveTemplate: (name)->
+      newTemplate                 = {}
+      newTemplate                 = $scope.func.convertToTemplate($scope.data.shifts, name)
+      $scope.data.templates.push(newTemplate)
+
+      swal
+        title: newTemplate.name + " has been saved!"
+        timer: 1000
+
+      $scope.data.newTemplateName    =  ''
+      $scope.states.isSavingTemplate = $scope.states.showTemplateMenu = false
+
+    loadTemplate: (templateName) ->
+      for template in $scope.data.templates
+        if template.name is templateName
+          $scope.data.currentTemplate = template
+      shifts =  $scope.func.copyShifts($scope.data.calendarStartDate, template)
+
+      $timeout($scope.func.refreshCalendar, 0)
+
+      swal
+        title:  template.name + " has been loaded!"
+        timer: 1000
+
+    copyShifts: (startDate, template) ->
+      $scope.data.shifts              = []
+      calendarDays = {0: '', 1: '', 2: '', 3: '',4: '', 5: '',6: ''}
+
+      i = 0
+      while i < 8
+        calendarDays[i] = moment(startDate, "DD-MM-YYYY").add(i, 'days').format("DD-MM-YYYY")
+        i++
+
+      angular.forEach [0,1,2,3,4,5,6], (dayInteger) ->
+        for shift in template[dayInteger]
+          shift.date     = calendarDays[dayInteger]
+          shiftToPush    = angular.copy(shift)
+          shiftToPush.id = $scope.data.shifts.length + 1
+          $scope.data.shifts.push(shiftToPush)
+
     goToSummary: ->
       $('summary .fa-plus').click()
       $.scrollTo($('summary').offset().top - 120, 300)
@@ -107,10 +175,6 @@ app.controller "weekViewController", ($scope, $timeout) ->
           $scope.data.wageEstimate  += wageCost
 
           employee.currentWeekHours += parseInt(shift.length)
-
-
-
-
 
     swal: (ifSuccess, confirmButtonText, confirmButtonColor, type) ->
       confirmButtonColor = "#DD6B55" unless confirmButtonColor
@@ -171,10 +235,6 @@ app.controller "weekViewController", ($scope, $timeout) ->
       for shift in $scope.data.shifts
         return shift if parseInt(shift.id) is parseInt(shiftID)
 
-    setShift: (shiftID) ->
-      $scope.selectedShift    = $scope.func.grabShift(shiftID)
-      $scope.states.showPopup = true
-
     updateShift: (shiftCopy) ->
       shiftToUpdate = $scope.data.selectedShift
 
@@ -189,7 +249,6 @@ app.controller "weekViewController", ($scope, $timeout) ->
       $scope.func.toggled()
 
     resetSelected: ->
-      $scope.data.selectedShift = {}
       $scope.data.toggledShifts = []
       $scope.states.isSelecting   = false
       $scope.func.toggled()

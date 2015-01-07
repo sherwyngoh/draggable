@@ -37,9 +37,14 @@
             i.fa.fa-puzzle-piece ng-click="states.showTemplateMenu = !states.showTemplateMenu; states.showMenu = false" ng-class="{'menuOpen': states.showTemplateMenu}" ng-mouseenter='states.showTemplateMenu = true; states.showMenu = false'
             i.fa.fa-bars ng-click="states.showMenu = !states.showMenu; states.showTemplateMenu = false" ng-class="{'menuOpen': states.showMenu}" ng-mouseenter='states.showMenu = true; states.showTemplateMenu = false'
             .page-options ng-if="states.showTemplateMenu"
-                button.add ng-click="states.showHelp = !states.showHelp" Save as template
-                button.help ng-click="states.showHelp = !states.showHelp" Load template A
-                button.help ng-click="states.showNewPopup = !states.showNewPopup" Load template B
+                button.add ng-click="states.isSavingTemplate = true"
+                  span ng-if="!states.isSavingTemplate" Save as template
+                  span ng-if="states.isSavingTemplate"
+                    input.form-control.template-name type='text' ng-model="data.newTemplateName" placeholder="Enter name"
+                    small
+                      a ng-click="func.saveTemplate(data.newTemplateName)" Save
+                button.help ng-repeat="template in data.templates" ng-click="func.loadTemplate(template.name)"
+                  | Load template: {{template.name}}
                 button.reset ng-click="func.resetShifts()" Edit template
                 button.del ng-click="func.deleteAll()" Delete template
 

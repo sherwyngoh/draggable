@@ -25,8 +25,7 @@ app.directive 'calendarListener', () ->
           newShift.employeeID = employeeID
 
           scope.func.submitShift(newShift)
-
-          $('.shift-bar[data-shift-id="' + shiftBeforeMod.id + '"]').first().remove()
+          $(event.target).remove()
           scope.data.baseShift = {}
           # We allow angular directives to create this clone
         else
@@ -34,7 +33,7 @@ app.directive 'calendarListener', () ->
           shiftBeforeMod.date       = date
           shiftBeforeMod.employeeID = employeeID
           scope.func.estimate()
-          scope.data.baseShift = {}
+          scope.data.baseShift      = {}
           scope.$apply()
 
 
@@ -170,13 +169,14 @@ app.directive 'shiftBar', ($timeout) ->
         .css('min-height', shiftHeight)
         .css('color', shiftColor)
         .css('border', '3px solid ' + shiftColor)
+        .css('display', 'inline-block')
         .html('<span>' + shift.role + "<br/>" + shift.startHour + ':' + shift.startMin + ' - ' + shift.endHour + ':' + shift.endMin + "</span>")
 
       employeeID   = shift.employeeID
       employeeRow  =  $('tr[data-employee-id="' + employeeID + '"]')
 
       date            = shift.date
-      shiftStartingUL = $(employeeRow).find('td[data-date=' +  date + ']')
+      shiftStartingUL = $(employeeRow).find('td[data-date="' +  date + '"]')
       shiftStartingUL.append(element)
 
     $timeout(setShift, 0)
@@ -206,6 +206,8 @@ app.directive 'setDrag', ($timeout) ->
 
           scope.$apply()
           scope.func.toggled()
+        else
+          scope.data.selectedShift =  scope.func.grabShift(shiftID)
 
 
       rd.event.notCloned = ->
@@ -214,11 +216,10 @@ app.directive 'setDrag', ($timeout) ->
       rd.event.notMoved = ->
         if !(window.event.ctrlKey or window.event.metaKey)
           shiftID                  = $(rd.obj).data('shift-id')
-          scope.data.selectedShift = scope.func.grabShift(shiftID)
-          angular.copy(scope.data.selectedShift , scope.data.shiftCopy)
-
           scope.states.showEditPopup = true
           $('#editPopup').find('ng-form').show()
+          scope.data.selectedShift = scope.func.grabShift(shiftID)
+          angular.copy(scope.data.selectedShift , scope.data.shiftCopy)
           scope.$apply()
 
       rd.event.moved = ->
@@ -237,6 +238,7 @@ app.directive 'setDrag', ($timeout) ->
         console.log 'dropped'
         scope.states.isDragging = false
         scope.states.isCloning  = false
+        scope.data.baseShift = {}
         scope.$apply()
 
       rd.event.notCloned = ->
