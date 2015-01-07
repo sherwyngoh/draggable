@@ -12,24 +12,28 @@ app.controller "weekViewController", ($scope, $timeout) ->
     showHelp         : false
     showTemplateMenu : false
     showSortMenu     : false
-    isSavingTemplate   : false
+    isSavingTemplate : false
+    isUndoing        : false
 
   #init
   $scope.data =
-    daysInWeek      : []
-    toggledShifts   : []
-    selectedShiftToEdit   : {}
-    shiftCopy       : {}
-    baseShift       : {}
-    attrToClone     : ['startHour','startMin','role','endHour','endMin','breakHours', 'employeeID', 'date']
-    wageEstimate    : 0
-    predicate       : 'id'
-    newTemplateName : ''
-    templates       : []
-    newTemplate     : {0: [], 1: [], 2: [], 3: [], 4: [], 5: [], 6: [] }
-    currentTemplate : {}
-    originalShifts  : []
-    templateShifts  : []
+    daysInWeek          : []
+    toggledShifts       : []
+    selectedShiftToEdit : {}
+    shiftCopy           : {}
+    baseShift           : {}
+    attrToClone         : ['startHour','startMin','role','endHour','endMin','breakHours', 'employeeID', 'date']
+    wageEstimate        : 0
+    predicate           : 'id'
+    newTemplateName     : ''
+    templates           : []
+    newTemplate         : {0: [], 1: [], 2: [], 3: [], 4: [], 5: [], 6: [] }
+    currentTemplate     : {}
+    originalShifts      : []
+    templateShifts      : []
+    hoveredTemplate     : {}
+    shiftStates         : []
+    selectedTD          : ''
 
   $scope.data.calendarStartDate    = '04-01-2015'
   $scope.data.calMomentStart       = moment($scope.data.calendarStartDate, "DD-MM-YYYY")
@@ -141,6 +145,15 @@ app.controller "weekViewController", ($scope, $timeout) ->
 
       $scope.func.swal(ifSuccess, "Yes, revert to template!", '#F1C40F')
 
+    deleteTemplate: (template) ->
+      window.event.stopPropagation()
+      ifSuccess = ->
+        index = $scope.data.templates.indexOf(template)
+        $scope.data.templates.splice(index, 1)
+        $scope.$apply()
+
+      $scope.func.swal(ifSuccess, "Yes, delete template!")
+
     copyShifts: (startDate, template) ->
       calendarDays = {0: '', 1: '', 2: '', 3: '',4: '', 5: '',6: ''}
 
@@ -249,7 +262,7 @@ app.controller "weekViewController", ($scope, $timeout) ->
 
       $scope.func.updateShiftColor(shiftToUpdate)
       $scope.data.selectedShiftToEdit = {}
-      $scope.states.showEditPopup = false
+      $scope.states.showEditPopup     = false
       $timeout($scope.func.refreshCalendar, 0)
       $scope.func.toggled()
 
