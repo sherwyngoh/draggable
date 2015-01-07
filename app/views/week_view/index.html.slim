@@ -1,0 +1,69 @@
+#week-view ng-app="weekView" ng-controller="weekViewController"
+  .row
+    .col-xs-12.main-box
+      .row.top-header
+        .col-xs-6
+          h3
+            i.fa.fa-angle-double-left
+            | {{data.calendarDisplayDate}}
+            i.fa.fa-angle-double-right
+          .current-template-name ng-if="data.currentTemplate.length > 0"
+            | Current template: {{data.currentTemplate.name}}
+
+          = render 'commands_list'
+
+        .col-xs-6.page-buttons
+          = render 'page_buttons'
+
+
+      .table-headers
+        .staff
+          | Staff
+          .sort.btn-group
+            button.btn.btn-default.btn-xs ng-click="states.showSortMenu = !states.showSortMenu" ng-mouseenter="states.showSortMenu = true"
+              i.fa.fa-sort-up ng-if='!states.showSortMenu'
+              i.fa.fa-sort-down ng-if='states.showSortMenu'
+            .sort-options ng-if="states.showSortMenu" ng-mouseleave="states.showSortMenu = false"
+              button.btn.btn-block.btn-default ng-click="states.showSortMenu = false; data.predicate = 'name'" Name
+              button.btn.btn-block.btn-default ng-click="states.showSortMenu = false; data.predicate = 'defaultRole';" Job Title
+              button.btn.btn-block.btn-default ng-click="states.showSortMenu = false; data.predicate = 'id'" None
+
+
+        .days ng-repeat="day in data.daysInWeek" data-date="{{day[1]}}"
+          | {{day[0]}}
+      .draggable-area
+        .scrollable
+          table.table set-drag='' calendar-listener='' popup-handler='' calendar-setup=''
+
+            tbody
+
+              tr ng-repeat="employee in data.employees | orderBy:data.predicate " data-employee-id="{{employee.id}}"
+                td.employee-name.mark
+                  span
+                    | {{employee.name}}
+                    small
+                      |   ({{employee.defaultRole}})
+                  br
+                  small
+                    i.fa.fa-clock-o
+                    .employee-hours
+                      | {{employee.currentWeekHours}}/{{employee.totalHours}} hours
+                    i.fa.fa-dollar
+                    .employee-cost
+                      | {{employee.costPerHour * employee.currentWeekHours}}
+
+
+                td.shift-applicable ng-repeat="day in data.daysInWeek" data-date="{{day[1]}}" ng-model="day" data-employee-id="{{employee.id}}"
+              tr
+                td Cost/Hours
+                td ng-repeat="day in data.daysInWeek"
+                  | {{day[2] | currency}}/ {{day[3]}} hours
+
+        = render 'develop'
+        = render 'summary'
+
+  .shift-bar.drag shift-bar='' ng-model="shift" ng-repeat="shift in data.shifts" data-length="{{shift.length}}" ng-class="{'selected': data.toggledShifts.indexOf({{shift.id}}) > -1}" data-shift-id="{{shift.id}}" data-date="{{shift.date}}"
+
+  = render 'edit_popup'
+
+  = render 'new_shift_popup'

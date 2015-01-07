@@ -1,0 +1,66 @@
+  .popup.expand-container#editPopup ng-show="states.showEditPopup"
+    h3
+      | Edit Shift
+    small.pull-right
+      .btn
+        i.fa.fa-minus
+      .btn
+        i.fa.fa-plus
+      .btn
+        i.fa.fa-close ng-click="states.showEditPopup = !states.showEditPopup"
+
+    ng-form.form name="editShiftForm"
+      .form-group
+        .col-xs-5
+          label Role
+          select.form-control ng-model="data.shiftCopy.role"
+            option ng-repeat="role in data.roles" value="{{role}}"
+              | {{role}}
+        .col-xs-5.col-xs-offset-2
+          label Employee
+          select.form-control ng-model="data.shiftCopy.employeeID"
+            option ng-repeat="employee in data.employees | orderBy:data.predicate" value="{{employee.id}}" ng-selected="data.shiftCopy.employeeID == employee.id"
+              | {{employee.name}}
+
+      .form-group
+        .col-xs-5
+          .row
+            .col-xs-6
+              label
+                | Start
+                small
+                  | (h)
+              input.form-control type='text' ng-model="data.shiftCopy.startHour"
+            .col-xs-6
+              label
+                small
+                  | (min)
+              input.form-control type='text' ng-model="data.shiftCopy.startMin"
+
+        .col-xs-5.col-xs-offset-2
+          .row
+            .col-xs-6
+              label
+                | End
+                small
+                  | (h)
+              input.form-control type='text' ng-model="data.shiftCopy.endHour"
+            .col-xs-6
+              label
+                small
+                  | (min)
+              input.form-control type='text' ng-model="data.shiftCopy.endMin"
+      .form-group
+        .col-xs-5
+          label Date
+          input.form-control type='text' ng-model="data.shiftCopy.date"
+
+        .col-xs-5.col-xs-offset-2
+          label Break Hours
+          input.form-control type='text' ng-model="data.shiftCopy.breakHours"
+
+      .form-group
+        .col-xs-6
+          button.btn.btn-warning.btn-md ng-disabled="editShiftForm.$pristine" ng-click="func.resetForm()" Reset changes
+        .col-xs-6
+          button.pull-right.btn.btn-success.btn-md ng-disabled="editShiftForm.$pristine" ng-click="func.updateShift(data.shiftCopy)" Update shift

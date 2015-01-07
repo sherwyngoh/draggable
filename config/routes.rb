@@ -1,4 +1,6 @@
 Rails.application.routes.draw do
+  get 'week_view/index'
+
   # The priority is based upon order of creation: first created -> highest priority.
   # See how all your routes lay out with "rake routes".
 
@@ -7,7 +9,7 @@ Rails.application.routes.draw do
   get '/orgchart'  => 'welcome#index'
   get '/scheduler' => 'welcome#scheduler'
   get '/day_view'  => 'welcome#day_view'
-  get '/week_view' => 'welcome#week_view'
+  get '/week_view' => 'week_view#index'
 
   # Example of regular route:
   #   get 'products/:id' => 'catalog#view'
