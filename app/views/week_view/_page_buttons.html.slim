@@ -8,10 +8,12 @@
           input.form-control.template-name type='text' ng-model="data.newTemplateName" placeholder="Enter name"
           small
             a ng-click="func.saveTemplate(data.newTemplateName)" Save
-      button.help ng-repeat="template in data.templates" ng-click="func.loadTemplate(template.name)"
+      button.help ng-repeat="template in data.templates" ng-click="func.loadTemplate(template.name)" ng-mouseenter="data.hoveredTemplate = template" ng-mouseleave="data.hoveredTemplate = {}"
         | Load template: {{template.name}}
-      button.reset ng-click="func.resetShifts()" Edit template
-      button.del ng-click="func.deleteAll()" Delete template
+        span ng-if="data.hoveredTemplate == template"
+          small
+            a.pull-right.delete-template ng-click="func.deleteTemplate(template)" Delete
+
 
   .page-options.animate-if ng-if="states.showMenu"
       button.help ng-click="states.showHelp = !states.showHelp" ng-if="!states.showHelp"

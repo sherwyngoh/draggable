@@ -256,12 +256,13 @@
             width: 12% !important
             overflow: hidden
 
-          td.shift-applicable
+          td.shift-applicable:not(.mark)
             &:hover
-              background-color: aliceblue
+              outline: darkgrey solid 2px
               cursor: pointer
             &.selected
-              background-color: darken(aliceblue, 10)
+              outline: darken(aliceblue, 20) ridge 0px
+              background-color: darken(aliceblue, 20)
 
           td:not(:first-of-type)
             text-align: center
