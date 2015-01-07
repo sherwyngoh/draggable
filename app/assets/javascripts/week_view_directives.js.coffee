@@ -26,14 +26,12 @@ app.directive 'calendarListener', () ->
 
           scope.func.submitShift(newShift)
           $(event.target).remove()
-          scope.data.baseShift = {}
           # We allow angular directives to create this clone
         else
           console.log 'modifying previous'
           shiftBeforeMod.date       = date
           shiftBeforeMod.employeeID = employeeID
           scope.func.estimate()
-          scope.data.baseShift      = {}
           scope.$apply()
 
 
@@ -47,7 +45,7 @@ app.directive 'calendarListener', () ->
         scope.states.showNewPopup      = true
         scope.$apply()
 
-        tdOffset      =$(this).offset()
+        tdOffset      = $(this).offset()
         tdOffset.top  += parseInt($(this).css('height'))/2
         tdOffset.left += parseInt($(this).css('width'))/2
         $('.popup').trigger 'reposition', [tdOffset]
@@ -217,11 +215,10 @@ app.directive 'setDrag', ($timeout) ->
             scope.states.isSelecting = true
           else
             scope.states.isSelecting = false
-
           scope.$apply()
           scope.func.toggled()
         else
-          scope.data.selectedShift =  scope.func.grabShift(shiftID)
+          scope.data.selectedShiftToEdit =  scope.func.grabShift(shiftID)
 
 
       rd.event.notCloned = ->
@@ -230,8 +227,8 @@ app.directive 'setDrag', ($timeout) ->
       rd.event.notMoved = ->
         if !(window.event.ctrlKey or window.event.metaKey)
           shiftID                  = $(rd.obj).data('shift-id')
-          scope.data.selectedShift = scope.func.grabShift(shiftID)
-          angular.copy(scope.data.selectedShift , scope.data.shiftCopy)
+          scope.data.selectedShiftToEdit = scope.func.grabShift(shiftID)
+          angular.copy(scope.data.selectedShiftToEdit , scope.data.shiftCopy)
 
           scope.states.showEditPopup = true
           popup                      = $(rd.obj)
@@ -259,7 +256,6 @@ app.directive 'setDrag', ($timeout) ->
         console.log 'dropped'
         scope.states.isDragging = false
         scope.states.isCloning  = false
-        scope.data.baseShift = {}
         scope.$apply()
 
       rd.event.notCloned = ->

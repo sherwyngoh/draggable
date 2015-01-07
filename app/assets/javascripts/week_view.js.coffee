@@ -18,7 +18,7 @@ app.controller "weekViewController", ($scope, $timeout) ->
   $scope.data =
     daysInWeek      : []
     toggledShifts   : []
-    selectedShift   : {}
+    selectedShiftToEdit   : {}
     shiftCopy       : {}
     baseShift       : {}
     attrToClone     : ['startHour','startMin','role','endHour','endMin','breakHours', 'employeeID', 'date']
@@ -28,6 +28,8 @@ app.controller "weekViewController", ($scope, $timeout) ->
     templates       : []
     newTemplate     : {0: [], 1: [], 2: [], 3: [], 4: [], 5: [], 6: [] }
     currentTemplate : {}
+    originalShifts  : []
+    templateShifts  : []
 
   $scope.data.calendarStartDate    = '04-01-2015'
   $scope.data.calMomentStart       = moment($scope.data.calendarStartDate, "DD-MM-YYYY")
@@ -54,13 +56,6 @@ app.controller "weekViewController", ($scope, $timeout) ->
     {id: '2', employeeID: "2", length: 8, startHour: 12, startMin: 15, role: 'Asst Manager', endHour: 20, endMin: 15, date: "05-01-2015", breakHours: 1.5}
     # {id: '3', employeeID: "3", length: 8, startHour: 10, startMin: '00', role: 'Supervisor', endHour: 18, endMin: '00', date: "04-01-2015", breakHours: 2}
     # {id: '4', employeeID: "3", length: 8, startHour: 12, startMin: 15, role: 'Crew', endHour: 20, endMin: 15, date: '05-01-2015', breakHours: 1.5}
-  ]
-
-  $scope.data.originalShifts = [
-    {id: '1', employeeID: "1", length: 5.5, startHour: 10, startMin: 30, role: 'Manager', endHour: 16, endMin: '00', date: "04-01-2015", breakHours: 1},
-    {id: '2', employeeID: "2", length: 8, startHour: 12, startMin: 15, role: 'Asst Manager', endHour: 20, endMin: 15, date: "05-01-2015", breakHours: 1.5}
-    {id: '3', employeeID: "3", length: 8, startHour: 10, startMin: '00', role: 'Supervisor', endHour: 18, endMin: '00', date: "04-01-2015", breakHours: 2}
-    {id: '4', employeeID: "3", length: 8, startHour: 12, startMin: 15, role: 'Crew', endHour: 20, endMin: 15, date: '05-01-2015', breakHours: 1.5}
   ]
 
   $scope.data.leaves = [
@@ -94,6 +89,10 @@ app.controller "weekViewController", ($scope, $timeout) ->
       focusInput = ->
         $('input.template-name').focus()
       $timeout(focusInput, 0)
+
+  $scope.$watch 'states.isCloning', (newVal, oldVal, scope) ->
+    unless newVal
+      scope.data.baseShift = {}
 
   $scope.func =
     hideMenus: () ->
@@ -226,7 +225,7 @@ app.controller "weekViewController", ($scope, $timeout) ->
             .css('border', '3px solid ' + shiftColor)
 
     resetForm: (form) ->
-      $scope.data.shiftCopy =  angular.copy($scope.data.selectedShift)
+      $scope.data.shiftCopy =  angular.copy($scope.data.selectedShiftToEdit)
       $scope.$apply()
 
     grabEmployee: (employeeID) ->
@@ -238,14 +237,14 @@ app.controller "weekViewController", ($scope, $timeout) ->
         return shift if parseInt(shift.id) is parseInt(shiftID)
 
     updateShift: (shiftCopy) ->
-      shiftToUpdate = $scope.data.selectedShift
+      shiftToUpdate = $scope.data.selectedShiftToEdit
 
       attrToClone    = $scope.data.attrToClone
       for attr in attrToClone
         shiftToUpdate[attr] = shiftCopy[attr]
 
       $scope.func.updateShiftColor(shiftToUpdate)
-      $scope.data.selectedShift = {}
+      $scope.data.selectedShiftToEdit = {}
       $scope.states.showEditPopup = false
       $timeout($scope.func.refreshCalendar, 0)
       $scope.func.toggled()
