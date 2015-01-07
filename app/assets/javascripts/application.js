@@ -20,6 +20,7 @@
 //= require moment
 //= require redips-drag-min
 //= require scrollTo.min
+//= require localforage.min
 //= require_tree .
 
 
