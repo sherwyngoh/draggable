@@ -128,16 +128,20 @@ app.controller "weekViewController", ($scope, $timeout) ->
       for template in $scope.data.templates
         if template.name is templateName
           $scope.data.currentTemplate = template
-      shifts =  $scope.func.copyShifts($scope.data.calendarStartDate, $scope.data.currentTemplate)
 
-      $timeout($scope.func.refreshCalendar, 0)
+      $scope.func.copyShifts($scope.data.calendarStartDate, $scope.data.currentTemplate)
 
-      swal
-        title:  $scope.data.currentTemplate.name + " has been loaded!"
-        timer: 1000
+      ifSuccess = ->
+        $scope.data.shifts = []
+        angular.copy($scope.data.templateShifts, $scope.data.shifts)
+        $scope.func.resetSelected()
+        $timeout($scope.func.refreshCalendar, 0)
+        $scope.data.templateShifts = []
+        $scope.$apply()
+
+      $scope.func.swal(ifSuccess, "Yes, revert to template!", '#F1C40F')
 
     copyShifts: (startDate, template) ->
-      $scope.data.shifts              = []
       calendarDays = {0: '', 1: '', 2: '', 3: '',4: '', 5: '',6: ''}
 
       i = 0
@@ -149,8 +153,8 @@ app.controller "weekViewController", ($scope, $timeout) ->
         for shift in template[dayInteger]
           shift.date     = calendarDays[dayInteger]
           shiftToPush    = angular.copy(shift)
-          shiftToPush.id = $scope.data.shifts.length + 1
-          $scope.data.shifts.push(shiftToPush)
+          shiftToPush.id = $scope.data.templateShifts.length + 1
+          $scope.data.templateShifts.push(shiftToPush)
 
     goToSummary: ->
       $('summary .fa-plus').click()

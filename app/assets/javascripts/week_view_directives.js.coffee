@@ -88,13 +88,13 @@ app.directive 'calendarSetup', () ->
       setLeaveBars()
       setDraggableArea()
       scope.func.estimate()
+      angular.copy(scope.data.shifts, scope.data.originalShifts)
 
 
 app.directive 'popupHandler', ($timeout) ->
   restrict: "A"
   link: (scope) ->
     $('.popup').on 'reposition', (e, tdOffset) ->
-      console.log tdOffset
       windowWidth = $(window).width()
       spaceFromLeft = windowWidth - tdOffset.left
       if spaceFromLeft < 500
