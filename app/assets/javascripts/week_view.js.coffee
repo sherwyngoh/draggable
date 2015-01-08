@@ -367,6 +367,12 @@ app.controller "weekViewController", ($scope, $timeout) ->
       $scope.func.estimate()
       $('table').trigger 'deselect'
 
+    publish: ->
+      ifSuccess = ->
+        console.log 'todo'
+      $scope.func.swal(ifSuccess, "Yes, publish!",'#2ECC71', 'success')
+
+
 
 app.filter 'acronymify', () ->
   return (input) ->

@@ -199,6 +199,9 @@ app.directive 'popupHandler', ($timeout) ->
         if e.keyCode is 82
           scope.func.resetShifts()
 
+        if e.keyCode is 80
+          scope.func.publish()
+
       if e.metaKey
         if e.keyCode is 90
           scope.states.isUndoing = true
