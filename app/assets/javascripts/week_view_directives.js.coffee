@@ -47,9 +47,9 @@ app.directive 'calendarListener', () ->
         $(this).addClass('selected')
 
         #Reset for creating multiple
-        dayInteger = moment($(this).data('date'), "DD-MM-YYYY").format('d')
         for day in scope.data.daysInWeek
           day[4] = false
+        dayInteger = moment($(this).data('date'), "DD-MM-YYYY").format('d')
         scope.data.daysInWeek[dayInteger][4] = true
 
         scope.states.showNewPopup            = true
@@ -62,7 +62,7 @@ app.directive 'calendarListener', () ->
         $('#newPopup').find('ng-form').show()
 
 
-app.directive 'calendarSetup', () ->
+app.directive 'calendarSetup', ($timeout) ->
   restrict: 'A'
   link: (scope) ->
     setCalendarDays = ->
@@ -94,22 +94,60 @@ app.directive 'calendarSetup', () ->
     setDraggableArea = ->
       height = $('.draggable-area').height()
       $('.draggable-area').height(height + 400)
+
+
     setCalendarDays()
+
     $ ->
       setLeaveBars()
       setDraggableArea()
       scope.func.estimate()
-      angular.copy(scope.data.shifts, scope.data.originalShifts)
+
+      $(window).on 'load', ->
+        localforage.getItem 'shiftHistory', (err, value) ->
+          if value
+            swal
+              title: "Would you like to load the previous session? This is the only chance!"
+              type: "info"
+              showCancelButton: true
+              confirmButtonColor: "#3498DB"
+              confirmButtonText: "Yes, load it!"
+              cancelButtonText: "No, start fresh!"
+              closeOnConfirm: false
+              closeOnCancel: true
+              , (isConfirm) ->
+                if isConfirm
+                  scope.data.shiftStates    = JSON.parse(value)
+                  scope.data.originalShifts = scope.data.shiftStates[scope.data.shiftStates.length - 1]
+                  angular.copy(scope.data.originalShifts, scope.data.shifts)
+                  $timeout(scope.func.refreshCalendar, 0)
+                  scope.$apply()
+                  swal
+                    timer: 1000
+                    title: 'loaded!'
+                    type: 'success'
+                else
+                  angular.copy(scope.data.shifts, scope.data.originalShifts)
+                  scope.func.estimate()
+                return
+
+
 
 
 app.directive 'popupHandler', ($timeout) ->
   restrict: "A"
   link: (scope) ->
     $('.popup').on 'reposition', (e, tdOffset) ->
-      windowWidth = $(window).width()
-      spaceFromLeft = windowWidth - tdOffset.left
+      windowWidth     = $(window).width()
+      windowHeight    = $(window).height()
+      spaceFromLeft   = windowWidth - tdOffset.left
+      spaceFromBottom = windowHeight - tdOffset.top
+      console.log spaceFromBottom
       if spaceFromLeft < 500
         tdOffset.left += -600 + windowWidth - tdOffset.left
+      if spaceFromBottom < 300
+        tdOffset.top += -400 + windowHeight - tdOffset.top
+
       move = ->
         $('#newPopup, #editPopup').offset(tdOffset)
       $timeout(move, 0)
