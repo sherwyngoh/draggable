@@ -1,5 +1,6 @@
 .pull-right
   i.fa.fa-undo ng-click="func.undo()" ng-class="{'menuOpen': states.showMenu}" ng-mouseenter='states.isUndoing = true' ng-mouseleave="states.isUndoing = false"
+    small Undo (beta)
   i.fa.fa-puzzle-piece ng-click="states.showTemplateMenu = !states.showTemplateMenu; states.showMenu = false" ng-class="{'menuOpen': states.showTemplateMenu}" ng-mouseenter='states.showTemplateMenu = true; states.showMenu = false'
   i.fa.fa-bars ng-click="states.showMenu = !states.showMenu; states.showTemplateMenu = false" ng-class="{'menuOpen': states.showMenu}" ng-mouseenter='states.showMenu = true; states.showTemplateMenu = false'
 
@@ -42,3 +43,7 @@
         | View Summary
         span.shortcut
           | (shift + s)
+      / button.summary
+      /   | Publish
+      /   span.shortcut
+      /     | (Ctrl/Cmd + s)
