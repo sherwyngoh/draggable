@@ -109,30 +109,35 @@ app.directive 'calendarSetup', ($timeout) ->
       $(window).on 'load', ->
         localforage.getItem 'shiftHistory', (err, value) ->
           if value
-            swal
-              title: "Would you like to load the previous session? This is the only chance!"
-              type: "info"
-              showCancelButton: true
-              confirmButtonColor: "#3498DB"
-              confirmButtonText: "Yes, load it!"
-              cancelButtonText: "No, start fresh!"
-              closeOnConfirm: false
-              closeOnCancel: true
-              , (isConfirm) ->
-                if isConfirm
-                  scope.data.shiftStates    = JSON.parse(value)
-                  scope.data.originalShifts = scope.data.shiftStates[scope.data.shiftStates.length - 1]
-                  angular.copy(scope.data.originalShifts, scope.data.shifts)
-                  $timeout(scope.func.refreshCalendar, 0)
-                  scope.$apply()
-                  swal
-                    timer: 1000
-                    title: 'loaded!'
-                    type: 'success'
-                else
-                  angular.copy(scope.data.shifts, scope.data.originalShifts)
-                  scope.func.estimate()
-                return
+            scope.data.shiftStates    = JSON.parse(value)
+            scope.data.originalShifts = scope.data.shiftStates[scope.data.shiftStates.length - 1]
+            angular.copy(scope.data.originalShifts, scope.data.shifts)
+            $timeout(scope.func.refreshCalendar, 0)
+            scope.$apply()
+            # swal
+            #   title: "Would you like to load the previous session? This is the only chance!"
+            #   type: "info"
+            #   showCancelButton: true
+            #   confirmButtonColor: "#3498DB"
+            #   confirmButtonText: "Yes, load it!"
+            #   cancelButtonText: "No, start fresh!"
+            #   closeOnConfirm: false
+            #   closeOnCancel: true
+            #   , (isConfirm) ->
+            #     if isConfirm
+            #       scope.data.shiftStates    = JSON.parse(value)
+            #       scope.data.originalShifts = scope.data.shiftStates[scope.data.shiftStates.length - 1]
+            #       angular.copy(scope.data.originalShifts, scope.data.shifts)
+            #       $timeout(scope.func.refreshCalendar, 0)
+            #       scope.$apply()
+            #       swal
+            #         timer: 1000
+            #         title: 'loaded!'
+            #         type: 'success'
+            #     else
+            #       angular.copy(scope.data.shifts, scope.data.originalShifts)
+            #       scope.func.estimate()
+            #     return
 
 
 
@@ -173,7 +178,7 @@ app.directive 'popupHandler', ($timeout) ->
 
         $('.fa-minus').click()
         scope.func.resetSelected()
-        $('td.selected').removeClass('selected')
+        $('table').trigger 'deselect'
         scope.$apply()
 
       if e.keyCode is 112
@@ -293,7 +298,7 @@ app.directive 'setDrag', ($timeout) ->
           scope.data.selectedShiftToEdit = scope.func.grabShift(shiftID)
           angular.copy(scope.data.selectedShiftToEdit , scope.data.shiftCopy)
 
-          $('td.selected').removeClass('selected')
+          $('table').trigger 'deselect'
           $(rd.td.current).addClass('selected')
 
           scope.states.showEditPopup = true
