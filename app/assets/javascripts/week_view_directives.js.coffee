@@ -211,11 +211,10 @@ app.directive 'popupHandler', ($timeout) ->
       return if $(document.activeElement).is('input')
       if (e.keyCode is 8) or (e.keyCode is 46)
         e.preventDefault()
+        if e.shiftKey
+          scope.func.deleteAll()
         if scope.data.toggledShifts.length > 0
-          ifSuccess = ->
-            scope.func.removeShifts(scope.data.toggledShifts)
-            scope.$apply()
-          scope.func.swal(ifSuccess, "Yes, delete!")
+          scope.func.removeToggled()
 
 
 

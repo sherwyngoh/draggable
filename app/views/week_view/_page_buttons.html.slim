@@ -31,10 +31,20 @@
         | Add new shift
         span.shortcut
           | (shift + n)
-      button.reset ng-click="func.resetShifts()"
+      button.add ng-click="func.resetShifts()"
         | Reset changes
         span.shortcut
           | (shift + r)
+      button.summary-button.add
+        | View Summary
+        span.shortcut
+          | (shift + s)
+
+      button.del ng-click="func.removeToggled()"
+        | Delete selected
+        span.shortcut
+          | (backspace)
+
       button.del ng-click="func.deleteAll()"
         | Delete all
         span.shortcut

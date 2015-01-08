@@ -348,6 +348,12 @@ app.controller "weekViewController", ($scope, $timeout) ->
       $timeout($scope.func.refreshCalendar, 0)
       $scope.func.resetSelected()
 
+    removeToggled: ->
+      ifSuccess = ->
+        $scope.func.removeShifts($scope.data.toggledShifts)
+        $scope.$apply()
+      $scope.func.swal(ifSuccess, "Yes, delete!")
+
     refreshCalendar: ->
       console.log 'refreshing calendar'
       for shift in $scope.data.shifts
