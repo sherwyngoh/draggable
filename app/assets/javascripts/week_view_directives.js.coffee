@@ -2,6 +2,9 @@ app.directive 'calendarListener', () ->
   restrict: "A"
   link: (scope) ->
     $ ->
+      $('table').on 'deselect',  ->
+        $('td.selected').removeClass('selected')
+
       $('.page-buttons').on 'click', '.summary-button',->
         scope.func.goToSummary()
 
