@@ -166,6 +166,8 @@ app.directive 'popupHandler', ($timeout) ->
       }
       scope.data.commonTimings.push(newCommonTiming)
       scope.$apply()
+      height =  $('#commonTimingMenu').height()
+      $.scrollTo($('#commonTimingMenu').offset().top + height, 300)
 
     $('body').on 'click', ('#removeCommonTiming'), ->
       commonTimingID = $(this).data('common-timing-id')
