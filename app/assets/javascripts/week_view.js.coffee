@@ -35,7 +35,7 @@ app.controller "weekViewController", ($scope, $timeout) ->
     hoveredTemplate     : {}
     shiftStates         : []
     selectedTD          : ''
-    commonTimings       : []
+    commonTimings       : [{"id":1,"title":"Default","startHour":"08","startMin":"00","endHour":"17","endMin":"00"}]
 
   $scope.data.calendarStartDate    = '04-01-2015'
   $scope.data.calMomentStart       = moment($scope.data.calendarStartDate, "DD-MM-YYYY")
@@ -84,16 +84,20 @@ app.controller "weekViewController", ($scope, $timeout) ->
     $scope.states.createForMultiple = false
     if newVal
       $scope.states.showEditPopup  = false
+      $scope.states.showCommonTimingMenu = false
       $scope.func.hideMenus()
 
   $scope.$watch 'states.showEditPopup', (newVal, oldVal, scope) ->
     if newVal
-      $scope.states.showNewPopup     = false
+      $scope.states.showNewPopup         = false
+      $scope.states.showCommonTimingMenu = false
       $scope.func.hideMenus()
 
   $scope.$watch 'states.showCommonTimingMenu', (newVal, oldVal, scope) ->
     if newVal
-      $scope.states.showNewPopup     = false
+      $scope.states.showNewPopup  = false
+      $scope.states.showEditPopup = false
+      $('#commonTimingMenu').trigger 'show'
       $scope.func.hideMenus()
 
   $scope.$watch 'states.isSavingTemplate', (newValue, oldValue, scope) ->
@@ -139,7 +143,7 @@ app.controller "weekViewController", ($scope, $timeout) ->
     hideMenus: () ->
       $scope.states.showMenu             = false
       $scope.states.showTemplateMenu     = false
-      $scope.func.resetSelected()
+      # $scope.func.resetSelected()
 
     convertToTemplate: (shifts, name) ->
       template      = {}

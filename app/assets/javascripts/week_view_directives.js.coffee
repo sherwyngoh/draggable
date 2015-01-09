@@ -2,6 +2,18 @@ app.directive 'calendarListener', () ->
   restrict: "A"
   link: (scope) ->
     $ ->
+      $('#commonTimingMenu').on 'show', ->
+        $(this).find('ng-form').show()
+
+      $('body').on 'mouseover', '.commonTiming-button', ->
+        timing = $(this).data('timing')
+        text   = timing.startHour + ':' + timing.startMin + ' - ' + timing.endHour + ':' + timing.endMin
+        $(this).text(text)
+
+      $('body').on 'mouseleave', '.commonTiming-button', ->
+        timing = $(this).data('timing')
+        $(this).text(timing.title)
+
       $('table').on 'deselect',  ->
         $('td.selected').removeClass('selected')
 
