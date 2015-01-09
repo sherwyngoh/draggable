@@ -3,17 +3,18 @@ window.app = app = angular.module "weekView", []
 app.controller "weekViewController", ($scope, $timeout) ->
   #SS new shift breaks estimates, test cloning
   $scope.states =
-    showEditPopup     : false
-    showNewPopup      : false
-    isCloning         : false
-    isInitializing    : true
-    showMenu          : false
-    showHelp          : false
-    showTemplateMenu  : false
-    showSortMenu      : false
-    isSavingTemplate  : false
-    isUndoing         : false
-    createForMultiple : false
+    showEditPopup        : false
+    showNewPopup         : false
+    isCloning            : false
+    isInitializing       : true
+    showMenu             : false
+    showHelp             : false
+    showTemplateMenu     : false
+    showSortMenu         : false
+    isSavingTemplate     : false
+    isUndoing            : false
+    createForMultiple    : false
+    showCommonTimingMenu : false
 
   #init
   $scope.data =
@@ -34,6 +35,7 @@ app.controller "weekViewController", ($scope, $timeout) ->
     hoveredTemplate     : {}
     shiftStates         : []
     selectedTD          : ''
+    commonTimings       : []
 
   $scope.data.calendarStartDate    = '04-01-2015'
   $scope.data.calMomentStart       = moment($scope.data.calendarStartDate, "DD-MM-YYYY")
@@ -89,6 +91,11 @@ app.controller "weekViewController", ($scope, $timeout) ->
       $scope.states.showNewPopup     = false
       $scope.func.hideMenus()
 
+  $scope.$watch 'states.showCommonTimingMenu', (newVal, oldVal, scope) ->
+    if newVal
+      $scope.states.showNewPopup     = false
+      $scope.func.hideMenus()
+
   $scope.$watch 'states.isSavingTemplate', (newValue, oldValue, scope) ->
     if newValue
       focusInput = ->
@@ -112,6 +119,12 @@ app.controller "weekViewController", ($scope, $timeout) ->
         console.log 'setting localForage'
 
   $scope.func =
+    setCommonTiming: (commonTimingID) ->
+      for shift in $scope.data.commonTimings
+        if parseInt(shift.id) is parseInt(commonTimingID)
+          angular.forEach ['startHour','startMin','endHour','endMin'], (val, key)->
+            $scope.data.newShift[val] = shift[val]
+
     undo: () ->
       console.log 'undoing'
       $scope.data.shifts = []
@@ -124,8 +137,8 @@ app.controller "weekViewController", ($scope, $timeout) ->
       $timeout($scope.func.refreshCalendar, 0)
 
     hideMenus: () ->
-      $scope.states.showMenu         = false
-      $scope.states.showTemplateMenu = false
+      $scope.states.showMenu             = false
+      $scope.states.showTemplateMenu     = false
       $scope.func.resetSelected()
 
     convertToTemplate: (shifts, name) ->

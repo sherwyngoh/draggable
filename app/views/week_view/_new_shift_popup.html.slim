@@ -40,6 +40,11 @@
             | {{employee.name}}
 
     .form-group
+      .col-xs-12
+        h5 ng-if="data.commonTimings.length > 0"
+          | Select common timing
+        button.btn-sm.btn.btn-default.commonTiming-button ng-repeat="shift in data.commonTimings" ng-click="func.setCommonTiming(shift.id)"
+          | {{shift.title}}
 
       .col-xs-5
         .row

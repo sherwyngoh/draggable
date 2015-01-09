@@ -160,16 +160,37 @@ app.directive 'popupHandler', ($timeout) ->
         $('#newPopup, #editPopup').offset(tdOffset)
       $timeout(move, 0)
 
-    $('i.fa-minus').parents('.btn').on 'click', (e) ->
+    $('i.fa-minus').parents('.btn').on 'click', ->
       $(this).parents('.expand-container').find('ng-form').hide()
 
-    $('i.fa-plus').parents('.btn').on 'click', (e) ->
+    $('i.fa-plus').parents('.btn').on 'click', ->
       $(this).parents('.expand-container').find('ng-form').show()
 
-    $('.popup, summary').draggable
+    $('.popup, summary, .commands-list').draggable
       cursor: 'grabbing !important'
       containment: '.draggable-area'
       opacity: 0.6
+
+    #commonTiming handler
+    $('body').on 'click', ('#addNewCommonTiming'),  ->
+      newCommonTiming = {
+        id        : scope.data.commonTimings.length + 1
+        title     : 'Standard'
+        startHour : '08'
+        startMin  : '00'
+        endHour   : '17'
+        endMin    : '00'
+      }
+      scope.data.commonTimings.push(newCommonTiming)
+      scope.$apply()
+
+    $('body').on 'click', ('#removeCommonTiming'), ->
+      commonTimingID = $(this).data('common-timing-id')
+      for shift in scope.data.commonTimings
+        if shift.id is commonTimingID
+          index = scope.data.commonTimings.indexOf(shift)
+          scope.data.commonTimings.splice(index, 1)
+      scope.$apply()
 
      $(window).on 'keyup', (e)->
       if e.keyCode is 27

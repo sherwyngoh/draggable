@@ -1,9 +1,10 @@
 .pull-right
+  i.fa.fa-clock-o ng-click="states.showCommonTimingMenu = !states.showCommonTimingMenu"
+    small Common Timings
   i.fa.fa-undo ng-click="func.undo()" ng-class="{'menuOpen': states.isUndoing}" ng-mouseenter='states.isUndoing = true' ng-mouseleave="states.isUndoing = false"
     small Undo (beta)
   i.fa.fa-puzzle-piece ng-click="states.showTemplateMenu = !states.showTemplateMenu; states.showMenu = false" ng-class="{'menuOpen': states.showTemplateMenu}" ng-mouseenter='states.showTemplateMenu = true; states.showMenu = false'
   i.fa.fa-bars ng-click="states.showMenu = !states.showMenu; states.showTemplateMenu = false" ng-class="{'menuOpen': states.showMenu}" ng-mouseenter='states.showMenu = true; states.showTemplateMenu = false'
-
 
   .page-options  ng-mouseleave="states.showTemplateMenu = false" ng-if="states.showTemplateMenu"
       button.add ng-click="states.isSavingTemplate = true"
