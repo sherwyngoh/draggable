@@ -44,7 +44,6 @@ app.directive 'calendarListener', () ->
         date                           = $(this).data('date')
         scope.data.newShift.date       = date
         scope.data.newShift.employeeID = employeeID
-
         $('td.selected').removeClass('selected')
         $(this).addClass('selected')
 
@@ -96,7 +95,6 @@ app.directive 'calendarSetup', ($timeout) ->
     setDraggableArea = ->
       height = $('.draggable-area').height()
       $('.draggable-area').height(height + 400)
-
 
     setCalendarDays()
 
@@ -181,6 +179,7 @@ app.directive 'popupHandler', ($timeout) ->
 
 
     $(window).on 'keydown', (e) ->
+      return if $(e.target).is('input')
       if (e.shiftKey)
         if e.keyCode is 83
           scope.func.goToSummary()
@@ -267,12 +266,10 @@ app.directive 'setDrag', ($timeout) ->
       rd.hover.colorTd  = 'blank'
       rd.hover.borderTd = '3px solid #9bb3da'
       rd.clone.keyDiv   = true
-      # rd.trash.question = 'Are you sure you want to delete this shift?'
-
 
       rd.event.clicked = (currentCell)->
         console.log 'clicked'
-        shiftID            = $(rd.obj).data('shift-id')
+        shiftID                        = $(rd.obj).data('shift-id')
         toggleItemInArray(scope.data.toggledShifts, shiftID)
         scope.data.selectedShiftToEdit =  scope.func.grabShift(shiftID)
         scope.$apply()
