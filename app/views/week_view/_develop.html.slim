@@ -1,2 +1,4 @@
-/ | {{data.shifts}}
-/ | {{states.createForMultiple}}
+/ | {{states.showCommonTimingMenu}}
+/ br
+/ div ng-repeat="timing in data.commonTimings"
+/   | {{timing}}
