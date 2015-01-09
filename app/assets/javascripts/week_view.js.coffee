@@ -319,10 +319,7 @@ app.controller "weekViewController", ($scope, $timeout) ->
       $timeout($scope.func.refreshCalendar, 0)
 
     createMultipleFromPopup: ->
-      $scope.states.isInitializing = true
       for day in $scope.data.daysInWeek
-        if day is $scope.data.daysInWeek[$scope.data.daysInWeek.length - 1]
-          $scope.states.isInitializing = false
         if day[4]
           shiftToPush = {}
           angular.copy($scope.data.newShift, shiftToPush)

@@ -20,8 +20,7 @@ app.directive 'calendarListener', () ->
           # make a new shift where clone is at and submit, remove cloned div
           newShift = {}
 
-          for attr in scope.data.attrToClone
-            newShift[attr] = shiftBeforeMod[attr]
+          angular.copy(shiftBeforeMod, newShift)
 
           newShift.date       =  date
 
@@ -114,6 +113,7 @@ app.directive 'calendarSetup', ($timeout) ->
             angular.copy(scope.data.originalShifts, scope.data.shifts)
             $timeout(scope.func.refreshCalendar, 0)
             scope.$apply()
+            localforage.clear()
             # swal
             #   title: "Would you like to load the previous session? This is the only chance!"
             #   type: "info"
@@ -150,7 +150,7 @@ app.directive 'popupHandler', ($timeout) ->
       windowHeight    = $(window).height()
       spaceFromLeft   = windowWidth - tdOffset.left
       spaceFromBottom = windowHeight - tdOffset.top
-      console.log spaceFromBottom
+
       if spaceFromLeft < 500
         tdOffset.left += -600 + windowWidth - tdOffset.left
       if spaceFromBottom < 300
