@@ -15,7 +15,7 @@
         .col-xs-12
           button#addNewCommonTiming.btn.btn-block.btn-success Add
 
-      div ng-repeat="timing in data.commonTimings"
+      div ng-repeat="timing in data.commonTimings | orderBy : 'id' : true"
         .row
           .col-xs-12
             label Title
