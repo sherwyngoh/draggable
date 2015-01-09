@@ -278,18 +278,11 @@ app.directive 'setDrag', ($timeout) ->
 
       rd.event.clicked = (currentCell)->
         console.log 'clicked'
-        if window.event.metaKey
-          shiftID            = $(rd.obj).data('shift-id')
-          toggleItemInArray(scope.data.toggledShifts, shiftID)
-          if scope.data.toggledShifts.length > 0
-            scope.states.isSelecting = true
-          else
-            scope.states.isSelecting = false
-          scope.$apply()
-          scope.func.toggled()
-        else
-          scope.data.selectedShiftToEdit =  scope.func.grabShift(shiftID)
-
+        shiftID            = $(rd.obj).data('shift-id')
+        toggleItemInArray(scope.data.toggledShifts, shiftID)
+        scope.data.selectedShiftToEdit =  scope.func.grabShift(shiftID)
+        scope.$apply()
+        scope.func.toggled()
 
       rd.event.notCloned = ->
         console.log 'not cloned'

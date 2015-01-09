@@ -5,7 +5,6 @@ app.controller "weekViewController", ($scope, $timeout) ->
   $scope.states =
     showEditPopup     : false
     showNewPopup      : false
-    isSelecting       : false
     isCloning         : false
     isInitializing    : true
     showMenu          : false
@@ -42,8 +41,8 @@ app.controller "weekViewController", ($scope, $timeout) ->
   $scope.data.calendarDisplayDate  = $scope.data.calMomentStart.format('ddd Do MMM YYYY') + " - " + $scope.data.calMomentEnd.format('ddd Do MMM YYYY')
 
   $scope.data.employees = [
-    {id: '1', name: 'Fordon Ng', hoursExcludingThisWeek: 20, costPerHour: 10, totalHours: 40, currentWeekHours: 5.5, defaultRole: 'Manager'}
-    {id: '2', name: 'Zadwin Feng', hoursExcludingThisWeek: 16, costPerHour: 7.5, totalHours: 40, currentWeekHours: 8, defaultRole: 'Crew'}
+    {id: '1', name: 'Fordon Ng', hoursExcludingThisWeek: 20, costPerHour: 10, totalHours: 40, currentWeekHours: 0, defaultRole: 'Manager'}
+    {id: '2', name: 'Zadwin Feng', hoursExcludingThisWeek: 16, costPerHour: 7.5, totalHours: 40, currentWeekHours: 0, defaultRole: 'Crew'}
     {id: '3', name: 'Kan G', hoursExcludingThisWeek: 10, costPerHour: 7, totalHours: 35, currentWeekHours: 0, defaultRole: 'Asst Manager' }
     {id: '4', name: 'Lesslyn', hoursExcludingThisWeek: 10, costPerHour: 12, totalHours: 35, currentWeekHours: 0, defaultRole: 'Asst Manager'}
     {id: '5', name: 'Zherwyn', hoursExcludingThisWeek: 10, costPerHour: 12, totalHours: 35, currentWeekHours: 0, defaultRole: 'Supervisor'}
@@ -293,7 +292,6 @@ app.controller "weekViewController", ($scope, $timeout) ->
 
     resetSelected: ->
       $scope.data.toggledShifts = []
-      $scope.states.isSelecting   = false
       $scope.func.toggled()
 
     createFromPopup: ->
