@@ -114,33 +114,6 @@ app.directive 'calendarSetup', ($timeout) ->
             $timeout(scope.func.refreshCalendar, 0)
             scope.$apply()
             localforage.clear()
-            # swal
-            #   title: "Would you like to load the previous session? This is the only chance!"
-            #   type: "info"
-            #   showCancelButton: true
-            #   confirmButtonColor: "#3498DB"
-            #   confirmButtonText: "Yes, load it!"
-            #   cancelButtonText: "No, start fresh!"
-            #   closeOnConfirm: false
-            #   closeOnCancel: true
-            #   , (isConfirm) ->
-            #     if isConfirm
-            #       scope.data.shiftStates    = JSON.parse(value)
-            #       scope.data.originalShifts = scope.data.shiftStates[scope.data.shiftStates.length - 1]
-            #       angular.copy(scope.data.originalShifts, scope.data.shifts)
-            #       $timeout(scope.func.refreshCalendar, 0)
-            #       scope.$apply()
-            #       swal
-            #         timer: 1000
-            #         title: 'loaded!'
-            #         type: 'success'
-            #     else
-            #       angular.copy(scope.data.shifts, scope.data.originalShifts)
-            #       scope.func.estimate()
-            #     return
-
-
-
 
 app.directive 'popupHandler', ($timeout) ->
   restrict: "A"
@@ -203,7 +176,7 @@ app.directive 'popupHandler', ($timeout) ->
         scope.$apply()
 
       if e.keyCode is 112
-        scope.states.showHelp =  if scope.states.showHelp then false else true
+        scope.states.showHelp =  !scope.states.showHelp
         scope.$apply()
 
 
