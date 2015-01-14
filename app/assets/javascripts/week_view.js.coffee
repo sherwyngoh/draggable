@@ -1,6 +1,6 @@
 window.app = app = angular.module "weekView", ['LocalForageModule']
 
-app.controller "weekViewController", ($scope, $timeout) ->
+app.controller "weekViewController", ($scope, $timeout, $http, $q) ->
   #SS new shift breaks estimates, test cloning
   $scope.states =
     showEditPopup        : false
@@ -72,7 +72,7 @@ app.controller "weekViewController", ($scope, $timeout) ->
 
   $scope.data.shiftColors   = {'Manager': '#3498DB', 'Asst Manager': '#2ECC71', 'Supervisor': '#9B59B6', 'Crew': '#F39C12'}
   $scope.data.roles         = ["Manager", "Asst Manager", "Supervisor", "Crew"]
-  $scope.data.newShift      = {role: $scope.data.roles[0], breakHours: 1, startHour: 8, startMin: '00', endHour: 17, endMin: '00'}
+  $scope.data.newShift      = {role: $scope.data.roles[0], breakHours: '1', startHour: '8', startMin: '00', endHour: '17', endMin: '00'}
 
   $scope.data.salesForecast    = "2000"
   $scope.data.budgetPercentage = "15"
@@ -386,10 +386,28 @@ app.controller "weekViewController", ($scope, $timeout) ->
       $scope.func.estimate()
       $('table').trigger 'deselect'
 
+    loadData: ->
+      defer = $q.defer()
+      $http.post("/week_view_manager",
+        date: $scope.data.calendarStartDate
+        shifts: $scope.data.shifts
+      ).success((data, status, headers, config) ->
+        defer.resolve(data)
+      ).error (error, status, headers, config) ->
+        defer.reject(error)
+
+      return defer.promise
+
     publish: ->
-      ifSuccess = ->
+      $scope.func.loadData().then( (data) ->
         console.log 'todo'
-      $scope.func.swal(ifSuccess, "Yes, publish!",'#2ECC71', 'success')
+      , (error) ->
+        console.log 'error'
+      )
+
+      # ifSuccess = ->
+      #   console.log 'todo'
+      # $scope.func.swal(ifSuccess, "Yes, publish!",'#2ECC71', 'success')
 
 app.filter 'acronymify', () ->
   return (input) ->
