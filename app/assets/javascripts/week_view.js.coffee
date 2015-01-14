@@ -1,4 +1,4 @@
-window.app = app = angular.module "weekView", []
+window.app = app = angular.module "weekView", ['LocalForageModule']
 
 app.controller "weekViewController", ($scope, $timeout) ->
   #SS new shift breaks estimates, test cloning

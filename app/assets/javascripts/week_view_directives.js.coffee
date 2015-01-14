@@ -43,13 +43,11 @@ app.directive 'calendarListener', () ->
           $(event.target).remove()
           # We allow angular directives to create this clone
         else
-
           console.log 'modifying previous'
           shiftBeforeMod.date       = date
           shiftBeforeMod.employeeID = employeeID
           scope.$apply()
           scope.func.estimate()
-
 
       #click on date box
       $('.shift-applicable').on 'click', ->
@@ -184,7 +182,6 @@ app.directive 'popupHandler', ($timeout) ->
       if e.keyCode is 27
         angular.forEach scope.states, (state, key) ->
           scope.states[key] = false
-
         $('.fa-minus').click()
         scope.func.resetSelected()
         $('table').trigger 'deselect'

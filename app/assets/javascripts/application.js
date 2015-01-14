@@ -21,6 +21,7 @@
 //= require redips-drag-min
 //= require scrollTo.min
 //= require localforage.min
+//= require angular-localforage.min
 //= require_tree .
 
 
