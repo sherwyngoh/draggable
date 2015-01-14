@@ -283,8 +283,13 @@ app.directive 'setDrag', ($timeout) ->
       # rd.hover.borderTd = '3px solid #9bb3da' causes firefox issues
       rd.clone.keyDiv   = true
 
-      # rd.event.clicked = (currentCell)->
-      #   console.log 'clicked'
+      rd.event.clicked = (currentCell)->
+        console.log 'clicked'
+        if scope.states.metaKey
+          shiftID = $(rd.obj).data 'shift-id'
+          toggleItemInArray scope.data.toggledShifts, shiftID
+          scope.func.toggled()
+          scope.$apply()
 
       # rd.event.notCloned = ->
       #   console.log 'not cloned'
@@ -307,7 +312,9 @@ app.directive 'setDrag', ($timeout) ->
           $('.popup').trigger 'reposition', [tdOffset]
           $('#editPopup').find('ng-form').show()
           scope.func.resetSelected()
-          scope.data.toggledShifts.push(shift) if scope.data.toggledShifts.indexOf(shift) is -1
+          if scope.data.toggledShifts.indexOf(shiftID) is -1
+            console.log 'pushing shift into toggled'
+            scope.data.toggledShifts.push(shiftID)
           scope.func.toggled()
           scope.$apply()
 
