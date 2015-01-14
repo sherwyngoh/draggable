@@ -36,13 +36,9 @@ app.directive 'calendarListener', () ->
         if scope.states.isCloning
           # make a new shift where clone is at and submit, remove cloned div
           newShift = {}
-
           angular.copy(shiftBeforeMod, newShift)
-
           newShift.date       =  date
-
           newShift.employeeID = employeeID
-
           scope.func.submitShift(newShift)
           $(event.target).remove()
           # We allow angular directives to create this clone
@@ -113,7 +109,6 @@ app.directive 'calendarSetup', ($timeout) ->
     setDraggableArea = ->
       height = $('.draggable-area').height()
       $('.draggable-area').height(height + 400)
-
     setCalendarDays()
 
     $ ->
@@ -128,8 +123,12 @@ app.directive 'calendarSetup', ($timeout) ->
             scope.data.originalShifts = scope.data.shiftStates[scope.data.shiftStates.length - 1]
             angular.copy(scope.data.originalShifts, scope.data.shifts)
             $timeout(scope.func.refreshCalendar, 0)
+
+        localforage.getItem 'commonTimings', (err, value) ->
+          if value
+            scope.data.commonTimings    = JSON.parse(value)
             scope.$apply()
-            localforage.clear()
+
 
 app.directive 'popupHandler', ($timeout) ->
   restrict: "A"

@@ -43,7 +43,7 @@
       .col-xs-12
         h5 ng-if="data.commonTimings.length > 0"
           | Common timings
-        .commonTiming-button ng-repeat="timing in data.commonTimings" ng-click="func.setCommonTiming(timing.id)" data-timing-id="{{timing.id}}"
+        button.commonTiming-button.btn ng-repeat="timing in data.commonTimings" ng-click="func.setCommonTiming(timing.id)" data-timing-id="{{timing.id}}"
           a
             | {{timing.title}}
 

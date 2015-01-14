@@ -10,10 +10,11 @@
       i.fa.fa-close
   .row
     .col-xs-12
-      button#addNewCommonTiming.btn.btn-md.btn-success Add
+      button#addNewCommonTiming.btn.btn-md.btn-success
+        i.fa.fa-plus
   table.table
     thead
-      th colspan="2" Title
+      th Title
       th Start(h)
       th
         | (min)
@@ -23,7 +24,7 @@
       th Remove
     tbody
       tr ng-repeat="timing in data.commonTimings | orderBy : 'id' : true"
-        td colspan="2"
+        td
           input.form-control type="text" ng-model="timing.title"
         td
           input.form-control type="text" ng-model="timing.startHour"
