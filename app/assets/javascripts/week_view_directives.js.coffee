@@ -42,11 +42,12 @@ app.directive 'calendarListener', () ->
           $(event.target).remove()
           # We allow angular directives to create this clone
         else
+
           console.log 'modifying previous'
           shiftBeforeMod.date       = date
           shiftBeforeMod.employeeID = employeeID
-          scope.func.estimate()
           scope.$apply()
+          scope.func.estimate()
 
 
       #click on date box
@@ -183,11 +184,12 @@ app.directive 'popupHandler', ($timeout) ->
         $('.fa-minus').click()
         scope.func.resetSelected()
         $('table').trigger 'deselect'
-        scope.$apply()
 
       if e.keyCode is 112
         scope.states.showHelp =  !scope.states.showHelp
-        scope.$apply()
+
+      scope.states.metaKey = false
+      scope.$apply()
 
 
     $(window).on 'keydown', (e) ->
@@ -208,6 +210,9 @@ app.directive 'popupHandler', ($timeout) ->
           scope.func.publish()
 
       if e.metaKey
+        scope.states.metaKey = true
+        scope.$apply()
+
         if e.keyCode is 90
           scope.states.isUndoing = true
           $('.fa-undo').click()
@@ -242,7 +247,7 @@ app.directive 'shiftBar', ($timeout) ->
         .html('<span>' + shift.role + "<br/>" + shift.startHour + ':' + shift.startMin + ' - ' + shift.endHour + ':' + shift.endMin + "</span>")
       return
 
-    setShift = ->
+    scope.$on 'setShift', ->
       console.log 'setting shift'
       tdWidth     = parseInt($('.shift-applicable').first().css('width'))
       tdHeight    = parseInt($('.shift-applicable').first().css('height'))
@@ -255,6 +260,7 @@ app.directive 'shiftBar', ($timeout) ->
       element.css('min-width', shiftWidth)
         .css('min-height', shiftHeight)
         .css('color', shiftColor)
+        .css('background', 'white')
         .css('border', '3px solid ' + shiftColor)
         .css('display', 'inline-block')
         .html('<span>' + shift.role + "<br/>" + shift.startHour + ':' + shift.startMin + ' - ' + shift.endHour + ':' + shift.endMin + "</span>")
@@ -265,8 +271,6 @@ app.directive 'shiftBar', ($timeout) ->
       date            = shift.date
       shiftStartingUL = $(employeeRow).find('td[data-date="' +  date + '"]')
       shiftStartingUL.append(element)
-
-    $timeout(setShift, 0)
 
 
 app.directive 'setDrag', ($timeout) ->
@@ -279,25 +283,21 @@ app.directive 'setDrag', ($timeout) ->
       rd.hover.borderTd = '3px solid #9bb3da'
       rd.clone.keyDiv   = true
 
-      rd.event.clicked = (currentCell)->
-        console.log 'clicked'
-        shiftID                        = $(rd.obj).data('shift-id')
-        toggleItemInArray(scope.data.toggledShifts, shiftID)
-        scope.data.selectedShiftToEdit =  scope.func.grabShift(shiftID)
-        scope.$apply()
-        scope.func.toggled()
+      # rd.event.clicked = (currentCell)->
+      #   console.log 'clicked'
 
-      rd.event.notCloned = ->
-        console.log 'not cloned'
+      # rd.event.notCloned = ->
+      #   console.log 'not cloned'
 
       rd.event.notMoved = ->
-        if !(window.event.ctrlKey or window.event.metaKey)
-          shiftID                  = $(rd.obj).data('shift-id')
-          scope.data.selectedShiftToEdit = scope.func.grabShift(shiftID)
-          angular.copy(scope.data.selectedShiftToEdit , scope.data.shiftCopy)
+        if !scope.states.metaKey
+          shiftID                        = $(rd.obj).data 'shift-id'
+          shift                          = scope.func.grabShift shiftID
+          scope.data.selectedShiftToEdit = shift
+          angular.copy scope.data.selectedShiftToEdit , scope.data.shiftCopy
 
           $('table').trigger 'deselect'
-          $(rd.td.current).addClass('selected')
+          $(rd.td.current).addClass 'selected'
 
           scope.states.showEditPopup = true
           popup                      = $(rd.obj)
@@ -306,19 +306,18 @@ app.directive 'setDrag', ($timeout) ->
           tdOffset.left              += parseInt(popup.css('width'))/2
           $('.popup').trigger 'reposition', [tdOffset]
           $('#editPopup').find('ng-form').show()
-
+          scope.func.resetSelected()
+          scope.data.toggledShifts.push(shift) if scope.data.toggledShifts.indexOf(shift) is -1
+          scope.func.toggled()
           scope.$apply()
 
-      rd.event.moved = ->
+
+      rd.event.moved = (cloned) ->
         console.log 'moved'
         shiftID                 = $(rd.obj).data('shift-id')
         scope.data.baseShift    = scope.func.grabShift(shiftID)
         scope.states.isDragging = true
-
-        if window.event.shiftKey is true
-          # scope.data.tdToClone   = rd.td.source
-          scope.states.isCloning = true
-
+        scope.states.isCloning  = cloned
         scope.$apply()
 
       rd.event.dropped = ->

@@ -15,6 +15,7 @@ app.controller "weekViewController", ($scope, $timeout) ->
     isUndoing            : false
     createForMultiple    : false
     showCommonTimingMenu : false
+    metaKey              : false
 
   #init
   $scope.data =
@@ -123,6 +124,10 @@ app.controller "weekViewController", ($scope, $timeout) ->
         console.log 'setting localForage'
 
   $scope.func =
+    setShifts: ->
+      console.log 'setting shifts'
+      $scope.$broadcast 'setShift'
+
     setCommonTiming: (commonTimingID) ->
       for shift in $scope.data.commonTimings
         if parseInt(shift.id) is parseInt(commonTimingID)
@@ -367,13 +372,7 @@ app.controller "weekViewController", ($scope, $timeout) ->
 
     refreshCalendar: ->
       console.log 'refreshing calendar'
-      for shift in $scope.data.shifts
-        employeeID      = shift.employeeID
-        employeeRow     = $('tr[data-employee-id="' + employeeID + '"]')
-        shiftStartingUL = $(employeeRow).find('td[data-date=' +  shift.date + ']')
-        element         = $('.shift-bar[data-shift-id="' + shift.id + '"]')
-        shiftStartingUL.append(element)
-
+      $scope.func.setShifts()
       REDIPS.drag.init('week-view')
       $scope.func.estimate()
       $('table').trigger 'deselect'
