@@ -4,7 +4,7 @@
       .row.top-header
         .col-xs-6
           h3
-            i.fa.fa-angle-double-left ng-click="func.setShifts()"
+            i.fa.fa-angle-double-left ng-click="func.loadData()"
             | {{data.calendarDisplayDate}}
             i.fa.fa-angle-double-right ng-click="func.estimate()"
           .current-template-name ng-if="data.currentTemplate.length > 0"
@@ -28,9 +28,9 @@
               button.btn.btn-block.btn-default ng-click="states.showSortMenu = false; data.predicate = 'defaultRole';" Job Title
               button.btn.btn-block.btn-default ng-click="states.showSortMenu = false; data.predicate = 'id'" None
 
-
         .days ng-repeat="day in data.daysInWeek" data-date="{{day[1]}}"
           | {{day[0]}}
+
       .draggable-area
         .scrollable
           table.table set-drag='' calendar-listener='' popup-handler='' calendar-setup=''

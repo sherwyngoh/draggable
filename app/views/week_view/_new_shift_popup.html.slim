@@ -10,7 +10,7 @@
       i.fa.fa-close
 
   ng-form.form name="newShiftForm"
-    .form-group
+    .form-group.row
       .col-xs-12
         .checkbox
           label
@@ -27,64 +27,77 @@
               label
                 input type="checkbox" ng-checked="data.newShift.date == day[1]" ng-model="day[4]"
                   | {{day[0]}}
-    .form-group
-      .col-xs-5
+    .form-group.row
+      .col-xs-4
+        label Date
+        input.form-control ng-disabled="states.createForMultiple" type='text' ng-model="data.newShift.date"
+      .col-xs-4
         label Role
         select.form-control ng-model="data.newShift.role"
           option ng-repeat="role in data.roles" value="{{role}}"
             | {{role}}
-      .col-xs-5.col-xs-offset-2
+      .col-xs-4
         label Employee
         select.form-control ng-model="data.newShift.employeeID"
           option ng-repeat="employee in data.employees" value="{{employee.id}}" ng-selected="data.newShift.employeeID == employee.id"
             | {{employee.name}}
 
     .form-group
-      .col-xs-12
-        h5 ng-if="data.commonTimings.length > 0"
-          | Common timings
-        button.commonTiming-button.btn ng-repeat="timing in data.commonTimings" ng-click="func.setCommonTiming(timing.id)" data-timing-id="{{timing.id}}"
-          a
-            | {{timing.title}}
-
-      .col-xs-5
-        .row
-          .col-xs-6
-            label
-              | Start
-              small
-                | (h)
-            input.form-control type='text' ng-model="data.newShift.startHour"
-          .col-xs-6
-            label
-              small
-                | (min)
-            input.form-control type='text' ng-model="data.newShift.startMin"
-
-      .col-xs-5.col-xs-offset-2
-        .row
-          .col-xs-6
-            label
-              | End
-              small
-                | (h)
-            input.form-control type='text' ng-model="data.newShift.endHour"
-          .col-xs-6
-            label
-              small
-                | (min)
-            input.form-control type='text' ng-model="data.newShift.endMin"
+      .row
+        .col-xs-12
+          h5 ng-if="data.commonTimings.length > 0"
+            | Common timings
+          button.commonTiming-button.btn ng-repeat="timing in data.commonTimings" ng-click="func.setCommonTiming(timing.id)" data-timing-id="{{timing.id}}"
+            a
+              | {{timing.title}}
     .form-group
-      .col-xs-5 ng-if="!states.createForMultiple"
-        label Date
-        input.form-control type='text' ng-model="data.newShift.date"
+      .row
+        .col-xs-3
+          .col-xs-6
+            .row
+              label
+                | Start
+                small
+                  | (h)
+              input.form-control type='text' ng-model="data.newShift.startHour"
+          .col-xs-6
+            .row
+              label
+                small
+                  | (min)
+              input.form-control type='text' ng-model="data.newShift.startMin"
 
-      .col-xs-5 ng-class="{'col-xs-offset-2': !states.createForMultiple}"
-        label Break Hours
-        input.form-control type='text' ng-model="data.newShift.breakHours"
+        .col-xs-4
+          .col-xs-6
+            .row
+              label Length(h)
+              input.form-control type="number" min="0" step="1" object-name="newShift" ng-change="func.updateEndTime('newShift')" ng-model="data.newShift.durationHours"
+          .col-xs-6
+            .row
+              label
+                | (min)
+              input.form-control type="number" min="0" step="15" object-name="newShift" ng-change="func.updateEndTime('newShift')" ng-model="data.newShift.durationMins"
 
+        .col-xs-2
+          label Break(min)
+          input.form-control type="number" min='0' step='15' ng-model="data.newShift.breakHours"
 
-    .form-group
+        .col-xs-3
+          .col-xs-6
+            .row
+              label
+                | End
+                small
+                  | (h)
+              input.form-control disabled='' type='text' ng-model="data.newShift.endHour"
+          .col-xs-6
+            .row
+              label
+                small
+                  | (min)
+              input.form-control type='text' disabled='' ng-model="data.newShift.endMin"
+
+    .form-group.row
       .col-xs-5.col-xs-offset-7
         button.btn.btn-success.btn-block ng-click="func.createMultipleFromPopup()" ng-if="states.createForMultiple"  Create multiple shifts
         button.btn.btn-success.btn-block ng-click="func.createFromPopup()" ng-if="!states.createForMultiple" Create single shift

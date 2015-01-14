@@ -72,7 +72,7 @@ app.controller "weekViewController", ($scope, $timeout, $http, $q) ->
 
   $scope.data.shiftColors   = {'Manager': '#3498DB', 'Asst Manager': '#2ECC71', 'Supervisor': '#9B59B6', 'Crew': '#F39C12'}
   $scope.data.roles         = ["Manager", "Asst Manager", "Supervisor", "Crew"]
-  $scope.data.newShift      = {role: $scope.data.roles[0], breakHours: '1', startHour: '8', startMin: '00', endHour: '17', endMin: '00'}
+  $scope.data.newShift      = {role: $scope.data.roles[0], breakHours: 1, startHour: '8', startMin: '00', endHour: '17', endMin: '00', durationHours: 9, durationMins: 0}
 
   $scope.data.salesForecast    = "2000"
   $scope.data.budgetPercentage = "15"
@@ -129,6 +129,13 @@ app.controller "weekViewController", ($scope, $timeout, $http, $q) ->
       console.log 'setting localForage commonTimings'
 
   $scope.func =
+    updateEndTime: (object) ->
+      object         = $scope.data[object]
+      start          = moment(object.date + object.startHour + object.startMin, 'DD-MM-YYYYhhmm')
+      finish         = start.add(object.durationHours, 'h').add(object.durationMins, 'm')
+      object.endHour = finish.format('hh')
+      object.endMin  = finish.format('mm')
+
     setShifts: ->
       console.log 'setting shifts'
       for shift in $scope.data.shifts
@@ -239,13 +246,14 @@ app.controller "weekViewController", ($scope, $timeout, $http, $q) ->
         angular.forEach shiftBars, (shiftBar) ->
           shift                     = $scope.func.grabShift($(shiftBar).data('shift-id'))
           employee                  = $scope.func.grabEmployee(shift.employeeID)
-          wageCost                  = parseInt(employee.costPerHour) * parseInt(shift.length)
+          length                    = parseInt(shift.durationHours) + parseInt(shift.durationMins/60)
+          wageCost                  = parseInt(employee.costPerHour) * length
           day[2]                    += wageCost
-          day[3]                    += shift.length
+          day[3]                    += length
 
           $scope.data.wageEstimate  += wageCost
 
-          employee.currentWeekHours += parseInt(shift.length)
+          employee.currentWeekHours += parseInt(length)
 
     swal: (ifSuccess, confirmButtonText, confirmButtonColor, type) ->
       confirmButtonColor = "#DD6B55" unless confirmButtonColor
@@ -327,7 +335,7 @@ app.controller "weekViewController", ($scope, $timeout, $http, $q) ->
     createFromPopup: ->
       shiftToPush = {}
       angular.copy($scope.data.newShift, shiftToPush)
-      shiftToPush = $scope.func.setIdAndLength(shiftToPush)
+      shiftToPush = $scope.func.setID(shiftToPush)
       $scope.data.shifts.push(shiftToPush)
 
       #reset new shift and close popup
@@ -341,7 +349,7 @@ app.controller "weekViewController", ($scope, $timeout, $http, $q) ->
           shiftToPush = {}
           angular.copy($scope.data.newShift, shiftToPush)
           shiftToPush.date = day[1]
-          shiftToPush      = $scope.func.setIdAndLength(shiftToPush)
+          shiftToPush      = $scope.func.setID(shiftToPush)
           $scope.data.shifts.push(shiftToPush)
       $scope.data.newShift          = {role: $scope.data.roles[0], breakHours: 1, startHour: 8, startMin: '00', endHour: 17, endMin: '00'}
       $scope.states.showNewPopup    = false
@@ -350,16 +358,13 @@ app.controller "weekViewController", ($scope, $timeout, $http, $q) ->
       $timeout($scope.func.refreshCalendar, 0)
 
     submitShift: (shift) ->
-      shift = $scope.func.setIdAndLength(shift)
+      shift = $scope.func.setID(shift)
       $scope.data.shifts.push(shift)
       $scope.data.baseShift = {}
       $scope.$apply()
       $timeout($scope.func.refreshCalendar, 0)
 
-    setIdAndLength: (shift) ->
-      hours        = shift.endHour - shift.startHour
-      hours        += (shift.endMin - shift.startMin)/60
-      shift.length = hours
+    setID: (shift) ->
       shift.id     = String($scope.data.shifts.length + 1)
       return shift
 
