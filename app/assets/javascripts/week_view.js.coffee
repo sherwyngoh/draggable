@@ -123,6 +123,11 @@ app.controller "weekViewController", ($scope, $timeout) ->
         localforage.setItem('shiftHistory', angular.toJson($scope.data.shiftStates) )
         console.log 'setting localForage shifts'
 
+  $scope.$watchCollection 'data.commonTimings', (newVal, oldVal, scope) ->
+    unless $scope.states.isInitializing
+      localforage.setItem('commonTimings', angular.toJson(newVal))
+      console.log 'setting localForage commonTimings'
+
   $scope.func =
     setShifts: ->
       console.log 'setting shifts'
