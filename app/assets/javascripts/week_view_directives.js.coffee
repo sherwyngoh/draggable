@@ -251,8 +251,8 @@ app.directive 'shiftBar', ($timeout) ->
       console.log 'setting shift'
       tdWidth     = parseInt($('.shift-applicable').first().css('width'))
       tdHeight    = parseInt($('.shift-applicable').first().css('height'))
-      shiftWidth  =  '130px'
-      shiftHeight =  '45px'
+      shiftWidth  = '130px'
+      shiftHeight = '45px'
 
       role       = shift.role
       shiftColor = scope.data.shiftColors[role]
@@ -279,8 +279,8 @@ app.directive 'setDrag', ($timeout) ->
     redipsInit = ->
       rd = REDIPS.drag
       rd.init('week-view')
-      rd.hover.colorTd  = 'blank'
-      rd.hover.borderTd = '3px solid #9bb3da'
+      rd.hover.colorTd  = 'aliceblue'
+      # rd.hover.borderTd = '3px solid #9bb3da' causes firefox issues
       rd.clone.keyDiv   = true
 
       # rd.event.clicked = (currentCell)->
