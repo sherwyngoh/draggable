@@ -254,6 +254,7 @@ app.controller "weekViewController", ($scope, $timeout) ->
         , ->
           ifSuccess()
           $scope.func.estimate()
+          $scope.states.showEditPopup = false
 
     deleteAll: ->
       ifSuccess = ->
