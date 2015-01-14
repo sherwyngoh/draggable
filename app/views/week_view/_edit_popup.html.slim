@@ -62,5 +62,5 @@
       .form-group
         .col-xs-12
           button.btn.btn-warning.btn-sm ng-disabled="editShiftForm.$pristine" ng-click="func.resetForm()" Reset changes
-          button.btn.btn-danger.btn-sm ng-click="func.removeToggled()" Delete shift
+          button.btn.btn-danger.btn-sm ng-disabled="false" ng-click="func.removeToggled()" Delete shift
           button.pull-right.btn.btn-success.btn-md ng-disabled="editShiftForm.$pristine" ng-click="func.updateShift(data.shiftCopy)" Update shift
