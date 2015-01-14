@@ -114,13 +114,13 @@ app.controller "weekViewController", ($scope, $timeout) ->
   $scope.$watchCollection 'data.shifts', (newVal, oldVal, scope) ->
     unless $scope.states.isUndoing
       console.log 'storing state'
-      shiftHistory = []
-      angular.copy($scope.data.shifts, shiftHistory)
-      $scope.data.shiftStates.push(shiftHistory)
+      shifts = []
+      angular.copy(newVal, shifts)
+      $scope.data.shiftStates.push(shifts)
       $scope.data.shiftStates.pop() if $scope.data.shiftStates.length > 20
 
       unless $scope.states.isInitializing
-        localforage.setItem('shiftHistory', angular.toJson($scope.data.shiftStates) )
+        localforage.setItem('shifts', angular.toJson($scope.data.shifts) )
         console.log 'setting localForage shifts'
 
   $scope.$watchCollection 'data.commonTimings', (newVal, oldVal, scope) ->
@@ -131,6 +131,9 @@ app.controller "weekViewController", ($scope, $timeout) ->
   $scope.func =
     setShifts: ->
       console.log 'setting shifts'
+      for shift in $scope.data.shifts
+        shift.id = $scope.data.shifts.indexOf(shift) + 1
+      $scope.$apply()
       $scope.$broadcast 'setShift'
 
     setCommonTiming: (commonTimingID) ->
@@ -387,8 +390,6 @@ app.controller "weekViewController", ($scope, $timeout) ->
       ifSuccess = ->
         console.log 'todo'
       $scope.func.swal(ifSuccess, "Yes, publish!",'#2ECC71', 'success')
-
-
 
 app.filter 'acronymify', () ->
   return (input) ->

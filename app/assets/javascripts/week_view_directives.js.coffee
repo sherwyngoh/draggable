@@ -115,11 +115,10 @@ app.directive 'calendarSetup', ($timeout) ->
       scope.func.estimate()
 
       $(window).on 'load', ->
-        localforage.getItem 'shiftHistory', (err, value) ->
+        localforage.getItem 'shifts', (err, value) ->
           if value
-            scope.data.shiftStates    = JSON.parse(value)
-            scope.data.originalShifts = scope.data.shiftStates[scope.data.shiftStates.length - 1]
-            angular.copy(scope.data.originalShifts, scope.data.shifts)
+            scope.data.shifts    = JSON.parse(value)
+            angular.copy(scope.data.shifts, scope.data.originalShifts)
             $timeout(scope.func.refreshCalendar, 0)
 
         localforage.getItem 'commonTimings', (err, value) ->
@@ -319,7 +318,6 @@ app.directive 'setDrag', ($timeout) ->
           scope.func.toggled()
           scope.$apply()
 
-
       rd.event.moved = (cloned) ->
         console.log 'moved'
         shiftID                 = $(rd.obj).data('shift-id')
@@ -330,17 +328,20 @@ app.directive 'setDrag', ($timeout) ->
 
       rd.event.dropped = ->
         console.log 'dropped'
+        scope.data.baseShift    = {}
         scope.states.isDragging = false
         scope.states.isCloning  = false
         scope.$apply()
 
       rd.event.notCloned = ->
         console.log 'notCloned'
+        scope.data.baseShift    = {}
         scope.states.isDragging = false
         scope.states.isCloning  = false
         scope.$apply()
 
       scope.states.isInitializing = false
+      scope.func.refreshCalendar
 
     # add onload event listener
     if window.addEventListener
