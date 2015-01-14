@@ -6,12 +6,17 @@ app.directive 'calendarListener', () ->
         $(this).find('ng-form').show()
 
       $('body').on 'mouseover', '.commonTiming-button', ->
-        timing = $(this).data('timing')
+        ID  = $(this).data('timing-id')
+        for commonTiming in scope.data.commonTimings
+          timing = commonTiming if commonTiming.id is ID
         text   = timing.startHour + ':' + timing.startMin + ' - ' + timing.endHour + ':' + timing.endMin
         $(this).text(text)
 
       $('body').on 'mouseleave', '.commonTiming-button', ->
-        timing = $(this).data('timing')
+        ID  = $(this).data('timing-id')
+        for commonTiming in scope.data.commonTimings
+          timing = commonTiming if commonTiming.id is ID
+        text   = timing.startHour + ':' + timing.startMin + ' - ' + timing.endHour + ':' + timing.endMin
         $(this).text(timing.title)
 
       $('table').on 'deselect',  ->
