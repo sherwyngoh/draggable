@@ -8,50 +8,75 @@
       i.fa.fa-plus
     .btn ng-click="states.showCommonTimingMenu = !states.showCommonTimingMenu"
       i.fa.fa-close
+  .row
+    .col-xs-12
+      button#addNewCommonTiming.btn.btn-md.btn-success Add
+  table.table
+    thead
+      th colspan="2" Title
+      th Start(h)
+      th
+        | (min)
+      th End(h)
+      th
+        | (min)
+      th Remove
+    tbody
+      tr ng-repeat="timing in data.commonTimings | orderBy : 'id' : true"
+        td colspan="2"
+          input.form-control type="text" ng-model="timing.title"
+        td
+          input.form-control type="text" ng-model="timing.startHour"
+        td
+          input.form-control type="text" ng-model="timing.startMin"
+        td
+          input.form-control type="text" ng-model="timing.endHour"
+        td
+          input.form-control type="text" ng-model="timing.endMin"
+        td
+          .btn.btn-danger.btn-md#removeCommonTiming data-common-timing-id="{{timing.id}}"
+            i.fa.fa-minus
 
-  ng-form.form name="commonTimingsForm"
-    .form-group
-      .row
-        .col-xs-12
-          button#addNewCommonTiming.btn.btn-block.btn-success Add
+  / ng-form.form name="commonTimingsForm"
+  /   .form-group
+  /     .row
+  /       .col-xs-12
 
-      div ng-repeat="timing in data.commonTimings | orderBy : 'id' : true"
-        .row
-          .col-xs-12
-            label Title
-            input.form-control type="text" ng-model="timing.title"
+  /     div ng-repeat="timing in data.commonTimings | "
+  /       .row
+  /         .col-xs-12
+  /           label Title
+  /           input.form-control type="text" ng-model="timing.title"
 
-        .row
-          .col-xs-5
-            .row
-              .col-xs-6
-                label
-                  | Start
-                  small
-                    | (h)
-                input.form-control type='text' ng-model="timing.startHour"
-              .col-xs-6
-                label
-                  small
-                    | (min)
-                input.form-control type='text' ng-model="timing.startMin"
+  /       .row
+  /         .col-xs-5
+  /           .row
+  /             .col-xs-6
+  /               label
+  /                 | Start
+  /                 small
+  /                   | (h)
+  /               input.form-control type='text' ng-model="timing.startHour"
+  /             .col-xs-6
+  /               label
+  /                 small
+  /                   | (min)
+  /               input.form-control type='text' ng-model="timing.startMin"
 
-          .col-xs-5
-            .row
-              .col-xs-6
-                label
-                  | End
-                  small
-                    | (h)
-                input.form-control type='text' ng-model="timing.endHour"
-              .col-xs-6
-                label
-                  small
-                    | (min)
-                input.form-control type='text' ng-model="timing.endMin"
+  /         .col-xs-5
+  /           .row
+  /             .col-xs-6
+  /               label
+  /                 | End
+  /                 small
+  /                   | (h)
+  /               input.form-control type='text' ng-model="timing.endHour"
+  /             .col-xs-6
+  /               label
+  /                 small
+  /                   | (min)
+  /               input.form-control type='text' ng-model="timing.endMin"
 
-          .col-xs-2.buttons-group
-            .btn.btn-danger.btn-md#removeCommonTiming data-common-timing-id="{{timing.id}}"
-              small Remove
+  /         .col-xs-2.buttons-group
 
-
+  /             small Remove
