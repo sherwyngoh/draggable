@@ -36,48 +36,4 @@
           input.form-control type="text" ng-model="timing.endMin"
         td
           .btn.btn-danger.btn-md#removeCommonTiming data-common-timing-id="{{timing.id}}"
-            i.fa.fa-minus
-
-  / ng-form.form name="commonTimingsForm"
-  /   .form-group
-  /     .row
-  /       .col-xs-12
-
-  /     div ng-repeat="timing in data.commonTimings | "
-  /       .row
-  /         .col-xs-12
-  /           label Title
-  /           input.form-control type="text" ng-model="timing.title"
-
-  /       .row
-  /         .col-xs-5
-  /           .row
-  /             .col-xs-6
-  /               label
-  /                 | Start
-  /                 small
-  /                   | (h)
-  /               input.form-control type='text' ng-model="timing.startHour"
-  /             .col-xs-6
-  /               label
-  /                 small
-  /                   | (min)
-  /               input.form-control type='text' ng-model="timing.startMin"
-
-  /         .col-xs-5
-  /           .row
-  /             .col-xs-6
-  /               label
-  /                 | End
-  /                 small
-  /                   | (h)
-  /               input.form-control type='text' ng-model="timing.endHour"
-  /             .col-xs-6
-  /               label
-  /                 small
-  /                   | (min)
-  /               input.form-control type='text' ng-model="timing.endMin"
-
-  /         .col-xs-2.buttons-group
-
-  /             small Remove
+            | Remove

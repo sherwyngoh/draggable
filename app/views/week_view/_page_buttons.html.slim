@@ -6,25 +6,27 @@
   i.fa.fa-puzzle-piece ng-click="states.showTemplateMenu = !states.showTemplateMenu; states.showMenu = false" ng-class="{'menuOpen': states.showTemplateMenu}" ng-mouseenter='states.showTemplateMenu = true; states.showMenu = false'
   i.fa.fa-bars ng-click="states.showMenu = !states.showMenu; states.showTemplateMenu = false" ng-class="{'menuOpen': states.showMenu}" ng-mouseenter='states.showMenu = true; states.showTemplateMenu = false'
 
-  .page-options  ng-mouseleave="states.showTemplateMenu = false" ng-if="states.showTemplateMenu"
-      button.add ng-click="states.isSavingTemplate = true"
-        span ng-if="!states.isSavingTemplate" Save as template
-        span ng-if="states.isSavingTemplate"
+  .page-options  ng-mouseleave="states.showTemplateMenu = false" ng-show="states.showTemplateMenu"
+      button.add ng-click="states.isSavingTemplate = true;" ng-show="!states.isSavingTemplate"
+        span  Save as template
+      button.add ng-show="states.isSavingTemplate" ng-click="func.saveTemplate(data.newTemplateName)"
+        span
           input.form-control.template-name type='text' ng-model="data.newTemplateName" placeholder="Enter name"
           small
-            a ng-click="func.saveTemplate(data.newTemplateName)" Save
+            a Save
+
       button.help ng-repeat="template in data.templates" ng-click="func.loadTemplate(template.name)" ng-mouseenter="data.hoveredTemplate = template" ng-mouseleave="data.hoveredTemplate = {}"
         | Load template: {{template.name}}
-        span ng-if="data.hoveredTemplate == template"
+        span ng-show="data.hoveredTemplate == template"
           small
             a.pull-right.delete-template ng-click="func.deleteTemplate(template)" Delete
 
-  .page-options ng-if="states.showMenu" ng-mouseleave="states.showMenu = false"
-      button.add ng-click="states.showHelp = !states.showHelp" ng-if="!states.showHelp"
+  .page-options ng-show="states.showMenu" ng-mouseleave="states.showMenu = false"
+      button.add ng-click="states.showHelp = !states.showHelp" ng-show="!states.showHelp"
         | Show help
         span.shortcut
           | (f1)
-      button.add ng-click="states.showHelp = !states.showHelp" ng-if="states.showHelp"
+      button.add ng-click="states.showHelp = !states.showHelp" ng-show="states.showHelp"
         | Hide help
         span.shortcut
           | (f1)
