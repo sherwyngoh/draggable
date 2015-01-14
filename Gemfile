@@ -1,14 +1,16 @@
 source 'https://rubygems.org'
-ruby '2.1.5'
+ruby '2.2.0'
 # Bundle edge Rails instead: gem 'rails', github: 'rails/rails'
 gem 'rails', '4.2.0'
+gem 'thin'
 # Use sqlite3 as the database for Active Record
 group :development do
   gem 'sqlite3'
   gem 'better_errors'
   gem 'binding_of_caller'
+  gem 'pry-rails'
 end
-gem 'thin'
+
 
 group :production do
   gem 'pg', '0.15.1'
@@ -17,6 +19,7 @@ end
 
 # Use SCSS for stylesheets
 gem 'bootstrap-sass', '~> 3.3.1'
+gem 'angular_rails_csrf'
 gem 'momentjs-rails'
 gem 'font-awesome-rails'
 gem 'autoprefixer-rails'
