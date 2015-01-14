@@ -181,7 +181,7 @@ app.directive 'popupHandler', ($timeout) ->
       if e.keyCode is 27
         angular.forEach scope.states, (state, key) ->
           scope.states[key] = false
-        $('.fa-minus').click()
+        $('summary .fa-minus').click()
         scope.func.resetSelected()
         $('table').trigger 'deselect'
 
