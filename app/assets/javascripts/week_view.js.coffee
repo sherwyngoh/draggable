@@ -120,8 +120,8 @@ app.controller "weekViewController", ($scope, $timeout) ->
       $scope.data.shiftStates.pop() if $scope.data.shiftStates.length > 20
 
       unless $scope.states.isInitializing
-        localforage.setItem('shiftHistory', JSON.stringify($scope.data.shiftStates) )
-        console.log 'setting localForage'
+        localforage.setItem('shiftHistory', angular.toJson($scope.data.shiftStates) )
+        console.log 'setting localForage shifts'
 
   $scope.func =
     setShifts: ->
