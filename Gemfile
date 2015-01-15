@@ -11,7 +11,6 @@ group :development do
   gem 'pry-rails'
 end
 
-
 group :production do
   gem 'pg', '0.15.1'
   gem 'rails_12factor'
@@ -19,6 +18,7 @@ end
 
 # Use SCSS for stylesheets
 gem 'bootstrap-sass', '~> 3.3.1'
+gem 'bootstrap-timepicker-rails-addon'
 gem 'angular_rails_csrf'
 gem 'momentjs-rails'
 gem 'font-awesome-rails'
