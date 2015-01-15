@@ -23,6 +23,7 @@ gem 'angular_rails_csrf'
 gem 'momentjs-rails'
 gem 'font-awesome-rails'
 gem 'autoprefixer-rails'
+gem "selectize-rails"
 gem 'jquery-ui-rails'
 gem 'impulse-rails'
 gem 'angularjs-rails'
