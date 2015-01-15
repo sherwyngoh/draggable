@@ -1,7 +1,7 @@
 class WeekViewManager
 
-  def self.submit date, shift_array, company_id
-    @date   = date.to_date
+  def self.submit start_date, shift_array, company_id
+    @date   = start_date.to_date
     @shifts = shift_array
 
     test    = Employee.find(@shifts.sample['employeeID']).company_id == company_id
@@ -13,9 +13,8 @@ class WeekViewManager
     self.add_shifts @shifts, time_zone
   end
 
-  def self.remove_shifts date, company_id
-    company = Company.find(company_id)
-    company.shifts.where(date: date..(date + 6.days)).delete_all
+  def self.remove_shifts start_date, company_id
+    WeekViewManager.get_shifts(start_date, company_id).delete_all
   end
 
   def self.add_shifts shifts, time_zone
@@ -33,9 +32,14 @@ class WeekViewManager
     company.common_timings.delete_all
     commonTimings.each do |timing|
       start  = (timings['date'].to_s  + ' ' + timings['startHour'].to_s + ':' + timings['startMin'].to_s).to_datetime
-      finish = start + timings['length'].hours # to account for overnight timings
+      finish = start + timings['durationHours'].hours + timings['durationMins'].minutes # to account for overnight timings
       company.common_timings.build(start: start, finish: finish, company_id: company_id)
     end
     company.save
   end
+
+  def self.get_shifts start_date, company_id
+    Company.find(company_id).shifts.where(date: date..(date + 6.days))
+  end
+
 end
