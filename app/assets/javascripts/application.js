@@ -22,6 +22,6 @@
 //= require scrollTo.min
 //= require localforage.min
 //= require angular-localforage.min
-//= require selectize
+//= require angular-ui-select
 //= require pikaday
 //= require_tree .

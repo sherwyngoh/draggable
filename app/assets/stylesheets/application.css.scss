@@ -16,9 +16,10 @@
  *= require jquery-ui
  *= require jquery-tag-it
  *= require pikaday
+ *= require angular-ui-select
  *= require selectize
- *= require selectize.default
  *= require_self
  */
+
 @import "bootstrap-sprockets";
 @import "bootstrap";
