@@ -34,21 +34,27 @@
 
       .col-xs-4
         label Role
-        select.form-control ng-model="data.newShift.role"
-          option ng-repeat="role in data.roles" value="{{role}}"
-            | {{role}}
+        ui-select ng-model="data.newShift.role" theme="selectize" ng-disabled="disabled"  ui-validate="{required: '$value.length > 0'}"
+          ui-select-match placeholder="Select a role"
+            | {{$select.selected}}
+          ui-select-choices repeat="role in data.roles | filter: $select.search"
+            span ng-bind-html="role | highlight: $select.search"
+            / small ng-bind-html="role | highlight: $select.search"
+
       .col-xs-4
         label Employee
-        select.form-control ng-model="data.newShift.employeeID"
-          option ng-repeat="employee in data.employees" value="{{employee.id}}" ng-selected="data.newShift.employeeID == employee.id"
-            | {{employee.name}}
+        ui-select ng-model="data.newShift.employeeID" theme="selectize" ng-disabled="disabled"
+          ui-select-match placeholder="Select an employee"
+            | {{$select.selected.name}}
+          ui-select-choices repeat="employee.id as employee in data.employees | filter: $select.search"
+            span ng-bind-html="employee.name | highlight: $select.search"
 
     .row ng-show="data.commonTimings.length > 0"
       .col-xs-12
         label Common timings
     .row ng-show="data.commonTimings.length > 0"
       .col-xs-12
-        button.commonTiming-button.btn ng-repeat="timing in data.commonTimings" ng-click="func.setCommonTiming(timing.id)" data-timing-id="{{timing.id}}"
+        button.commonTiming-button.btn ng-repeat="timing in data.commonTimings" ng-click="func.setCommonTiming(timing.id, 'newShift')" data-timing-id="{{timing.id}}"
           a
             | {{timing.title}}
 
@@ -74,13 +80,11 @@
           input.form-control.time-input type='text' ng-model="data.newShift.finish"
 
     .row
-      .col-xs-12
+      .col-xs-3
        .checkbox
           label
             input type="checkbox" ng-model="data.newShift.overnight" Overnight
-
-    .form-group.row
-      .col-xs-5.col-xs-offset-7
+      .col-xs-5.col-xs-offset-4
         button.btn.btn-success.btn-block ng-click="func.createMultipleFromPopup()" ng-show="states.createForMultiple"  Create multiple shifts
         button.btn.btn-success.btn-block ng-click="func.createFromPopup()" ng-show="!states.createForMultiple" Create single shift
 

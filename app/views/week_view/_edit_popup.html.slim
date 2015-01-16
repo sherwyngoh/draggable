@@ -17,14 +17,30 @@
 
         .col-xs-4
           label Role
-          select.form-control ng-model="data.shiftCopy.role"
-            option ng-repeat="role in data.roles" value="{{role}}"
-              | {{role}}
+          ui-select ng-model="data.shiftCopy.role" ng-disabled="disabled"
+            ui-select-match placeholder="Select a role"
+              | {{$select.selected}}
+            ui-select-choices repeat="role in data.roles | filter: $select.search"
+              span ng-bind-html="role | highlight: $select.search"
+              / small ng-bind-html="role | highlight: $select.search"
+
         .col-xs-4
           label Employee
-          select.form-control ng-model="data.shiftCopy.employeeID"
-            option ng-repeat="employee in data.employees | orderBy:data.predicate" value="{{employee.id}}" ng-selected="data.shiftCopy.employeeID == employee.id"
-              | {{employee.name}}
+          ui-select ng-model="data.shiftCopy.employeeID" ng-disabled="disabled"
+            ui-select-match placeholder="Select an employee"
+              | {{$select.selected.name}}
+            ui-select-choices repeat="employee.id as employee in data.employees | filter: $select.search"
+              span ng-bind-html="employee.name | highlight: $select.search"
+
+
+      .row ng-show="data.commonTimings.length > 0"
+        .col-xs-12
+          label Common timings
+      .row ng-show="data.commonTimings.length > 0"
+        .col-xs-12
+          button.commonTiming-button.btn ng-repeat="timing in data.commonTimings" ng-click="func.setCommonTiming(timing.id, 'shiftCopy')" data-timing-id="{{timing.id}}"
+            a
+              | {{timing.title}}
 
       .row
         .col-xs-5
