@@ -7,7 +7,7 @@
             i.fa.fa-angle-double-left ng-click="func.loadData()"
             | {{data.calendarDisplayDate}}
             i.fa.fa-angle-double-right ng-click="func.estimate()"
-          .current-template-name ng-if="data.currentTemplate.length > 0"
+          .current-template-name ng-show="data.currentTemplate.length > 0"
             | Current template: {{data.currentTemplate.name}}
 
           = render 'commands_list'
@@ -21,9 +21,9 @@
           | Staff
           .sort.btn-group
             button.btn.btn-default.btn-xs ng-click="states.showSortMenu = !states.showSortMenu" ng-mouseenter="states.showSortMenu = true"
-              i.fa.fa-sort-up ng-if='!states.showSortMenu'
-              i.fa.fa-sort-down ng-if='states.showSortMenu'
-            .sort-options ng-if="states.showSortMenu" ng-mouseleave="states.showSortMenu = false"
+              i.fa.fa-sort-up ng-show='!states.showSortMenu'
+              i.fa.fa-sort-down ng-show='states.showSortMenu'
+            .sort-options ng-show="states.showSortMenu" ng-mouseleave="states.showSortMenu = false"
               button.btn.btn-block.btn-default ng-click="states.showSortMenu = false; data.predicate = 'name'" Name
               button.btn.btn-block.btn-default ng-click="states.showSortMenu = false; data.predicate = 'defaultRole';" Job Title
               button.btn.btn-block.btn-default ng-click="states.showSortMenu = false; data.predicate = 'id'" None
@@ -39,9 +39,9 @@
 
               tr ng-repeat="employee in data.employees | orderBy:data.predicate " data-employee-id="{{employee.id}}"
                 td.employee-name.mark
-                  small ng-if="data.predicate == 'defaultRole'"
+                  small ng-show="data.predicate == 'defaultRole'"
                     | [{{employee.defaultRole}}]
-                  br ng-if="data.predicate == 'defaultRole'"
+                  br ng-show="data.predicate == 'defaultRole'"
                   span
                     | {{employee.name}}
 
@@ -65,6 +65,7 @@
         = render 'summary'
 
   .shift-bar.drag shift-bar='' ng-model="shift" ng-repeat="shift in data.shifts" data-length="{{shift.length}}" ng-class="{'selected': data.toggledShifts.indexOf({{shift.id}}) > -1}" data-shift-id="{{shift.id}}" data-date="{{shift.date}}"
+
 
   = render 'edit_common_timings'
   = render 'edit_popup'

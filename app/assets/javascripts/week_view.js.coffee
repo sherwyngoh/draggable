@@ -58,12 +58,7 @@ app.controller "weekViewController", ($scope, $timeout, $http, $q) ->
     # {id: '12', name: 'Yellow Ranger', hoursExcludingThisWeek: 10, costPerHour: 12, totalHours: 35, currentWeekHours: 0, defaultRole: 'Crew'}
   ]
 
-  $scope.data.shifts = [
-    # {id: '1', employeeID: "1", length: 5.5, startHour: 10, startMin: 30, role: 'Manager', endHour: 16, endMin: '00', date: "04-01-2015", breakHours: 1},
-    # {id: '2', employeeID: "2", length: 8, startHour: 12, startMin: 15, role: 'Asst Manager', endHour: 20, endMin: 15, date: "05-01-2015", breakHours: 1.5}
-    # {id: '3', employeeID: "3", length: 8, startHour: 10, startMin: '00', role: 'Supervisor', endHour: 18, endMin: '00', date: "04-01-2015", breakHours: 2}
-    # {id: '4', employeeID: "3", length: 8, startHour: 12, startMin: 15, role: 'Crew', endHour: 20, endMin: 15, date: '05-01-2015', breakHours: 1.5}
-  ]
+  $scope.data.shifts = []
 
   $scope.data.leaves = [
     {employeeID: '3', fullDay: false, startHour: 12}
