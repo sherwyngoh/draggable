@@ -182,10 +182,13 @@ app.directive 'popupHandler', ($timeout) ->
 
     $('body').on 'click', ('#removeCommonTiming'), ->
       commonTimingID = $(this).data('common-timing-id')
-      for shift in scope.data.commonTimings
-        if shift.id is commonTimingID
-          index = scope.data.commonTimings.indexOf(shift)
+      for timing in scope.data.commonTimings
+        if timing.id is commonTimingID
+          index = scope.data.commonTimings.indexOf(timing)
           scope.data.commonTimings.splice(index, 1)
+          for timing in scope.data.commonTimings
+            timing.id = scope.data.commonTimings.indexOf(shift)
+
       scope.$apply()
 
      $(window).on 'keyup', (e)->
