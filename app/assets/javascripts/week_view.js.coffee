@@ -5,7 +5,6 @@ app.config (uiSelectConfig) ->
 
 app.controller "weekViewController", ($scope, $timeout, $http, $q) ->
 
-  #SS new shift breaks estimates, test cloning
   $scope.states =
     showEditPopup        : false
     showNewPopup         : false
@@ -249,8 +248,12 @@ app.controller "weekViewController", ($scope, $timeout, $http, $q) ->
         angular.forEach shiftBars, (shiftBar) ->
           shift     = $scope.func.grabShift($(shiftBar).data('shift-id'))
           employee  = $scope.func.grabEmployee(shift.employeeID)
-          overnight = shift.overnight ? 1 : 0
-          finish    = moment(shift.finish, 'hh:mm A').add(overnight, 'days')
+
+          if shift.overnight
+            finish    = moment(shift.finish, 'hh:mm A').add(1, 'days')
+          else
+            finish    = moment(shift.finish, 'hh:mm A')
+
           length    = (finish - moment(shift.start, 'hh:mm A'))/3600000 - shift.break/60
           wageCost  = parseInt(employee.costPerHour) * length
           day[2]    += wageCost
@@ -331,6 +334,7 @@ app.controller "weekViewController", ($scope, $timeout, $http, $q) ->
       $scope.data.selectedShiftToEdit = {}
       $scope.states.showEditPopup     = false
       $timeout($scope.func.refreshCalendar, 0)
+      $scope.func.toggled()
       localforage.setItem('shifts', angular.toJson($scope.data.shifts) )
 
     resetSelected: ->

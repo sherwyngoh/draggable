@@ -271,14 +271,18 @@ app.directive 'shiftBar', ($timeout) ->
 
       role       = shift.role
       shiftColor = scope.data.shiftColors[role]
+      if shift.overnight
+        htmlToAppend = '<span>' + shift.role + "<small> (overnight) </small> <br/> <small>" + shift.start + ' - ' + shift.finish + "</small> </span>"
+      else
+        htmlToAppend = '<span>' + shift.role + " <br/> <small>" + shift.start + ' - ' + shift.finish + "</small> </span>"
 
-      element.css('min-width', shiftWidth)
-        .css('min-height', shiftHeight)
+      element.css('min-width', tdWidth - 10)
+        .css('min-height', tdHeight - 10)
         .css('color', shiftColor)
         .css('background', 'white')
         .css('border', '3px solid ' + shiftColor)
         .css('display', 'inline-block')
-        .html('<span>' + shift.role + "<br/> <small>" + shift.start + ' - ' + shift.finish + "</small> </span>")
+        .html(htmlToAppend)
 
       employeeID   = shift.employeeID
       employeeRow  =  $('tr[data-employee-id="' + employeeID + '"]')
