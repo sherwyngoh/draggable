@@ -1,6 +1,10 @@
-window.app = app = angular.module "weekView", ['LocalForageModule']
+window.app = app = angular.module "weekView", ['LocalForageModule', 'ui.select', 'ngSanitize']
+
+app.config (uiSelectConfig) ->
+  uiSelectConfig.theme = 'selectize'
 
 app.controller "weekViewController", ($scope, $timeout, $http, $q) ->
+
   #SS new shift breaks estimates, test cloning
   $scope.states =
     showEditPopup        : false
@@ -67,7 +71,6 @@ app.controller "weekViewController", ($scope, $timeout, $http, $q) ->
 
   $scope.data.shiftColors   = {'Manager': '#3498DB', 'Asst Manager': '#2ECC71', 'Supervisor': '#9B59B6', 'Crew': '#F39C12'}
   $scope.data.roles         = ["Manager", "Asst Manager", "Supervisor", "Crew"]
-  $scope.data.newShift      = {role: $scope.data.roles[0], break: 30, start: '08:00 AM', finish: '05:00 PM', overnight: false}
 
   $scope.data.salesForecast    = "2000"
   $scope.data.budgetPercentage = "15"
@@ -79,8 +82,9 @@ app.controller "weekViewController", ($scope, $timeout, $http, $q) ->
   $scope.$watch 'states.showNewPopup', (newVal, oldVal, scope) ->
     $scope.states.createForMultiple = false
     if newVal
-      $scope.states.showEditPopup  = false
+      $scope.states.showEditPopup        = false
       $scope.states.showCommonTimingMenu = false
+      $scope.func.setNewShift()
       $scope.func.hideMenus()
 
   $scope.$watch 'states.showEditPopup', (newVal, oldVal, scope) ->
@@ -124,6 +128,10 @@ app.controller "weekViewController", ($scope, $timeout, $http, $q) ->
       console.log 'setting localForage commonTimings'
 
   $scope.func =
+    setNewShift: ->
+      console.log 'settingNewShift'
+      $scope.data.newShift = {role: $scope.data.roles[$scope.data.roles.length - 1], break: 30, start: '08:00 AM', finish: '05:00 PM', overnight: false}
+
     updateEndTime: (object) ->
       object         = $scope.data[object]
       start          = moment(object.date + object.start, 'D MMM YYYYhh:mm A')
@@ -138,11 +146,11 @@ app.controller "weekViewController", ($scope, $timeout, $http, $q) ->
       $scope.$apply()
       $scope.$broadcast 'setShift'
 
-    setCommonTiming: (commonTimingID) ->
-      for shift in $scope.data.commonTimings
-        if parseInt(shift.id) is parseInt(commonTimingID)
-          angular.forEach ['start','finish', 'break', 'overnight'], (val, key)->
-            $scope.data.newShift[val] = shift[val]
+    setCommonTiming: (commonTimingID, shift) ->
+      for timing in $scope.data.commonTimings
+        if parseInt(timing.id) is parseInt(commonTimingID)
+          angular.forEach ['start','finish', 'break', 'overnight'], (val, key) ->
+            $scope.data[shift][val] = timing[val]
 
     undo: () ->
       console.log 'undoing'
@@ -239,12 +247,14 @@ app.controller "weekViewController", ($scope, $timeout, $http, $q) ->
         day[2]    = day[3] = 0
         shiftBars = $('.shift-bar[data-date="' + day[1] + '"]')
         angular.forEach shiftBars, (shiftBar) ->
-          shift                     = $scope.func.grabShift($(shiftBar).data('shift-id'))
-          employee                  = $scope.func.grabEmployee(shift.employeeID)
-          length                    = parseInt(shift.durationHours) + parseInt(shift.durationMins/60)
-          wageCost                  = parseInt(employee.costPerHour) * length
-          day[2]                    += wageCost
-          day[3]                    += length
+          shift     = $scope.func.grabShift($(shiftBar).data('shift-id'))
+          employee  = $scope.func.grabEmployee(shift.employeeID)
+          overnight = shift.overnight ? 1 : 0
+          finish    = moment(shift.finish, 'hh:mm A').add(overnight, 'days')
+          length    = (finish - moment(shift.start, 'hh:mm A'))/3600000 - shift.break/60
+          wageCost  = parseInt(employee.costPerHour) * length
+          day[2]    += wageCost
+          day[3]    += length
 
           $scope.data.wageEstimate  += wageCost
 
@@ -321,7 +331,7 @@ app.controller "weekViewController", ($scope, $timeout, $http, $q) ->
       $scope.data.selectedShiftToEdit = {}
       $scope.states.showEditPopup     = false
       $timeout($scope.func.refreshCalendar, 0)
-      $scope.func.toggled()
+      localforage.setItem('shifts', angular.toJson($scope.data.shifts) )
 
     resetSelected: ->
       $scope.data.toggledShifts = []
@@ -334,9 +344,9 @@ app.controller "weekViewController", ($scope, $timeout, $http, $q) ->
       $scope.data.shifts.push(shiftToPush)
 
       #reset new shift and close popup
-      $scope.data.newShift       = {role: $scope.data.roles[0], start: '08:00 AM', finish: '05:00 PM', break: 60, overnight: false}
-      $scope.states.showNewPopup = false
       $timeout($scope.func.refreshCalendar, 0)
+      $scope.states.showNewPopup = false
+      $scope.func.setNewShift()
 
     createMultipleFromPopup: ->
       for day in $scope.data.daysInWeek

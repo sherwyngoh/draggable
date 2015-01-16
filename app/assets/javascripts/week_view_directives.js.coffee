@@ -57,7 +57,7 @@ app.directive 'calendarListener', () ->
           console.log 'modifying previous'
           shiftBeforeMod.date       = date
           shiftBeforeMod.employeeID = employeeID
-          scope.$apply()
+          scope.$apply() unless scope.states.showEditPopup
           scope.func.estimate()
 
       #click on date box
@@ -65,8 +65,7 @@ app.directive 'calendarListener', () ->
         return if $(this).children('.shift-bar').length > 0
         employeeID                     = $(this).parent('tr').data('employee-id')
         date                           = $(this).data('date')
-        scope.data.newShift.date       = date
-        scope.data.newShift.employeeID = employeeID
+
         $('td.selected').removeClass('selected')
         $(this).addClass('selected')
 
@@ -78,6 +77,8 @@ app.directive 'calendarListener', () ->
 
         scope.states.showNewPopup            = true
         scope.$apply()
+        scope.data.newShift.date       = date
+        scope.data.newShift.employeeID = employeeID
 
         tdOffset      = $(this).offset()
         tdOffset.top  += parseInt($(this).css('height'))/2
@@ -300,8 +301,7 @@ app.directive 'setDrag', ($timeout) ->
       rd.event.clicked = (currentCell)->
         console.log 'clicked'
         if scope.states.metaKey
-          shiftID = $(rd.obj).data 'shift-id'
-          toggleItemInArray scope.data.toggledShifts, shiftID
+          toggleItemInArray scope.data.toggledShifts, $(rd.obj).data('shift-id')
           scope.func.toggled()
           scope.$apply()
 
@@ -324,7 +324,6 @@ app.directive 'setDrag', ($timeout) ->
           $('#editPopup').find('ng-form').show()
           scope.func.resetSelected()
           if scope.data.toggledShifts.indexOf(shiftID) is -1
-            console.log 'pushing shift into toggled'
             scope.data.toggledShifts.push(shiftID)
           scope.func.toggled()
           scope.$apply()
