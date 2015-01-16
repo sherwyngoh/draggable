@@ -86,12 +86,14 @@ app.controller "weekViewController", ($scope, $timeout, $http, $q) ->
     if newVal
       $scope.states.showEditPopup  = false
       $scope.states.showCommonTimingMenu = false
+      $scope.$broadcast 'newDateTimeInputs'
       $scope.func.hideMenus()
 
   $scope.$watch 'states.showEditPopup', (newVal, oldVal, scope) ->
     if newVal
       $scope.states.showNewPopup         = false
       $scope.states.showCommonTimingMenu = false
+      $scope.$broadcast 'newDateTimeInputs'
       $scope.func.hideMenus()
 
   $scope.$watch 'states.showCommonTimingMenu', (newVal, oldVal, scope) ->
@@ -99,6 +101,7 @@ app.controller "weekViewController", ($scope, $timeout, $http, $q) ->
       $scope.states.showNewPopup  = false
       $scope.states.showEditPopup = false
       $('#commonTimingMenu').trigger 'show'
+      $scope.$broadcast 'newDateTimeInputs'
       $scope.func.hideMenus()
 
   $scope.$watch 'states.isSavingTemplate', (newValue, oldValue, scope) ->

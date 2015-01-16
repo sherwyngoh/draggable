@@ -2,6 +2,23 @@ app.directive 'calendarListener', () ->
   restrict: "A"
   link: (scope) ->
     $ ->
+      newDateTimeInputs = ->
+        $('.time-input').timepicker
+          minuteStep: 5
+          template: false
+
+        $(".pikaday").each ->
+          new Pikaday
+            field: $(this)[0]
+            format: 'D MMM YYYY'
+            defaultDate: moment()
+            yearRange: [2015, 2016]
+            onSelect: ->
+              moment($(this).val, 'D MMM YYYY').format('D-MM-YYYY')
+
+      scope.$on 'newDateTimeInputs', ->
+        newDateTimeInputs()
+
       $('#commonTimingMenu').on 'show', ->
         $(this).find('ng-form').show()
 
@@ -167,6 +184,7 @@ app.directive 'popupHandler', ($timeout) ->
         endMin    : '00'
       }
       scope.data.commonTimings.push(newCommonTiming)
+      scope.$broadcast 'newDateTimeInputs'
       scope.$apply()
 
     $('body').on 'click', ('#removeCommonTiming'), ->
