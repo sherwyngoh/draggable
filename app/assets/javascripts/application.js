@@ -22,6 +22,6 @@
 //= require scrollTo.min
 //= require localforage.min
 //= require angular-localforage.min
-//= require bootstrap-timepicker
 //= require selectize
+//= require pikaday
 //= require_tree .
