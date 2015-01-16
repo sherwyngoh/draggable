@@ -10,56 +10,50 @@
         i.fa.fa-close
 
     ng-form.form name="editShiftForm"
-      .form-group
-        .col-xs-5
+      .row
+        .col-xs-4
+          label Date
+          input.form-control.pikaday type='text' ng-model="data.shiftCopy.date"
+
+        .col-xs-4
           label Role
           select.form-control ng-model="data.shiftCopy.role"
             option ng-repeat="role in data.roles" value="{{role}}"
               | {{role}}
-        .col-xs-5.col-xs-offset-2
+        .col-xs-4
           label Employee
           select.form-control ng-model="data.shiftCopy.employeeID"
             option ng-repeat="employee in data.employees | orderBy:data.predicate" value="{{employee.id}}" ng-selected="data.shiftCopy.employeeID == employee.id"
               | {{employee.name}}
 
-      .form-group
+      .row
         .col-xs-5
-          .row
-            .col-xs-6
-              label
-                | Start
-                small
-                  | (h)
-              input.form-control type='text' ng-model="data.shiftCopy.startHour"
-            .col-xs-6
-              label
-                small
-                  | (min)
-              input.form-control type='text' ng-model="data.shiftCopy.startMin"
+          label
+            | Start
+          .input-group
+            .input-group-addon
+              i.fa.fa-clock-o
+            input.form-control.time-input type='text' ng-model="data.shiftCopy.start"
 
-        .col-xs-5.col-xs-offset-2
-          .row
-            .col-xs-6
-              label
-                | End
-                small
-                  | (h)
-              input.form-control type='text' ng-model="data.shiftCopy.endHour"
-            .col-xs-6
-              label
-                small
-                  | (min)
-              input.form-control type='text' ng-model="data.shiftCopy.endMin"
-      .form-group
+        .col-xs-2
+          label Break(min)
+          input.form-control type="number" min='0' step='15' ng-model="data.shiftCopy.break"
+
         .col-xs-5
-          label Date
-          input.form-control type='text' ng-model="data.shiftCopy.date"
+          label
+            | Finish
+          .input-group
+            .input-group-addon
+              i.fa.fa-clock-o
+            input.form-control.time-input type='text' ng-model="data.shiftCopy.finish"
 
-        .col-xs-5.col-xs-offset-2
-          label Break Hours
-          input.form-control type='text' ng-model="data.shiftCopy.breakHours"
+      .row
+        .col-xs-12
+         .checkbox
+            label
+              input type="checkbox" ng-model="data.newShift.overnight" Overnight
 
-      .form-group
+      .row
         .col-xs-12
           button.btn.btn-warning.btn-sm ng-disabled="editShiftForm.$pristine" ng-click="func.resetForm()" Reset changes
           button.btn.btn-danger.btn-sm ng-disabled="false" ng-click="func.removeToggled()" Delete shift

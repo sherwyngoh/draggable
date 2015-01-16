@@ -12,28 +12,39 @@
     .col-xs-12
       button#addNewCommonTiming.btn.btn-md.btn-success
         i.fa.fa-plus
-  table.table
-    thead
-      th Title
-      th Start(h)
-      th
-        | (min)
-      th End(h)
-      th
-        | (min)
-      th Remove
-    tbody
-      tr ng-repeat="timing in data.commonTimings | orderBy : 'id' : true"
-        td
-          input.form-control type="text" ng-model="timing.title"
-        td
-          input.form-control type="text" ng-model="timing.startHour"
-        td
-          input.form-control type="text" ng-model="timing.startMin"
-        td
-          input.form-control type="text" ng-model="timing.endHour"
-        td
-          input.form-control type="text" ng-model="timing.endMin"
-        td
-          .btn.btn-danger.btn-md#removeCommonTiming data-common-timing-id="{{timing.id}}"
-            i.fa.fa-minus
+  .row
+    .col-xs-2
+      strong Title
+    .col-xs-3
+      strong Start
+    .col-xs-3
+      strong Finish
+    .col-xs-2
+      strong Break(min)
+    .col-xs-2
+      strong Overnight
+
+
+  .row ng-repeat="timing in data.commonTimings | orderBy : 'id' : true"
+    .col-xs-2
+      input.form-control type="text" ng-model="timing.title" placeholder="Title"
+
+    .col-xs-3
+      .input-group
+        .input-group-addon
+          i.fa.fa-clock-o
+        input.form-control.time-input type='text' ng-model="timing.start"
+
+    .col-xs-3
+      .input-group
+        .input-group-addon
+          i.fa.fa-clock-o
+        input.form-control.time-input type='text' ng-model="timing.finish"
+
+    .col-xs-2
+      input.form-control ng-model="timing.break" type='number' step='15' min="0"
+
+    .col-xs-2
+      input type='checkbox' ng-model="timing.overnight"
+      .btn.pull-right.btn-danger.btn-md#removeCommonTiming data-common-timing-id="{{timing.id}}"
+        i.fa.fa-minus
