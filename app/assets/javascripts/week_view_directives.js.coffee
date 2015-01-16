@@ -26,7 +26,7 @@ app.directive 'calendarListener', () ->
         ID  = $(this).data('timing-id')
         for commonTiming in scope.data.commonTimings
           timing = commonTiming if commonTiming.id is ID
-        text   = timing.startHour + ':' + timing.startMin + ' - ' + timing.endHour + ':' + timing.endMin
+        text   = timing.start + " - " + timing.finish
         $(this).text(text)
 
       $('body').on 'mouseleave', '.commonTiming-button', ->
@@ -79,7 +79,7 @@ app.directive 'calendarListener', () ->
         #Reset for creating multiple
         for day in scope.data.daysInWeek
           day[4] = false
-        dayInteger = moment($(this).data('date'), "DD-MM-YYYY").format('d')
+        dayInteger = moment($(this).data('date'), "D MMM YYYY").format('d')
         scope.data.daysInWeek[dayInteger][4] = true
 
         scope.states.showNewPopup            = true
@@ -103,7 +103,7 @@ app.directive 'calendarSetup', ($timeout) ->
         increment = if i != 0 then 1 else 0
         day = scope.data.calMomentStart.add(increment, 'days')
         #undefined are for estimations, d is for weekday integer, boolean is for whether to multi-create for this day
-        scope.data.daysInWeek.push([day.format('ddd D MMM'), day.format("DD-MM-YYYY"), undefined, undefined, false])
+        scope.data.daysInWeek.push([day.format('ddd D MMM'), day.format("D MMM YYYY"), undefined, undefined, false])
         i++
 
     setLeaveBars = ->
@@ -176,12 +176,11 @@ app.directive 'popupHandler', ($timeout) ->
     #commonTiming handler
     $('body').on 'click', ('#addNewCommonTiming'),  ->
       newCommonTiming = {
-        id        : scope.data.commonTimings.length + 1
-        title     : 'Standard'
-        startHour : '08'
-        startMin  : '00'
-        endHour   : '17'
-        endMin    : '00'
+        id     : scope.data.commonTimings.length + 1
+        title  : 'Regular'
+        start  : '08:00 AM'
+        finish : '06:00 PM'
+        break  : 60
       }
       scope.data.commonTimings.push(newCommonTiming)
       scope.$broadcast 'newDateTimeInputs'
@@ -308,9 +307,6 @@ app.directive 'setDrag', ($timeout) ->
           toggleItemInArray scope.data.toggledShifts, shiftID
           scope.func.toggled()
           scope.$apply()
-
-      # rd.event.notCloned = ->
-      #   console.log 'not cloned'
 
       rd.event.notMoved = ->
         if !scope.states.metaKey

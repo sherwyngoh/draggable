@@ -24,7 +24,7 @@ app.controller "weekViewController", ($scope, $timeout, $http, $q) ->
     selectedShiftToEdit : {}
     shiftCopy           : {}
     baseShift           : {}
-    attrToClone         : ['startHour','startMin','role','endHour','endMin','breakHours', 'employeeID', 'date']
+    attrToClone         : ['start','role','finish','break', 'employeeID', 'date']
     wageEstimate        : 0
     predicate           : 'id'
     newTemplateName     : ''
@@ -36,11 +36,11 @@ app.controller "weekViewController", ($scope, $timeout, $http, $q) ->
     hoveredTemplate     : {}
     shiftStates         : []
     selectedTD          : ''
-    commonTimings       : [{"id":1,"title":"Default","startHour":"08","startMin":"00","endHour":"17","endMin":"00"}]
+    commonTimings       : [{"id":1,"title":"Default",start: "08:00 AM",finish: "05:00 PM", break: 60}]
 
-  $scope.data.calendarStartDate    = '04-01-2015'
-  $scope.data.calMomentStart       = moment($scope.data.calendarStartDate, "DD-MM-YYYY")
-  $scope.data.calMomentEnd         = moment($scope.data.calendarStartDate, "DD-MM-YYYY").add(6, 'days')
+  $scope.data.calendarStartDate    = '4 Jan 2015'
+  $scope.data.calMomentStart       = moment($scope.data.calendarStartDate, "D MMM YYYY")
+  $scope.data.calMomentEnd         = moment($scope.data.calendarStartDate, "D MMM YYYY").add(6, 'days')
   $scope.data.calendarDisplayDate  = $scope.data.calMomentStart.format('ddd Do MMM YYYY') + " - " + $scope.data.calMomentEnd.format('ddd Do MMM YYYY')
 
   $scope.data.employees = [
@@ -72,7 +72,7 @@ app.controller "weekViewController", ($scope, $timeout, $http, $q) ->
 
   $scope.data.shiftColors   = {'Manager': '#3498DB', 'Asst Manager': '#2ECC71', 'Supervisor': '#9B59B6', 'Crew': '#F39C12'}
   $scope.data.roles         = ["Manager", "Asst Manager", "Supervisor", "Crew"]
-  $scope.data.newShift      = {role: $scope.data.roles[0], breakHours: 1, startHour: '8', startMin: '00', endHour: '17', endMin: '00', durationHours: 9, durationMins: 0}
+  $scope.data.newShift      = {role: $scope.data.roles[0], break: 30, start: '08:00 AM', finish: '05:00 PM', overnight: false}
 
   $scope.data.salesForecast    = "2000"
   $scope.data.budgetPercentage = "15"
@@ -134,7 +134,7 @@ app.controller "weekViewController", ($scope, $timeout, $http, $q) ->
   $scope.func =
     updateEndTime: (object) ->
       object         = $scope.data[object]
-      start          = moment(object.date + object.startHour + object.startMin, 'DD-MM-YYYYhhmm')
+      start          = moment(object.date + object.startHour + object.startMin, 'D MMM YYYYhhmm')
       finish         = start.add(object.durationHours, 'h').add(object.durationMins, 'm')
       object.endHour = finish.format('hh')
       object.endMin  = finish.format('mm')
@@ -149,7 +149,7 @@ app.controller "weekViewController", ($scope, $timeout, $http, $q) ->
     setCommonTiming: (commonTimingID) ->
       for shift in $scope.data.commonTimings
         if parseInt(shift.id) is parseInt(commonTimingID)
-          angular.forEach ['startHour','startMin','endHour','endMin'], (val, key)->
+          angular.forEach ['start','finish', 'break', 'overnight'], (val, key)->
             $scope.data.newShift[val] = shift[val]
 
     undo: () ->
@@ -174,7 +174,7 @@ app.controller "weekViewController", ($scope, $timeout, $http, $q) ->
       template.name = name
       #sort shifts into days, and place to 1, which is monday, 2 = tueday, and so on
       for shift in shifts
-        dayInteger       = moment(shift.date, 'DD-MM-YYYY').format('d') #starts at 0 for sunday, 1 for monday
+        dayInteger       = moment(shift.date, 'D MMM YYYY').format('d') #starts at 0 for sunday, 1 for monday
         shift.dayInteger = dayInteger
         template[dayInteger].push(shift)
 
@@ -223,7 +223,7 @@ app.controller "weekViewController", ($scope, $timeout, $http, $q) ->
 
       i = 0
       while i < 8
-        calendarDays[i] = moment(startDate, "DD-MM-YYYY").add(i, 'days').format("DD-MM-YYYY")
+        calendarDays[i] = moment(startDate, "D MMM YYYY").add(i, 'days').format("D MMM YYYY")
         i++
 
       angular.forEach [0,1,2,3,4,5,6], (dayInteger) ->
