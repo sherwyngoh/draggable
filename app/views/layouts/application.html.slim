@@ -7,5 +7,6 @@ html
     = csrf_meta_tags
     - if Rails.env == 'production'
       link href="//maxcdn.bootstrapcdn.com/font-awesome/4.2.0/css/font-awesome.min.css" rel="stylesheet"
+    script src="//ajax.googleapis.com/ajax/libs/angularjs/1.2.1/angular-sanitize.min.js"
   body
     = yield
