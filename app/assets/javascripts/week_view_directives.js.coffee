@@ -2,22 +2,17 @@ app.directive 'calendarListener', () ->
   restrict: "A"
   link: (scope) ->
     $ ->
-      newDateTimeInputs = ->
-        $('.time-input').timepicker
-          minuteStep: 5
-          template: false
+      $('.time-input').timepicker
+        minuteStep: 5
+        template: false
 
-        $(".pikaday").each ->
-          new Pikaday
-            field: $(this)[0]
-            format: 'D MMM YYYY'
-            defaultDate: moment()
-            yearRange: [2015, 2016]
-            onSelect: ->
-              moment($(this).val, 'D MMM YYYY').format('D-MM-YYYY')
-
-      scope.$on 'newDateTimeInputs', ->
-        newDateTimeInputs()
+      $(".pikaday").each ->
+        new Pikaday
+          field: $(this)[0]
+          format: 'D MMM YYYY'
+          yearRange: [2015, 2016]
+          onSelect: ->
+            moment($(this).val, 'D MMM YYYY').format('D-MM-YYYY')
 
       $('#commonTimingMenu').on 'show', ->
         $(this).find('ng-form').show()
@@ -33,7 +28,6 @@ app.directive 'calendarListener', () ->
         ID  = $(this).data('timing-id')
         for commonTiming in scope.data.commonTimings
           timing = commonTiming if commonTiming.id is ID
-        text   = timing.startHour + ':' + timing.startMin + ' - ' + timing.endHour + ':' + timing.endMin
         $(this).text(timing.title)
 
       $('table').on 'deselect',  ->
@@ -261,7 +255,7 @@ app.directive 'shiftBar', ($timeout) ->
       shiftColor = scope.data.shiftColors[shift.role]
       shiftBar.css('color', shiftColor)
         .css('border', '3px solid ' + shiftColor)
-        .html('<span>' + shift.role + "<br/>" + shift.startHour + ':' + shift.startMin + ' - ' + shift.endHour + ':' + shift.endMin + "</span>")
+        .html('<span>' + shift.role + "<br/>" + shift.start + ' - ' + shift.finish + "</span>")
       return
 
     scope.$on 'setShift', ->
@@ -280,7 +274,7 @@ app.directive 'shiftBar', ($timeout) ->
         .css('background', 'white')
         .css('border', '3px solid ' + shiftColor)
         .css('display', 'inline-block')
-        .html('<span>' + shift.role + "<br/>" + shift.startHour + ':' + shift.startMin + ' - ' + shift.endHour + ':' + shift.endMin + "</span>")
+        .html('<span>' + shift.role + "<br/> <small>" + shift.start + ' - ' + shift.finish + "</small> </span>")
 
       employeeID   = shift.employeeID
       employeeRow  =  $('tr[data-employee-id="' + employeeID + '"]')
@@ -353,7 +347,6 @@ app.directive 'setDrag', ($timeout) ->
         scope.states.isDragging = false
         scope.states.isCloning  = false
         scope.$apply()
-
       scope.states.isInitializing = false
       scope.func.refreshCalendar
 

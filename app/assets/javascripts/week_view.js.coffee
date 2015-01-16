@@ -24,7 +24,7 @@ app.controller "weekViewController", ($scope, $timeout, $http, $q) ->
     selectedShiftToEdit : {}
     shiftCopy           : {}
     baseShift           : {}
-    attrToClone         : ['start','role','finish','break', 'employeeID', 'date']
+    attrToClone         : ['start','role','finish','break', 'employeeID', 'date', 'overnight']
     wageEstimate        : 0
     predicate           : 'id'
     newTemplateName     : ''
@@ -86,14 +86,12 @@ app.controller "weekViewController", ($scope, $timeout, $http, $q) ->
     if newVal
       $scope.states.showEditPopup  = false
       $scope.states.showCommonTimingMenu = false
-      $scope.$broadcast 'newDateTimeInputs'
       $scope.func.hideMenus()
 
   $scope.$watch 'states.showEditPopup', (newVal, oldVal, scope) ->
     if newVal
       $scope.states.showNewPopup         = false
       $scope.states.showCommonTimingMenu = false
-      $scope.$broadcast 'newDateTimeInputs'
       $scope.func.hideMenus()
 
   $scope.$watch 'states.showCommonTimingMenu', (newVal, oldVal, scope) ->
@@ -101,7 +99,6 @@ app.controller "weekViewController", ($scope, $timeout, $http, $q) ->
       $scope.states.showNewPopup  = false
       $scope.states.showEditPopup = false
       $('#commonTimingMenu').trigger 'show'
-      $scope.$broadcast 'newDateTimeInputs'
       $scope.func.hideMenus()
 
   $scope.$watch 'states.isSavingTemplate', (newValue, oldValue, scope) ->
@@ -134,7 +131,7 @@ app.controller "weekViewController", ($scope, $timeout, $http, $q) ->
   $scope.func =
     updateEndTime: (object) ->
       object         = $scope.data[object]
-      start          = moment(object.date + object.startHour + object.startMin, 'D MMM YYYYhhmm')
+      start          = moment(object.date + object.start, 'D MMM YYYYhh:mm A')
       finish         = start.add(object.durationHours, 'h').add(object.durationMins, 'm')
       object.endHour = finish.format('hh')
       object.endMin  = finish.format('mm')
@@ -342,7 +339,7 @@ app.controller "weekViewController", ($scope, $timeout, $http, $q) ->
       $scope.data.shifts.push(shiftToPush)
 
       #reset new shift and close popup
-      $scope.data.newShift       = {role: $scope.data.roles[0], breakHours: 1, startHour: 8, startMin: '00', endHour: 17, endMin: '00'}
+      $scope.data.newShift       = {role: $scope.data.roles[0], start: '08:00 AM', finish: '05:00 PM', break: 60, overnight: false}
       $scope.states.showNewPopup = false
       $timeout($scope.func.refreshCalendar, 0)
 
@@ -354,7 +351,7 @@ app.controller "weekViewController", ($scope, $timeout, $http, $q) ->
           shiftToPush.date = day[1]
           shiftToPush      = $scope.func.setID(shiftToPush)
           $scope.data.shifts.push(shiftToPush)
-      $scope.data.newShift          = {role: $scope.data.roles[0], breakHours: 1, startHour: 8, startMin: '00', endHour: 17, endMin: '00'}
+      $scope.data.newShift          = {role: $scope.data.roles[0], start: '08:00 AM', finish: '05:00 PM', break: 60}
       $scope.states.showNewPopup    = false
       $scope.data.createForMultiple = false
       $scope.func.resetSelected()
