@@ -34,7 +34,7 @@
 
       .col-xs-4
         label Role
-        ui-select ng-model="data.newShift.role" theme="selectize" ng-disabled="disabled"  ui-validate="{required: '$value.length > 0'}"
+        ui-select ng-model="data.newShift.role" ng-disabled="disabled"
           ui-select-match placeholder="Select a role"
             | {{$select.selected}}
           ui-select-choices repeat="role in data.roles | filter: $select.search"
@@ -43,7 +43,7 @@
 
       .col-xs-4
         label Employee
-        ui-select ng-model="data.newShift.employeeID" theme="selectize" ng-disabled="disabled"
+        ui-select ng-model="data.newShift.employeeID" ng-disabled="disabled"
           ui-select-match placeholder="Select an employee"
             | {{$select.selected.name}}
           ui-select-choices repeat="employee.id as employee in data.employees | filter: $select.search"
@@ -65,7 +65,7 @@
         .input-group
           .input-group-addon
             i.fa.fa-clock-o
-          input.form-control.time-input type='text' ng-model="data.newShift.start"
+          input.form-control.time-input type='text' ng-model="data.newShift.start" ng-change="func.updateDuration('newShift')"
 
       .col-xs-2
         label Break(min)
@@ -77,14 +77,17 @@
         .input-group
           .input-group-addon
             i.fa.fa-clock-o
-          input.form-control.time-input type='text' ng-model="data.newShift.finish"
+          input.form-control.time-input type='text' ng-model="data.newShift.finish" ng-change="func.updateDuration('newShift')"
 
     .row
+      .col-xs-4
+        label Duration of shift(hours)
+        input.form-control type='number' step='0.01' ng-model='data.newShift.duration' ng-disabled='true'
       .col-xs-3
        .checkbox
           label
             input type="checkbox" ng-model="data.newShift.overnight" Overnight
-      .col-xs-5.col-xs-offset-4
+      .col-xs-5
         button.btn.btn-success.btn-block ng-click="func.createMultipleFromPopup()" ng-show="states.createForMultiple"  Create multiple shifts
         button.btn.btn-success.btn-block ng-click="func.createFromPopup()" ng-show="!states.createForMultiple" Create single shift
 

@@ -127,9 +127,18 @@ app.controller "weekViewController", ($scope, $timeout, $http, $q) ->
       console.log 'setting localForage commonTimings'
 
   $scope.func =
+    updateDuration: (object) ->
+      object         = $scope.data[object]
+      start          = moment(object.date + object.start, 'D MMM YYYYhh:mm A')
+      finish         = moment(object.date + object.finish, 'D MMM YYYYhh:mm A')
+      if object.overnight
+        finish = finish.add(1, 'days')
+      object.duration = (finish - start) / 3600000
+      console.log object.duration
+
     setNewShift: ->
       console.log 'settingNewShift'
-      $scope.data.newShift = {role: $scope.data.roles[$scope.data.roles.length - 1], break: 30, start: '08:00 AM', finish: '05:00 PM', overnight: false}
+      $scope.data.newShift = {role: $scope.data.roles[$scope.data.roles.length - 1], break: 30, start: '08:00 AM', finish: '05:00 PM', overnight: false, duration: 9}
 
 
     setShifts: ->
