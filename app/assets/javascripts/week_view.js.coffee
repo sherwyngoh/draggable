@@ -39,7 +39,7 @@ app.controller "weekViewController", ($scope, $timeout, $http, $q) ->
     hoveredTemplate     : {}
     shiftStates         : []
     selectedTD          : ''
-    commonTimings       : [{"id":1,"title":"Default",start: "08:00 AM",finish: "05:00 PM", break: 60}]
+    commonTimings       : [{"id":1,"title":"Default",start: "08:00 AM",finish: "05:00 PM", break: 60, duration: 9, overnight: false}]
 
   $scope.data.calendarStartDate    = '4 Jan 2015'
   $scope.data.calMomentStart       = moment($scope.data.calendarStartDate, "D MMM YYYY")
@@ -131,12 +131,6 @@ app.controller "weekViewController", ($scope, $timeout, $http, $q) ->
       console.log 'settingNewShift'
       $scope.data.newShift = {role: $scope.data.roles[$scope.data.roles.length - 1], break: 30, start: '08:00 AM', finish: '05:00 PM', overnight: false}
 
-    updateEndTime: (object) ->
-      object         = $scope.data[object]
-      start          = moment(object.date + object.start, 'D MMM YYYYhh:mm A')
-      finish         = start.add(object.durationHours, 'h').add(object.durationMins, 'm')
-      object.endHour = finish.format('hh')
-      object.endMin  = finish.format('mm')
 
     setShifts: ->
       console.log 'setting shifts'

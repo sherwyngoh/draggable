@@ -425,7 +425,6 @@ app.directive "ngCurrency", [
     )
 ]
 
-
 toggleItemInArray = (array, value) ->
   index = array.indexOf(value)
   if index is -1
