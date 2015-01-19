@@ -276,8 +276,8 @@ app.directive 'shiftBar', ($timeout) ->
       else
         htmlToAppend = '<span>' + shift.role + " <br/> <small>" + shift.start + ' - ' + shift.finish + "</small> </span>"
 
-      element.css('min-width', tdWidth - 10)
-        .css('min-height', tdHeight - 10)
+      element.css('min-width', shiftWidth)
+        .css('min-height', shiftHeight)
         .css('color', shiftColor)
         .css('background', 'white')
         .css('border', '3px solid ' + shiftColor)
