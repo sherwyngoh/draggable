@@ -25,7 +25,7 @@
               i.fa.fa-sort-down ng-show='states.showSortMenu'
             .sort-options ng-show="states.showSortMenu" ng-mouseleave="states.showSortMenu = false"
               button.btn.btn-block.btn-default ng-click="states.showSortMenu = false; data.predicate = 'name'" Name
-              button.btn.btn-block.btn-default ng-click="states.showSortMenu = false; data.predicate = 'defaultRole';" Job Title
+              button.btn.btn-block.btn-default ng-click="states.showSortMenu = false; data.predicate = 'defaultRole';" Default shift
               button.btn.btn-block.btn-default ng-click="states.showSortMenu = false; data.predicate = 'id'" None
 
         .days ng-repeat="day in data.daysInWeek" data-date="{{day[1]}}"
@@ -64,7 +64,7 @@
         = render 'develop'
         = render 'summary'
 
-  .shift-bar.drag shift-bar='' ng-model="shift" ng-repeat="shift in data.shifts" data-length="{{shift.length}}" ng-class="{'selected': data.toggledShifts.indexOf({{shift.id}}) > -1}" data-shift-id="{{shift.id}}" data-date="{{shift.date}}" ng-if="!shift.hide"
+  .shift-bar.drag shift-bar='' ng-model="shift" ng-repeat="shift in data.shifts" data-length="{{shift.length}}" ng-class="{'selected': data.toggledShifts.indexOf({{shift.id}}) > -1}" data-shift-id="{{shift.id}}" data-date="{{shift.date}}"
 
 
   = render 'edit_common_timings'

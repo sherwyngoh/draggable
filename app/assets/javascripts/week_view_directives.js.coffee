@@ -2,11 +2,11 @@ app.directive 'calendarListener', () ->
   restrict: "A"
   link: (scope) ->
     $ ->
-      $('.time-input').timepicker
+      $('#week-view .time-input').timepicker
         minuteStep: 5
         template: false
 
-      $(".pikaday").each ->
+      $("#week-view .pikaday").each ->
         new Pikaday
           field: $(this)[0]
           format: 'D MMM YYYY'
@@ -76,6 +76,7 @@ app.directive 'calendarListener', () ->
 
         scope.states.showNewPopup            = true
         scope.$apply()
+        scope.data.newShift.role       = scope.func.grabEmployee(employeeID).defaultRole
         scope.data.newShift.date       = date
         scope.data.newShift.employeeID = employeeID
 
@@ -263,9 +264,6 @@ app.directive 'shiftBar', ($timeout) ->
     scope.$on 'setShift', ->
       start          = moment(shift.date + shift.start, 'D MMM YYYYhh:mm A')
       finish         = moment(shift.date + shift.finish, 'D MMM YYYYhh:mm A')
-      if (start < scope.data.calMomentStart) or (finish > scope.data.calMomentEnd)
-        shift.hide = true
-        return
       console.log 'setting shift'
       tdWidth     = parseInt($('.shift-applicable').first().css('width'))
       tdHeight    = parseInt($('.shift-applicable').first().css('height'))
