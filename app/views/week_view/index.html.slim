@@ -64,7 +64,7 @@
         = render 'develop'
         = render 'summary'
 
-  .shift-bar.drag shift-bar='' ng-model="shift" ng-repeat="shift in data.shifts" data-length="{{shift.length}}" ng-class="{'selected': data.toggledShifts.indexOf({{shift.id}}) > -1}" data-shift-id="{{shift.id}}" data-date="{{shift.date}}"
+  .shift-bar.drag shift-bar='' ng-model="shift" ng-repeat="shift in data.shifts" data-length="{{shift.length}}" ng-class="{'selected': data.toggledShifts.indexOf({{shift.id}}) > -1}" data-shift-id="{{shift.id}}" data-date="{{shift.date}}" ng-if="!shift.hide"
 
 
   = render 'edit_common_timings'

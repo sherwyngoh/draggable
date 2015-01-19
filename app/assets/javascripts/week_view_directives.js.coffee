@@ -10,9 +10,8 @@ app.directive 'calendarListener', () ->
         new Pikaday
           field: $(this)[0]
           format: 'D MMM YYYY'
-          yearRange: [2015, 2016]
-          onSelect: ->
-            moment($(this).val, 'D MMM YYYY').format('D-MM-YYYY')
+          minDate: moment(scope.data.calendarStartDate, "D MMM YYYY").toDate()
+          maxDate: moment(scope.data.calendarStartDate, "D MMM YYYY").add(6, 'days').toDate()
 
       $('#commonTimingMenu').on 'show', ->
         $(this).find('ng-form').show()
@@ -21,7 +20,7 @@ app.directive 'calendarListener', () ->
         ID  = $(this).data('timing-id')
         for commonTiming in scope.data.commonTimings
           timing = commonTiming if commonTiming.id is ID
-        text   = timing.start + " - " + timing.finish
+        text = timing.start + " - " + timing.finish
         $(this).text(text)
 
       $('body').on 'mouseleave', '.commonTiming-button', ->
@@ -124,7 +123,6 @@ app.directive 'calendarSetup', ($timeout) ->
     $ ->
       setLeaveBars()
       setDraggableArea()
-      scope.func.estimate()
 
       $(window).on 'load', ->
         localforage.getItem 'shifts', (err, value) ->
@@ -263,6 +261,11 @@ app.directive 'shiftBar', ($timeout) ->
       return
 
     scope.$on 'setShift', ->
+      start          = moment(shift.date + shift.start, 'D MMM YYYYhh:mm A')
+      finish         = moment(shift.date + shift.finish, 'D MMM YYYYhh:mm A')
+      if (start < scope.data.calMomentStart) or (finish > scope.data.calMomentEnd)
+        shift.hide = true
+        return
       console.log 'setting shift'
       tdWidth     = parseInt($('.shift-applicable').first().css('width'))
       tdHeight    = parseInt($('.shift-applicable').first().css('height'))
