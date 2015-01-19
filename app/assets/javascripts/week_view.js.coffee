@@ -72,8 +72,8 @@ app.controller "weekViewController", ($scope, $timeout, $http, $q) ->
   $scope.data.roles         = ["Manager", "Asst Manager", "Supervisor", "Crew"]
 
   $scope.data.salesForecast    = "2000"
-  $scope.data.budgetPercentage = "15"
-  $scope.data.wageBudget       =  ($scope.data.salesForecast/100) *  $scope.data.budgetPercentage
+  $scope.data.budgetPercentage = 15
+  $scope.data.wageBudget       = ($scope.data.salesForecast/100) *  $scope.data.budgetPercentage
 
   $scope.$watchGroup ['data.salesForecast', 'data.budgetPercentage'], (newVal, oldVal, scope) ->
     scope.data.wageBudget       =  ($scope.data.salesForecast/100) *  $scope.data.budgetPercentage

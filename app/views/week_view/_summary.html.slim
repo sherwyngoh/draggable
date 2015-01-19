@@ -11,30 +11,30 @@ summary.expand-container.col-sm-5.pull-right
 
   ng-form
     .row
-      .col-xs-7
+      .col-xs-8
         label Sales forecast:
-      .col-xs-5
+      .col-xs-4
         .input-group
           .input-group-addon $
           input.form-control placeholder="Forecast amount" type="text" ng-model='data.salesForecast' data-ng-currency=''
 
     .row
-      .col-xs-7
+      .col-xs-8
         label Percentage of sales for budget:
-      .col-xs-5
+      .col-xs-4
         .input-group
+          input.form-control placeholder="Forecast amount" type="number" step='0.5' min='0' max='100' ng-model='data.budgetPercentage'
           .input-group-addon %
-          input.form-control placeholder="Forecast amount" type="text" ng-model='data.budgetPercentage'
 
     .row
-      .col-xs-7
+      .col-xs-8
         label Wage budget:
-      .col-xs-5
+      .col-xs-4
         p
           | {{data.wageBudget | currency}}
     .row
-      .col-xs-7
+      .col-xs-8
         label Current estimation:
-      .col-xs-5
+      .col-xs-4
         p ng-class="{'danger': data.wageEstimate > data.wageBudget}"
           | {{data.wageEstimate | currency}}
