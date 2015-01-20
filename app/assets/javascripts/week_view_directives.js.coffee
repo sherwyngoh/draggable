@@ -273,7 +273,8 @@ app.directive 'shiftBar', ($timeout) ->
       role       = shift.role
       shiftColor = scope.data.shiftColors[role]
       if shift.overnight
-        htmlToAppend = '<span>' + shift.role + "<small> (overnight) </small> <br/> <small>" + shift.start + ' - ' + shift.finish + "</small> </span>"
+        shiftHeight = '65px'
+        htmlToAppend = '<span>' + shift.role + "<br/> <small> (overnight)  <br/> " + shift.start + ' - ' + shift.finish + "</small> </span>"
       else
         htmlToAppend = '<span>' + shift.role + " <br/> <small>" + shift.start + ' - ' + shift.finish + "</small> </span>"
 
