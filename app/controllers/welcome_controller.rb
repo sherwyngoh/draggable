@@ -10,7 +10,8 @@ class WelcomeController < ApplicationController
 
   def day_view
   end
-  
+
   def week_view
+    @title = 'Demo Scheduler'
   end
 end
