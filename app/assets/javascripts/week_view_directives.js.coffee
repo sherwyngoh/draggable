@@ -176,9 +176,13 @@ app.directive 'popupHandler', ($timeout) ->
         finish : '06:00 PM'
         break  : 60
       }
+
       scope.data.commonTimings.push(newCommonTiming)
-      scope.$broadcast 'newDateTimeInputs'
       scope.$apply()
+
+      $('#commonTimingMenu .time-input').timepicker
+        minuteStep: 5
+        template: false
 
     $('body').on 'click', ('#removeCommonTiming'), ->
       commonTimingID = $(this).data('common-timing-id')
@@ -187,7 +191,7 @@ app.directive 'popupHandler', ($timeout) ->
           index = scope.data.commonTimings.indexOf(timing)
           scope.data.commonTimings.splice(index, 1)
           for timing in scope.data.commonTimings
-            timing.id = scope.data.commonTimings.indexOf(shift)
+            timing.id = scope.data.commonTimings.indexOf(timing)
 
       scope.$apply()
 
