@@ -15,6 +15,9 @@ app.directive 'calendarListener', () ->
 
       $('#commonTimingMenu').on 'show', ->
         $(this).find('ng-form').show()
+        $('#commonTimingMenu .time-input').timepicker
+          minuteStep: 5
+          template: false
 
       $('body').on 'mouseover', '.commonTiming-button', ->
         ID  = $(this).data('timing-id')
@@ -114,7 +117,7 @@ app.directive 'calendarSetup', ($timeout) ->
             return parseInt($(this).data('hour')) >= leave.startHour
 
         $(leaveTDs).each () ->
-          $(this).css('background', 'lightgrey').addClass('mark')
+          $(this).css('background', 'rgb(110, 169, 169)').addClass('mark')
 
     setDraggableArea = ->
       height = $('.draggable-area').height()
@@ -304,7 +307,7 @@ app.directive 'setDrag', ($timeout) ->
     redipsInit = ->
       rd = REDIPS.drag
       rd.init('week-view')
-      rd.hover.colorTd  = 'aliceblue'
+      rd.hover.colorTd  = '#558f8f'
       # rd.hover.borderTd = '3px solid #9bb3da' causes firefox issues
       rd.clone.keyDiv   = true
 

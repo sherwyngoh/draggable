@@ -1,3 +1,4 @@
+link href='http://fonts.googleapis.com/css?family=Open+Sans:400,700' rel='stylesheet' type='text/css'
 #week-view ng-app="weekView" ng-controller="weekViewController"
   .row
     .col-xs-12.main-box
@@ -5,7 +6,8 @@
         .col-xs-6
           h3
             i.fa.fa-angle-double-left ng-click="func.loadData()"
-            | {{data.calendarDisplayDate}}
+            span ng-click="func.addColors()"
+              | {{data.calendarDisplayDate}}
             i.fa.fa-angle-double-right ng-click="func.estimate()"
           .current-template-name ng-show="data.currentTemplate.length > 0"
             | Current template: {{data.currentTemplate.name}}
@@ -20,7 +22,7 @@
         .staff
           | Staff
           .sort.btn-group
-            button.btn.btn-default.btn-xs ng-click="states.showSortMenu = !states.showSortMenu" ng-mouseenter="states.showSortMenu = true"
+            button.btn-xs ng-click="states.showSortMenu = !states.showSortMenu" ng-mouseenter="states.showSortMenu = true"
               i.fa.fa-sort-up ng-show='!states.showSortMenu'
               i.fa.fa-sort-down ng-show='states.showSortMenu'
             .sort-options ng-show="states.showSortMenu" ng-mouseleave="states.showSortMenu = false"

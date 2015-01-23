@@ -61,7 +61,8 @@ app.controller "weekViewController", ($scope, $timeout, $http, $q) ->
     {employeeID: '4', fullDay: true, startHour: 12}
   ]
 
-  $scope.data.shiftColors   = {'Manager': '#3498DB', 'Asst Manager': '#2ECC71', 'Supervisor': '#9B59B6', 'Crew': '#F39C12'}
+  # $scope.data.shiftColors   = {'Manager': '#3498DB', 'Asst Manager': '#2ECC71', 'Supervisor': '#9B59B6', 'Crew': '#F39C12'}
+  $scope.data.shiftColors   = {'Manager': 'rgb(66, 111, 111)', 'Asst Manager': 'rgb(66, 111, 111)', 'Supervisor': 'rgb(66, 111, 111)', 'Crew': 'rgb(66, 111, 111)'}
   $scope.data.roles         = ["Manager", "Asst Manager", "Supervisor", "Crew"]
 
   $scope.data.salesForecast    = "2000"
@@ -120,6 +121,9 @@ app.controller "weekViewController", ($scope, $timeout, $http, $q) ->
       console.log 'setting localForage commonTimings'
 
   $scope.func =
+    addColors: ->
+      $scope.data.shiftColors = {'Manager': '#3498DB', 'Asst Manager': '#2ECC71', 'Supervisor': '#9B59B6', 'Crew': '#F39C12'}
+      $scope.func.refreshCalendar()
     setNewShift: ->
       console.log 'settingNewShift'
       $scope.data.newShift = {role: $scope.data.roles[$scope.data.roles.length - 1], break: 30, start: '08:00 AM', finish: '05:00 PM', overnight: false}
