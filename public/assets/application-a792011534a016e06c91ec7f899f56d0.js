@@ -1,5 +1,5 @@
 /*!
- * jQuery JavaScript Library v1.11.1
+ * jQuery JavaScript Library v1.11.2
  * http://jquery.com/
  *
  * Includes Sizzle.js
@@ -9,7 +9,7 @@
  * Released under the MIT license
  * http://jquery.org/license
  *
- * Date: 2014-05-01T17:42Z
+ * Date: 2014-12-17T15:27Z
  */
 
 
@@ -65,7 +65,7 @@ var support = {};
 
 
 var
-	version = "1.11.1",
+	version = "1.11.2",
 
 	// Define a local copy of jQuery
 	jQuery = function( selector, context ) {
@@ -270,7 +270,8 @@ jQuery.extend({
 		// parseFloat NaNs numeric-cast false positives (null|true|false|"")
 		// ...but misinterprets leading-number strings, particularly hex literals ("0x...")
 		// subtraction forces infinities to NaN
-		return !jQuery.isArray( obj ) && obj - parseFloat( obj ) >= 0;
+		// adding 1 corrects loss of precision from parseFloat (#15100)
+		return !jQuery.isArray( obj ) && (obj - parseFloat( obj ) + 1) >= 0;
 	},
 
 	isEmptyObject: function( obj ) {
@@ -585,14 +586,14 @@ function isArraylike( obj ) {
 }
 var Sizzle =
 /*!
- * Sizzle CSS Selector Engine v1.10.19
+ * Sizzle CSS Selector Engine v2.2.0-pre
  * http://sizzlejs.com/
  *
- * Copyright 2013 jQuery Foundation, Inc. and other contributors
+ * Copyright 2008, 2014 jQuery Foundation, Inc. and other contributors
  * Released under the MIT license
  * http://jquery.org/license
  *
- * Date: 2014-04-18
+ * Date: 2014-12-16
  */
 (function( window ) {
 
@@ -619,7 +620,7 @@ var i,
 	contains,
 
 	// Instance-specific data
-	expando = "sizzle" + -(new Date()),
+	expando = "sizzle" + 1 * new Date(),
 	preferredDoc = window.document,
 	dirruns = 0,
 	done = 0,
@@ -634,7 +635,6 @@ var i,
 	},
 
 	// General-purpose constants
-	strundefined = typeof undefined,
 	MAX_NEGATIVE = 1 << 31,
 
 	// Instance methods
@@ -644,12 +644,13 @@ var i,
 	push_native = arr.push,
 	push = arr.push,
 	slice = arr.slice,
-	// Use a stripped-down indexOf if we can't use a native one
-	indexOf = arr.indexOf || function( elem ) {
+	// Use a stripped-down indexOf as it's faster than native
+	// http://jsperf.com/thor-indexof-vs-for/5
+	indexOf = function( list, elem ) {
 		var i = 0,
-			len = this.length;
+			len = list.length;
 		for ( ; i < len; i++ ) {
-			if ( this[i] === elem ) {
+			if ( list[i] === elem ) {
 				return i;
 			}
 		}
@@ -689,6 +690,7 @@ var i,
 		")\\)|)",
 
 	// Leading and non-escaped trailing whitespace, capturing some non-whitespace characters preceding the latter
+	rwhitespace = new RegExp( whitespace + "+", "g" ),
 	rtrim = new RegExp( "^" + whitespace + "+|((?:^|[^\\\\])(?:\\\\.)*)" + whitespace + "+$", "g" ),
 
 	rcomma = new RegExp( "^" + whitespace + "*," + whitespace + "*" ),
@@ -740,6 +742,14 @@ var i,
 				String.fromCharCode( high + 0x10000 ) :
 				// Supplemental Plane codepoint (surrogate pair)
 				String.fromCharCode( high >> 10 | 0xD800, high & 0x3FF | 0xDC00 );
+	},
+
+	// Used for iframes
+	// See setDocument()
+	// Removing the function wrapper causes a "Permission Denied"
+	// error in IE
+	unloadHandler = function() {
+		setDocument();
 	};
 
 // Optimize for push.apply( _, NodeList )
@@ -782,19 +792,18 @@ function Sizzle( selector, context, results, seed ) {
 
 	context = context || document;
 	results = results || [];
+	nodeType = context.nodeType;
 
-	if ( !selector || typeof selector !== "string" ) {
+	if ( typeof selector !== "string" || !selector ||
+		nodeType !== 1 && nodeType !== 9 && nodeType !== 11 ) {
+
 		return results;
 	}
 
-	if ( (nodeType = context.nodeType) !== 1 && nodeType !== 9 ) {
-		return [];
-	}
+	if ( !seed && documentIsHTML ) {
 
-	if ( documentIsHTML && !seed ) {
-
-		// Shortcuts
-		if ( (match = rquickExpr.exec( selector )) ) {
+		// Try to shortcut find operations when possible (e.g., not under DocumentFragment)
+		if ( nodeType !== 11 && (match = rquickExpr.exec( selector )) ) {
 			// Speed-up: Sizzle("#ID")
 			if ( (m = match[1]) ) {
 				if ( nodeType === 9 ) {
@@ -826,7 +835,7 @@ function Sizzle( selector, context, results, seed ) {
 				return results;
 
 			// Speed-up: Sizzle(".CLASS")
-			} else if ( (m = match[3]) && support.getElementsByClassName && context.getElementsByClassName ) {
+			} else if ( (m = match[3]) && support.getElementsByClassName ) {
 				push.apply( results, context.getElementsByClassName( m ) );
 				return results;
 			}
@@ -836,7 +845,7 @@ function Sizzle( selector, context, results, seed ) {
 		if ( support.qsa && (!rbuggyQSA || !rbuggyQSA.test( selector )) ) {
 			nid = old = expando;
 			newContext = context;
-			newSelector = nodeType === 9 && selector;
+			newSelector = nodeType !== 1 && selector;
 
 			// qSA works strangely on Element-rooted queries
 			// We can work around this by specifying an extra ID on the root
@@ -1023,7 +1032,7 @@ function createPositionalPseudo( fn ) {
  * @returns {Element|Object|Boolean} The input node if acceptable, otherwise a falsy value
  */
 function testContext( context ) {
-	return context && typeof context.getElementsByTagName !== strundefined && context;
+	return context && typeof context.getElementsByTagName !== "undefined" && context;
 }
 
 // Expose support vars for convenience
@@ -1047,9 +1056,8 @@ isXML = Sizzle.isXML = function( elem ) {
  * @returns {Object} Returns the current document
  */
 setDocument = Sizzle.setDocument = function( node ) {
-	var hasCompare,
-		doc = node ? node.ownerDocument || node : preferredDoc,
-		parent = doc.defaultView;
+	var hasCompare, parent,
+		doc = node ? node.ownerDocument || node : preferredDoc;
 
 	// If no document and documentElement is available, return
 	if ( doc === document || doc.nodeType !== 9 || !doc.documentElement ) {
@@ -1059,9 +1067,7 @@ setDocument = Sizzle.setDocument = function( node ) {
 	// Set our document
 	document = doc;
 	docElem = doc.documentElement;
-
-	// Support tests
-	documentIsHTML = !isXML( doc );
+	parent = doc.defaultView;
 
 	// Support: IE>8
 	// If iframe document is assigned to "document" variable and if iframe has been reloaded,
@@ -1070,21 +1076,22 @@ setDocument = Sizzle.setDocument = function( node ) {
 	if ( parent && parent !== parent.top ) {
 		// IE11 does not have attachEvent, so all must suffer
 		if ( parent.addEventListener ) {
-			parent.addEventListener( "unload", function() {
-				setDocument();
-			}, false );
+			parent.addEventListener( "unload", unloadHandler, false );
 		} else if ( parent.attachEvent ) {
-			parent.attachEvent( "onunload", function() {
-				setDocument();
-			});
+			parent.attachEvent( "onunload", unloadHandler );
 		}
 	}
+
+	/* Support tests
+	---------------------------------------------------------------------- */
+	documentIsHTML = !isXML( doc );
 
 	/* Attributes
 	---------------------------------------------------------------------- */
 
 	// Support: IE<8
-	// Verify that getAttribute really returns attributes and not properties (excepting IE8 booleans)
+	// Verify that getAttribute really returns attributes and not properties
+	// (excepting IE8 booleans)
 	support.attributes = assert(function( div ) {
 		div.className = "i";
 		return !div.getAttribute("className");
@@ -1099,17 +1106,8 @@ setDocument = Sizzle.setDocument = function( node ) {
 		return !div.getElementsByTagName("*").length;
 	});
 
-	// Check if getElementsByClassName can be trusted
-	support.getElementsByClassName = rnative.test( doc.getElementsByClassName ) && assert(function( div ) {
-		div.innerHTML = "<div class='a'></div><div class='a i'></div>";
-
-		// Support: Safari<4
-		// Catch class over-caching
-		div.firstChild.className = "i";
-		// Support: Opera<10
-		// Catch gEBCN failure to find non-leading classes
-		return div.getElementsByClassName("i").length === 2;
-	});
+	// Support: IE<9
+	support.getElementsByClassName = rnative.test( doc.getElementsByClassName );
 
 	// Support: IE<10
 	// Check if getElementById returns elements by name
@@ -1123,7 +1121,7 @@ setDocument = Sizzle.setDocument = function( node ) {
 	// ID find and filter
 	if ( support.getById ) {
 		Expr.find["ID"] = function( id, context ) {
-			if ( typeof context.getElementById !== strundefined && documentIsHTML ) {
+			if ( typeof context.getElementById !== "undefined" && documentIsHTML ) {
 				var m = context.getElementById( id );
 				// Check parentNode to catch when Blackberry 4.6 returns
 				// nodes that are no longer in the document #6963
@@ -1144,7 +1142,7 @@ setDocument = Sizzle.setDocument = function( node ) {
 		Expr.filter["ID"] =  function( id ) {
 			var attrId = id.replace( runescape, funescape );
 			return function( elem ) {
-				var node = typeof elem.getAttributeNode !== strundefined && elem.getAttributeNode("id");
+				var node = typeof elem.getAttributeNode !== "undefined" && elem.getAttributeNode("id");
 				return node && node.value === attrId;
 			};
 		};
@@ -1153,14 +1151,20 @@ setDocument = Sizzle.setDocument = function( node ) {
 	// Tag
 	Expr.find["TAG"] = support.getElementsByTagName ?
 		function( tag, context ) {
-			if ( typeof context.getElementsByTagName !== strundefined ) {
+			if ( typeof context.getElementsByTagName !== "undefined" ) {
 				return context.getElementsByTagName( tag );
+
+			// DocumentFragment nodes don't have gEBTN
+			} else if ( support.qsa ) {
+				return context.querySelectorAll( tag );
 			}
 		} :
+
 		function( tag, context ) {
 			var elem,
 				tmp = [],
 				i = 0,
+				// By happy coincidence, a (broken) gEBTN appears on DocumentFragment nodes too
 				results = context.getElementsByTagName( tag );
 
 			// Filter out possible comments
@@ -1178,7 +1182,7 @@ setDocument = Sizzle.setDocument = function( node ) {
 
 	// Class
 	Expr.find["CLASS"] = support.getElementsByClassName && function( className, context ) {
-		if ( typeof context.getElementsByClassName !== strundefined && documentIsHTML ) {
+		if ( documentIsHTML ) {
 			return context.getElementsByClassName( className );
 		}
 	};
@@ -1207,13 +1211,15 @@ setDocument = Sizzle.setDocument = function( node ) {
 			// setting a boolean content attribute,
 			// since its presence should be enough
 			// http://bugs.jquery.com/ticket/12359
-			div.innerHTML = "<select msallowclip=''><option selected=''></option></select>";
+			docElem.appendChild( div ).innerHTML = "<a id='" + expando + "'></a>" +
+				"<select id='" + expando + "-\f]' msallowcapture=''>" +
+				"<option selected=''></option></select>";
 
 			// Support: IE8, Opera 11-12.16
 			// Nothing should be selected when empty strings follow ^= or $= or *=
 			// The test attribute must be unknown in Opera but "safe" for WinRT
 			// http://msdn.microsoft.com/en-us/library/ie/hh465388.aspx#attribute_section
-			if ( div.querySelectorAll("[msallowclip^='']").length ) {
+			if ( div.querySelectorAll("[msallowcapture^='']").length ) {
 				rbuggyQSA.push( "[*^$]=" + whitespace + "*(?:''|\"\")" );
 			}
 
@@ -1223,11 +1229,23 @@ setDocument = Sizzle.setDocument = function( node ) {
 				rbuggyQSA.push( "\\[" + whitespace + "*(?:value|" + booleans + ")" );
 			}
 
+			// Support: Chrome<29, Android<4.2+, Safari<7.0+, iOS<7.0+, PhantomJS<1.9.7+
+			if ( !div.querySelectorAll( "[id~=" + expando + "-]" ).length ) {
+				rbuggyQSA.push("~=");
+			}
+
 			// Webkit/Opera - :checked should return selected option elements
 			// http://www.w3.org/TR/2011/REC-css3-selectors-20110929/#checked
 			// IE8 throws error here and will not see later tests
 			if ( !div.querySelectorAll(":checked").length ) {
 				rbuggyQSA.push(":checked");
+			}
+
+			// Support: Safari 8+, iOS 8+
+			// https://bugs.webkit.org/show_bug.cgi?id=136851
+			// In-page `selector#id sibing-combinator selector` fails
+			if ( !div.querySelectorAll( "a#" + expando + "+*" ).length ) {
+				rbuggyQSA.push(".#.+[+~]");
 			}
 		});
 
@@ -1345,7 +1363,7 @@ setDocument = Sizzle.setDocument = function( node ) {
 
 			// Maintain original order
 			return sortInput ?
-				( indexOf.call( sortInput, a ) - indexOf.call( sortInput, b ) ) :
+				( indexOf( sortInput, a ) - indexOf( sortInput, b ) ) :
 				0;
 		}
 
@@ -1372,7 +1390,7 @@ setDocument = Sizzle.setDocument = function( node ) {
 				aup ? -1 :
 				bup ? 1 :
 				sortInput ?
-				( indexOf.call( sortInput, a ) - indexOf.call( sortInput, b ) ) :
+				( indexOf( sortInput, a ) - indexOf( sortInput, b ) ) :
 				0;
 
 		// If the nodes are siblings, we can do a quick check
@@ -1435,7 +1453,7 @@ Sizzle.matchesSelector = function( elem, expr ) {
 					elem.document && elem.document.nodeType !== 11 ) {
 				return ret;
 			}
-		} catch(e) {}
+		} catch (e) {}
 	}
 
 	return Sizzle( expr, document, null, [ elem ] ).length > 0;
@@ -1654,7 +1672,7 @@ Expr = Sizzle.selectors = {
 			return pattern ||
 				(pattern = new RegExp( "(^|" + whitespace + ")" + className + "(" + whitespace + "|$)" )) &&
 				classCache( className, function( elem ) {
-					return pattern.test( typeof elem.className === "string" && elem.className || typeof elem.getAttribute !== strundefined && elem.getAttribute("class") || "" );
+					return pattern.test( typeof elem.className === "string" && elem.className || typeof elem.getAttribute !== "undefined" && elem.getAttribute("class") || "" );
 				});
 		},
 
@@ -1676,7 +1694,7 @@ Expr = Sizzle.selectors = {
 					operator === "^=" ? check && result.indexOf( check ) === 0 :
 					operator === "*=" ? check && result.indexOf( check ) > -1 :
 					operator === "$=" ? check && result.slice( -check.length ) === check :
-					operator === "~=" ? ( " " + result + " " ).indexOf( check ) > -1 :
+					operator === "~=" ? ( " " + result.replace( rwhitespace, " " ) + " " ).indexOf( check ) > -1 :
 					operator === "|=" ? result === check || result.slice( 0, check.length + 1 ) === check + "-" :
 					false;
 			};
@@ -1796,7 +1814,7 @@ Expr = Sizzle.selectors = {
 							matched = fn( seed, argument ),
 							i = matched.length;
 						while ( i-- ) {
-							idx = indexOf.call( seed, matched[i] );
+							idx = indexOf( seed, matched[i] );
 							seed[ idx ] = !( matches[ idx ] = matched[i] );
 						}
 					}) :
@@ -1835,6 +1853,8 @@ Expr = Sizzle.selectors = {
 				function( elem, context, xml ) {
 					input[0] = elem;
 					matcher( input, null, xml, results );
+					// Don't keep the element (issue #299)
+					input[0] = null;
 					return !results.pop();
 				};
 		}),
@@ -1846,6 +1866,7 @@ Expr = Sizzle.selectors = {
 		}),
 
 		"contains": markFunction(function( text ) {
+			text = text.replace( runescape, funescape );
 			return function( elem ) {
 				return ( elem.textContent || elem.innerText || getText( elem ) ).indexOf( text ) > -1;
 			};
@@ -2267,7 +2288,7 @@ function setMatcher( preFilter, selector, matcher, postFilter, postFinder, postS
 				i = matcherOut.length;
 				while ( i-- ) {
 					if ( (elem = matcherOut[i]) &&
-						(temp = postFinder ? indexOf.call( seed, elem ) : preMap[i]) > -1 ) {
+						(temp = postFinder ? indexOf( seed, elem ) : preMap[i]) > -1 ) {
 
 						seed[temp] = !(results[temp] = elem);
 					}
@@ -2302,13 +2323,16 @@ function matcherFromTokens( tokens ) {
 			return elem === checkContext;
 		}, implicitRelative, true ),
 		matchAnyContext = addCombinator( function( elem ) {
-			return indexOf.call( checkContext, elem ) > -1;
+			return indexOf( checkContext, elem ) > -1;
 		}, implicitRelative, true ),
 		matchers = [ function( elem, context, xml ) {
-			return ( !leadingRelative && ( xml || context !== outermostContext ) ) || (
+			var ret = ( !leadingRelative && ( xml || context !== outermostContext ) ) || (
 				(checkContext = context).nodeType ?
 					matchContext( elem, context, xml ) :
 					matchAnyContext( elem, context, xml ) );
+			// Avoid hanging onto element (issue #299)
+			checkContext = null;
+			return ret;
 		} ];
 
 	for ( ; i < len; i++ ) {
@@ -2558,7 +2582,7 @@ select = Sizzle.select = function( selector, context, results, seed ) {
 // Sort stability
 support.sortStable = expando.split("").sort( sortOrder ).join("") === expando;
 
-// Support: Chrome<14
+// Support: Chrome 14-35+
 // Always assume duplicates if they aren't passed to the comparison function
 support.detectDuplicates = !!hasDuplicate;
 
@@ -6116,7 +6140,14 @@ var getStyles, curCSS,
 
 if ( window.getComputedStyle ) {
 	getStyles = function( elem ) {
-		return elem.ownerDocument.defaultView.getComputedStyle( elem, null );
+		// Support: IE<=11+, Firefox<=30+ (#15098, #14150)
+		// IE throws on elements created in popups
+		// FF meanwhile throws on frame elements through "defaultView.getComputedStyle"
+		if ( elem.ownerDocument.defaultView.opener ) {
+			return elem.ownerDocument.defaultView.getComputedStyle( elem, null );
+		}
+
+		return window.getComputedStyle( elem, null );
 	};
 
 	curCSS = function( elem, name, computed ) {
@@ -6364,6 +6395,8 @@ function addGetHookIf( conditionFn, hookFn ) {
 
 			reliableMarginRightVal =
 				!parseFloat( ( window.getComputedStyle( contents, null ) || {} ).marginRight );
+
+			div.removeChild( contents );
 		}
 
 		// Support: IE8
@@ -9071,7 +9104,8 @@ jQuery.extend({
 		}
 
 		// We can fire global events as of now if asked to
-		fireGlobals = s.global;
+		// Don't fire events if jQuery.event is undefined in an AMD-usage scenario (#15118)
+		fireGlobals = jQuery.event && s.global;
 
 		// Watch for a new set of requests
 		if ( fireGlobals && jQuery.active++ === 0 ) {
@@ -9330,13 +9364,6 @@ jQuery.each( [ "get", "post" ], function( i, method ) {
 	};
 });
 
-// Attach a bunch of functions for handling common AJAX events
-jQuery.each( [ "ajaxStart", "ajaxStop", "ajaxComplete", "ajaxError", "ajaxSuccess", "ajaxSend" ], function( i, type ) {
-	jQuery.fn[ type ] = function( fn ) {
-		return this.on( type, fn );
-	};
-});
-
 
 jQuery._evalUrl = function( url ) {
 	return jQuery.ajax({
@@ -9562,8 +9589,9 @@ var xhrId = 0,
 
 // Support: IE<10
 // Open requests must be manually aborted on unload (#5280)
-if ( window.ActiveXObject ) {
-	jQuery( window ).on( "unload", function() {
+// See https://support.microsoft.com/kb/2856746 for more info
+if ( window.attachEvent ) {
+	window.attachEvent( "onunload", function() {
 		for ( var key in xhrCallbacks ) {
 			xhrCallbacks[ key ]( undefined, true );
 		}
@@ -9993,6 +10021,16 @@ jQuery.fn.load = function( url, params, callback ) {
 
 	return this;
 };
+
+
+
+
+// Attach a bunch of functions for handling common AJAX events
+jQuery.each( [ "ajaxStart", "ajaxStop", "ajaxComplete", "ajaxError", "ajaxSuccess", "ajaxSend" ], function( i, type ) {
+	jQuery.fn[ type ] = function( fn ) {
+		return this.on( type, fn );
+	};
+});
 
 
 
@@ -10676,7 +10714,7 @@ return jQuery;
         if (handleRemote === false) {
           rails.enableElement(link);
         } else {
-          handleRemote.error( function() { rails.enableElement(link); } );
+          handleRemote.fail( function() { rails.enableElement(link); } );
         }
         return false;
 
@@ -10698,7 +10736,7 @@ return jQuery;
       if (handleRemote === false) {
         rails.enableFormElement(button);
       } else {
-        handleRemote.error( function() { rails.enableFormElement(button); } );
+        handleRemote.fail( function() { rails.enableFormElement(button); } );
       }
       return false;
     });
@@ -30340,7 +30378,7 @@ return $.widget( "ui.tooltip", {
 
 
 /**
- * @license AngularJS v1.3.36
+ * @license AngularJS v1.3.8
  * (c) 2010-2014 Google, Inc. http://angularjs.org
  * License: MIT
  */
@@ -30396,7 +30434,7 @@ function minErr(module, ErrorConstructor) {
       return match;
     });
 
-    message = message + '\nhttp://errors.angularjs.org/1.3.36/' +
+    message = message + '\nhttp://errors.angularjs.org/1.3.8/' +
       (module ? module + '/' : '') + code;
     for (i = 2; i < arguments.length; i++) {
       message = message + (i == 2 ? '?' : '&') + 'p' + (i - 2) + '=' +
@@ -30451,6 +30489,7 @@ function minErr(module, ErrorConstructor) {
   isWindow: true,
   isScope: true,
   isFile: true,
+  isFormData: true,
   isBlob: true,
   isBoolean: true,
   isPromiseLike: true,
@@ -30806,6 +30845,8 @@ noop.$inject = [];
        return (transformationFn || angular.identity)(value);
      };
    ```
+  * @param {*} value to be returned.
+  * @returns {*} the value passed in.
  */
 function identity($) {return $;}
 identity.$inject = [];
@@ -30972,6 +31013,11 @@ function isFile(obj) {
 }
 
 
+function isFormData(obj) {
+  return toString.call(obj) === '[object FormData]';
+}
+
+
 function isBlob(obj) {
   return toString.call(obj) === '[object Blob]';
 }
@@ -31055,7 +31101,7 @@ function arrayRemove(array, value) {
  * Creates a deep copy of `source`, which should be an object or an array.
  *
  * * If no destination is supplied, a copy of the object or array is created.
- * * If a destination is provided, all of its elements (for array) or properties (for objects)
+ * * If a destination is provided, all of its elements (for arrays) or properties (for objects)
  *   are deleted and then all elements/properties from the source are copied to it.
  * * If `source` is not an object or array (inc. `null` and `undefined`), `source` is returned.
  * * If `source` is identical to 'destination' an exception will be thrown.
@@ -31393,7 +31439,7 @@ function toJson(obj, pretty) {
  * Deserializes a JSON string.
  *
  * @param {string} json JSON string to deserialize.
- * @returns {Object|Array|string|number} Deserialized thingy.
+ * @returns {Object|Array|string|number} Deserialized JSON string.
  */
 function fromJson(json) {
   return isString(json)
@@ -31566,7 +31612,7 @@ function getNgAttribute(element, ngAttr) {
  * {@link angular.bootstrap} instead. AngularJS applications cannot be nested within each other.
  *
  * You can specify an **AngularJS module** to be used as the root module for the application.  This
- * module will be loaded into the {@link auto.$injector} when the application is bootstrapped and
+ * module will be loaded into the {@link auto.$injector} when the application is bootstrapped. It
  * should contain the application code needed or have dependencies on other modules that will
  * contain the code. See {@link angular.module} for more information.
  *
@@ -31574,7 +31620,7 @@ function getNgAttribute(element, ngAttr) {
  * document would not be compiled, the `AppController` would not be instantiated and the `{{ a+b }}`
  * would not be resolved to `3`.
  *
- * `ngApp` is the easiest, and most common, way to bootstrap an application.
+ * `ngApp` is the easiest, and most common way to bootstrap an application.
  *
  <example module="ngAppDemo">
    <file name="index.html">
@@ -31834,7 +31880,12 @@ function reloadWithDebugInfo() {
  * @param {DOMElement} element DOM element which is the root of angular application.
  */
 function getTestability(rootElement) {
-  return angular.element(rootElement).injector().get('$$testability');
+  var injector = angular.element(rootElement).injector();
+  if (!injector) {
+    throw ngMinErr('test',
+      'no injector found for element argument to getTestability');
+  }
+  return injector.get('$$testability');
 }
 
 var SNAKE_CASE_REGEXP = /[A-Z]/g;
@@ -32447,11 +32498,11 @@ function toDebugString(obj) {
  * - `codeName` – `{string}` – Code name of the release, such as "jiggling-armfat".
  */
 var version = {
-  full: '1.3.36',    // all of these placeholder strings will be replaced by grunt's
+  full: '1.3.8',    // all of these placeholder strings will be replaced by grunt's
   major: 1,    // package task
   minor: 3,
-  dot: 36,
-  codeName: 'robofunky-danceblaster'
+  dot: 8,
+  codeName: 'prophetic-narwhal'
 };
 
 
@@ -37464,7 +37515,10 @@ function $CompileProvider($provide, $$sanitizeUriProvider) {
             // support ngAttr attribute binding
             ngAttrName = directiveNormalize(name);
             if (isNgAttr = NG_ATTR_BINDING.test(ngAttrName)) {
-              name = snake_case(ngAttrName.substr(6), '-');
+              name = name.replace(PREFIX_REGEXP, '')
+                .substr(8).replace(/_(.)/g, function(match, letter) {
+                  return letter.toUpperCase();
+                });
             }
 
             var directiveNName = ngAttrName.replace(/(Start|End)$/, '');
@@ -38376,7 +38430,10 @@ function $CompileProvider($provide, $$sanitizeUriProvider) {
 
 
     function addAttrInterpolateDirective(node, directives, value, name, allOrNothing) {
-      var interpolateFn = $interpolate(value, true);
+      var trustedContext = getTrustedContext(node, name);
+      allOrNothing = ALL_OR_NOTHING_ATTRS[name] || allOrNothing;
+
+      var interpolateFn = $interpolate(value, true, trustedContext, allOrNothing);
 
       // no interpolation found -> ignore
       if (!interpolateFn) return;
@@ -38401,15 +38458,15 @@ function $CompileProvider($provide, $$sanitizeUriProvider) {
                           "ng- versions (such as ng-click instead of onclick) instead.");
                 }
 
-                // If the attribute was removed, then we are done
-                if (!attr[name]) {
-                  return;
+                // If the attribute has changed since last $interpolate()ed
+                var newValue = attr[name];
+                if (newValue !== value) {
+                  // we need to interpolate again since the attribute value has been updated
+                  // (e.g. by another directive's compile function)
+                  // ensure unset/empty values make interpolateFn falsy
+                  interpolateFn = newValue && $interpolate(newValue, true, trustedContext, allOrNothing);
+                  value = newValue;
                 }
-
-                // we need to interpolate again, in case the attribute value has been updated
-                // (e.g. by another directive's compile function)
-                interpolateFn = $interpolate(attr[name], true, getTrustedContext(node, name),
-                    ALL_OR_NOTHING_ATTRS[name] || allOrNothing);
 
                 // if attribute was updated so that there is no interpolation going on we don't want to
                 // register any observers
@@ -38871,21 +38928,32 @@ function $ExceptionHandlerProvider() {
 
 var APPLICATION_JSON = 'application/json';
 var CONTENT_TYPE_APPLICATION_JSON = {'Content-Type': APPLICATION_JSON + ';charset=utf-8'};
-var JSON_START = /^\s*(\[|\{[^\{])/;
-var JSON_END = /[\}\]]\s*$/;
+var JSON_START = /^\[|^\{(?!\{)/;
+var JSON_ENDS = {
+  '[': /]$/,
+  '{': /}$/
+};
 var JSON_PROTECTION_PREFIX = /^\)\]\}',?\n/;
 
 function defaultHttpResponseTransform(data, headers) {
   if (isString(data)) {
-    // strip json vulnerability protection prefix
-    data = data.replace(JSON_PROTECTION_PREFIX, '');
-    var contentType = headers('Content-Type');
-    if ((contentType && contentType.indexOf(APPLICATION_JSON) === 0 && data.trim()) ||
-        (JSON_START.test(data) && JSON_END.test(data))) {
-      data = fromJson(data);
+    // Strip json vulnerability protection prefix and trim whitespace
+    var tempData = data.replace(JSON_PROTECTION_PREFIX, '').trim();
+
+    if (tempData) {
+      var contentType = headers('Content-Type');
+      if ((contentType && (contentType.indexOf(APPLICATION_JSON) === 0)) || isJsonLike(tempData)) {
+        data = fromJson(tempData);
+      }
     }
   }
+
   return data;
+}
+
+function isJsonLike(str) {
+    var jsonStart = str.match(JSON_START);
+    return jsonStart && JSON_ENDS[jsonStart[0]].test(str);
 }
 
 /**
@@ -38950,16 +39018,17 @@ function headersGetter(headers) {
  * This function is used for both request and response transforming
  *
  * @param {*} data Data to transform.
- * @param {function(string=)} headers Http headers getter fn.
+ * @param {function(string=)} headers HTTP headers getter fn.
+ * @param {number} status HTTP status code of the response.
  * @param {(Function|Array.<Function>)} fns Function or an array of functions.
  * @returns {*} Transformed data.
  */
-function transformData(data, headers, fns) {
+function transformData(data, headers, status, fns) {
   if (isFunction(fns))
-    return fns(data, headers);
+    return fns(data, headers, status);
 
   forEach(fns, function(fn) {
-    data = fn(data, headers);
+    data = fn(data, headers, status);
   });
 
   return data;
@@ -39011,7 +39080,7 @@ function $HttpProvider() {
 
     // transform outgoing request data
     transformRequest: [function(d) {
-      return isObject(d) && !isFile(d) && !isBlob(d) ? toJson(d) : d;
+      return isObject(d) && !isFile(d) && !isBlob(d) && !isFormData(d) ? toJson(d) : d;
     }],
 
     // default headers
@@ -39238,7 +39307,7 @@ function $HttpProvider() {
      *
      * Both requests and responses can be transformed using transformation functions: `transformRequest`
      * and `transformResponse`. These properties can be a single function that returns
-     * the transformed value (`{function(data, headersGetter)`) or an array of such transformation functions,
+     * the transformed value (`{function(data, headersGetter, status)`) or an array of such transformation functions,
      * which allows you to `push` or `unshift` a new transformation function into the transformation chain.
      *
      * ### Default Transformations
@@ -39482,9 +39551,9 @@ function $HttpProvider() {
      *      See {@link ng.$http#overriding-the-default-transformations-per-request
      *      Overriding the Default Transformations}
      *    - **transformResponse** –
-     *      `{function(data, headersGetter)|Array.<function(data, headersGetter)>}` –
+     *      `{function(data, headersGetter, status)|Array.<function(data, headersGetter, status)>}` –
      *      transform function or an array of such functions. The transform function takes the http
-     *      response body and headers and returns its transformed (typically deserialized) version.
+     *      response body, headers and status and returns its transformed (typically deserialized) version.
      *      See {@link ng.$http#overriding-the-default-transformations-per-request
      *      Overriding the Default Transformations}
      *    - **cache** – `{boolean|Cache}` – If true, a default $http cache will be used to cache the
@@ -39607,24 +39676,23 @@ function $HttpProvider() {
 </example>
      */
     function $http(requestConfig) {
-      var config = {
-        method: 'get',
-        transformRequest: defaults.transformRequest,
-        transformResponse: defaults.transformResponse
-      };
-      var headers = mergeHeaders(requestConfig);
 
       if (!angular.isObject(requestConfig)) {
         throw minErr('$http')('badreq', 'Http request configuration must be an object.  Received: {0}', requestConfig);
       }
 
-      extend(config, requestConfig);
-      config.headers = headers;
+      var config = extend({
+        method: 'get',
+        transformRequest: defaults.transformRequest,
+        transformResponse: defaults.transformResponse
+      }, requestConfig);
+
+      config.headers = mergeHeaders(requestConfig);
       config.method = uppercase(config.method);
 
       var serverRequest = function(config) {
-        headers = config.headers;
-        var reqData = transformData(config.data, headersGetter(headers), config.transformRequest);
+        var headers = config.headers;
+        var reqData = transformData(config.data, headersGetter(headers), undefined, config.transformRequest);
 
         // strip content-type if data is undefined
         if (isUndefined(reqData)) {
@@ -39640,7 +39708,7 @@ function $HttpProvider() {
         }
 
         // send request
-        return sendReq(config, reqData, headers).then(transformResponse, transformResponse);
+        return sendReq(config, reqData).then(transformResponse, transformResponse);
       };
 
       var chain = [serverRequest, undefined];
@@ -39685,11 +39753,28 @@ function $HttpProvider() {
         if (!response.data) {
           resp.data = response.data;
         } else {
-          resp.data = transformData(response.data, response.headers, config.transformResponse);
+          resp.data = transformData(response.data, response.headers, response.status, config.transformResponse);
         }
         return (isSuccess(response.status))
           ? resp
           : $q.reject(resp);
+      }
+
+      function executeHeaderFns(headers) {
+        var headerContent, processedHeaders = {};
+
+        forEach(headers, function(headerFn, header) {
+          if (isFunction(headerFn)) {
+            headerContent = headerFn();
+            if (headerContent != null) {
+              processedHeaders[header] = headerContent;
+            }
+          } else {
+            processedHeaders[header] = headerFn;
+          }
+        });
+
+        return processedHeaders;
       }
 
       function mergeHeaders(config) {
@@ -39714,23 +39799,7 @@ function $HttpProvider() {
         }
 
         // execute if header value is a function for merged headers
-        execHeaders(reqHeaders);
-        return reqHeaders;
-
-        function execHeaders(headers) {
-          var headerContent;
-
-          forEach(headers, function(headerFn, header) {
-            if (isFunction(headerFn)) {
-              headerContent = headerFn();
-              if (headerContent != null) {
-                headers[header] = headerContent;
-              } else {
-                delete headers[header];
-              }
-            }
-          });
-        }
+        return executeHeaderFns(reqHeaders);
       }
     }
 
@@ -39873,11 +39942,12 @@ function $HttpProvider() {
      * !!! ACCESSES CLOSURE VARS:
      * $httpBackend, defaults, $log, $rootScope, defaultCache, $http.pendingRequests
      */
-    function sendReq(config, reqData, reqHeaders) {
+    function sendReq(config, reqData) {
       var deferred = $q.defer(),
           promise = deferred.promise,
           cache,
           cachedResp,
+          reqHeaders = config.headers,
           url = buildUrl(config.url, config.params);
 
       $http.pendingRequests.push(config);
@@ -41577,8 +41647,8 @@ function $LocationProvider() {
    * @param {string=} oldState History state object that was before it was changed.
    */
 
-  this.$get = ['$rootScope', '$browser', '$sniffer', '$rootElement',
-      function($rootScope, $browser, $sniffer, $rootElement) {
+  this.$get = ['$rootScope', '$browser', '$sniffer', '$rootElement', '$window',
+      function($rootScope, $browser, $sniffer, $rootElement, $window) {
     var $location,
         LocationMode,
         baseHref = $browser.baseHref(), // if base[href] is undefined, it defaults to ''
@@ -41660,7 +41730,7 @@ function $LocationProvider() {
           if ($location.absUrl() != $browser.url()) {
             $rootScope.$apply();
             // hack to work around FF6 bug 684208 when scenario runner clicks on links
-            window.angular['ff-684208-preventDefault'] = true;
+            $window.angular['ff-684208-preventDefault'] = true;
           }
         }
       }
@@ -42276,6 +42346,8 @@ Parser.prototype = {
       primary = this.arrayDeclaration();
     } else if (this.expect('{')) {
       primary = this.object();
+    } else if (this.peek().identifier && this.peek().text in CONSTANTS) {
+      primary = CONSTANTS[this.consume().text];
     } else if (this.peek().identifier) {
       primary = this.identifier();
     } else if (this.peek().constant) {
@@ -42378,7 +42450,7 @@ Parser.prototype = {
       id += this.consume().text + this.consume().text;
     }
 
-    return CONSTANTS[id] || getterFn(id, this.options, this.text);
+    return getterFn(id, this.options, this.text);
   },
 
   constant: function() {
@@ -42568,17 +42640,16 @@ Parser.prototype = {
   },
 
   fieldAccess: function(object) {
-    var expression = this.text;
-    var field = this.consume().text;
-    var getter = getterFn(field, this.options, expression);
+    var getter = this.identifier();
 
     return extend(function $parseFieldAccess(scope, locals, self) {
-      return getter(self || object(scope, locals));
+      var o = self || object(scope, locals);
+      return (o == null) ? undefined : getter(o);
     }, {
       assign: function(scope, value, locals) {
         var o = object(scope, locals);
         if (!o) object.assign(scope, o = {});
-        return setter(o, field, value, expression);
+        return getter.assign(o, value);
       }
     });
   },
@@ -43736,12 +43807,10 @@ function qFactory(nextTick, exceptionHandler) {
 function $$RAFProvider() { //rAF
   this.$get = ['$window', '$timeout', function($window, $timeout) {
     var requestAnimationFrame = $window.requestAnimationFrame ||
-                                $window.webkitRequestAnimationFrame ||
-                                $window.mozRequestAnimationFrame;
+                                $window.webkitRequestAnimationFrame;
 
     var cancelAnimationFrame = $window.cancelAnimationFrame ||
                                $window.webkitCancelAnimationFrame ||
-                               $window.mozCancelAnimationFrame ||
                                $window.webkitCancelRequestAnimationFrame;
 
     var rafSupported = !!requestAnimationFrame;
@@ -43870,7 +43939,6 @@ function $RootScopeProvider() {
          var child = parent.$new();
 
          parent.salutation = "Hello";
-         child.name = "World";
          expect(child.salutation).toEqual('Hello');
 
          child.salutation = "Welcome";
@@ -44508,7 +44576,7 @@ function $RootScopeProvider() {
           while (asyncQueue.length) {
             try {
               asyncTask = asyncQueue.shift();
-              asyncTask.scope.$eval(asyncTask.expression);
+              asyncTask.scope.$eval(asyncTask.expression, asyncTask.locals);
             } catch (e) {
               $exceptionHandler(e);
             }
@@ -44723,8 +44791,9 @@ function $RootScopeProvider() {
        *    - `string`: execute using the rules as defined in {@link guide/expression expression}.
        *    - `function(scope)`: execute the function with the current `scope` parameter.
        *
+       * @param {(object)=} locals Local variables object, useful for overriding values in scope.
        */
-      $evalAsync: function(expr) {
+      $evalAsync: function(expr, locals) {
         // if we are outside of an $digest loop and this is the first time we are scheduling async
         // task also schedule async auto-flush
         if (!$rootScope.$$phase && !asyncQueue.length) {
@@ -44735,7 +44804,7 @@ function $RootScopeProvider() {
           });
         }
 
-        asyncQueue.push({scope: this, expression: expr});
+        asyncQueue.push({scope: this, expression: expr, locals: locals});
       },
 
       $$postDigest: function(fn) {
@@ -46307,7 +46376,7 @@ var $compileMinErr = minErr('$compile');
  * @description
  * The `$templateRequest` service downloads the provided template using `$http` and, upon success,
  * stores the contents inside of `$templateCache`. If the HTTP request fails or the response data
- * of the HTTP request is empty then a `$compile` error will be thrown (the exception can be thwarted
+ * of the HTTP request is empty, a `$compile` error will be thrown (the exception can be thwarted
  * by setting the 2nd parameter of the function to true).
  *
  * @param {string} tpl The HTTP request template URL
@@ -46867,18 +46936,25 @@ function $FilterProvider($provide) {
  *
  *   Can be one of:
  *
- *   - `string`: The string is evaluated as an expression and the resulting value is used for substring match against
- *     the contents of the `array`. All strings or objects with string properties in `array` that contain this string
- *     will be returned. The predicate can be negated by prefixing the string with `!`.
+ *   - `string`: The string is used for matching against the contents of the `array`. All strings or
+ *     objects with string properties in `array` that match this string will be returned. This also
+ *     applies to nested object properties.
+ *     The predicate can be negated by prefixing the string with `!`.
  *
  *   - `Object`: A pattern object can be used to filter specific properties on objects contained
  *     by `array`. For example `{name:"M", phone:"1"}` predicate will return an array of items
  *     which have property `name` containing "M" and property `phone` containing "1". A special
  *     property name `$` can be used (as in `{$:"text"}`) to accept a match against any
- *     property of the object. That's equivalent to the simple substring match with a `string`
- *     as described above. The predicate can be negated by prefixing the string with `!`.
- *     For Example `{name: "!M"}` predicate will return an array of items which have property `name`
+ *     property of the object or its nested object properties. That's equivalent to the simple
+ *     substring match with a `string` as described above. The predicate can be negated by prefixing
+ *     the string with `!`.
+ *     For example `{name: "!M"}` predicate will return an array of items which have property `name`
  *     not containing "M".
+ *
+ *     Note that a named property will match properties on the same level only, while the special
+ *     `$` property will match properties on the same level or deeper. E.g. an array item like
+ *     `{name: {first: 'John', last: 'Doe'}}` will **not** be matched by `{name: 'John'}`, but
+ *     **will** be matched by `{$: 'John'}`.
  *
  *   - `function(value, index)`: A predicate function can be used to write arbitrary filters. The
  *     function is called for each element of `array`. The final result is an array of those
@@ -46892,10 +46968,10 @@ function $FilterProvider($provide) {
  *
  *   - `function(actual, expected)`:
  *     The function will be given the object value and the predicate value to compare and
- *     should return true if the item should be included in filtered result.
+ *     should return true if both values should be considered equal.
  *
- *   - `true`: A shorthand for `function(actual, expected) { return angular.equals(expected, actual)}`.
- *     this is essentially strict comparison of expected and actual.
+ *   - `true`: A shorthand for `function(actual, expected) { return angular.equals(actual, expected)}`.
+ *     This is essentially strict comparison of expected and actual.
  *
  *   - `false|undefined`: A short hand for a function which will look for a substring match in case
  *     insensitive way.
@@ -46998,6 +47074,7 @@ function filterFilter() {
 
 // Helper functions for `filterFilter`
 function createPredicateFn(expression, comparator, matchAgainstAnyProp) {
+  var shouldMatchPrimitives = isObject(expression) && ('$' in expression);
   var predicateFn;
 
   if (comparator === true) {
@@ -47016,13 +47093,16 @@ function createPredicateFn(expression, comparator, matchAgainstAnyProp) {
   }
 
   predicateFn = function(item) {
+    if (shouldMatchPrimitives && !isObject(item)) {
+      return deepCompare(item, expression.$, comparator, false);
+    }
     return deepCompare(item, expression, comparator, matchAgainstAnyProp);
   };
 
   return predicateFn;
 }
 
-function deepCompare(actual, expected, comparator, matchAgainstAnyProp) {
+function deepCompare(actual, expected, comparator, matchAgainstAnyProp, dontMatchWholeObject) {
   var actualType = typeof actual;
   var expectedType = typeof expected;
 
@@ -47041,11 +47121,11 @@ function deepCompare(actual, expected, comparator, matchAgainstAnyProp) {
       var key;
       if (matchAgainstAnyProp) {
         for (key in actual) {
-          if ((key.charAt(0) !== '$') && deepCompare(actual[key], expected, comparator)) {
+          if ((key.charAt(0) !== '$') && deepCompare(actual[key], expected, comparator, true)) {
             return true;
           }
         }
-        return false;
+        return dontMatchWholeObject ? false : deepCompare(actual, expected, comparator, false);
       } else if (expectedType === 'object') {
         for (key in expected) {
           var expectedVal = expected[key];
@@ -47053,9 +47133,9 @@ function deepCompare(actual, expected, comparator, matchAgainstAnyProp) {
             continue;
           }
 
-          var keyIsDollar = key === '$';
-          var actualVal = keyIsDollar ? actual : actual[key];
-          if (!deepCompare(actualVal, expectedVal, comparator, keyIsDollar)) {
+          var matchAnyProperty = key === '$';
+          var actualVal = matchAnyProperty ? actual : actual[key];
+          if (!deepCompare(actualVal, expectedVal, comparator, matchAnyProperty, matchAnyProperty)) {
             return false;
           }
         }
@@ -47427,8 +47507,8 @@ var DATE_FORMATS_SPLIT = /((?:[^yMdHhmsaZEw']+)|(?:'(?:[^']|'')*')|(?:E+|y+|M+|d
  *   * `'.sss' or ',sss'`: Millisecond in second, padded (000-999)
  *   * `'a'`: AM/PM marker
  *   * `'Z'`: 4 digit (+sign) representation of the timezone offset (-1200-+1200)
- *   * `'ww'`: ISO-8601 week of year (00-53)
- *   * `'w'`: ISO-8601 week of year (0-53)
+ *   * `'ww'`: Week of year, padded (00-53). Week 01 is the week with the first Thursday of the year
+ *   * `'w'`: Week of year (0-53). Week 1 is the week with the first Thursday of the year
  *
  *   `format` string can also be one of the following predefined
  *   {@link guide/i18n localizable formats}:
@@ -47728,8 +47808,7 @@ function limitToFilter() {
       }
     }
 
-    var out = [],
-      i, n;
+    var i, n;
 
     // if abs(limit) exceeds maximum length, trim it
     if (limit > input.length)
@@ -47741,15 +47820,14 @@ function limitToFilter() {
       i = 0;
       n = limit;
     } else {
+      // zero and NaN check on limit - return empty array
+      if (!limit) return [];
+
       i = input.length + limit;
       n = input.length;
     }
 
-    for (; i < n; i++) {
-      out.push(input[i]);
-    }
-
-    return out;
+    return input.slice(i, n);
   };
 }
 
@@ -47883,9 +47961,7 @@ function orderByFilter($parse) {
         }
         if (predicate === '') {
           // Effectively no predicate was passed so we compare identity
-          return reverseComparator(function(a, b) {
-            return compare(a, b);
-          }, descending);
+          return reverseComparator(compare, descending);
         }
         get = $parse(predicate);
         if (get.constant) {
@@ -47913,29 +47989,37 @@ function orderByFilter($parse) {
           ? function(a, b) {return comp(b,a);}
           : comp;
     }
+
+    function isPrimitive(value) {
+      switch (typeof value) {
+        case 'number': /* falls through */
+        case 'boolean': /* falls through */
+        case 'string':
+          return true;
+        default:
+          return false;
+      }
+    }
+
+    function objectToString(value) {
+      if (value === null) return 'null';
+      if (typeof value.valueOf === 'function') {
+        value = value.valueOf();
+        if (isPrimitive(value)) return value;
+      }
+      if (typeof value.toString === 'function') {
+        value = value.toString();
+        if (isPrimitive(value)) return value;
+      }
+      return '';
+    }
+
     function compare(v1, v2) {
       var t1 = typeof v1;
       var t2 = typeof v2;
-      // Prepare values for Abstract Relational Comparison
-      // (http://www.ecma-international.org/ecma-262/5.1/#sec-11.8.5):
-      // If the resulting values are identical, return 0 to prevent
-      // incorrect re-ordering.
       if (t1 === t2 && t1 === "object") {
-        // If types are both numbers, emulate abstract ToPrimitive() operation
-        // in order to get primitive values suitable for comparison
-        t1 = typeof (v1.valueOf ? v1 = v1.valueOf() : v1);
-        t2 = typeof (v2.valueOf ? v2 = v2.valueOf() : v2);
-        if (t1 === t2 && t1 === "object") {
-          // Object.prototype.valueOf will return the original object, by
-          // default. If we do not receive a primitive value, use ToString()
-          // instead.
-          t1 = typeof (v1.toString ? v1 = v1.toString() : v1);
-          t2 = typeof (v2.toString ? v2 = v2.toString() : v2);
-
-          // If the end result of toString() for each item is the same, do not
-          // perform relational comparison, and do not re-order objects.
-          if (t1 === t2 && v1 === v2 || t1 === "object") return 0;
-        }
+        v1 = objectToString(v1);
+        v2 = objectToString(v2);
       }
       if (t1 === t2) {
         if (t1 === "string") {
@@ -54669,7 +54753,7 @@ var ngRepeatDirective = ['$parse', '$animate', function($parse, $animate) {
       var aliasAs = match[3];
       var trackByExp = match[4];
 
-      match = lhs.match(/^(?:([\$\w]+)|\(([\$\w]+)\s*,\s*([\$\w]+)\))$/);
+      match = lhs.match(/^(?:(\s*[\$\w]+)|\(\s*([\$\w]+)\s*,\s*([\$\w]+)\s*\))$/);
 
       if (!match) {
         throw ngRepeatMinErr('iidexp', "'_item_' in '_item_ in _collection_' should be an identifier or '(_key_, _value_)' expression, but got '{0}'.",
@@ -55578,14 +55662,15 @@ var ngOptionsMinErr = minErr('ngOptions');
  *
  * The `ngOptions` attribute can be used to dynamically generate a list of `<option>`
  * elements for the `<select>` element using the array or object obtained by evaluating the
- * `ngOptions` comprehension_expression.
+ * `ngOptions` comprehension expression.
  *
  * In many cases, `ngRepeat` can be used on `<option>` elements instead of `ngOptions` to achieve a
- * similar result. However, the `ngOptions` provides some benefits such as reducing memory and
+ * similar result. However, `ngOptions` provides some benefits such as reducing memory and
  * increasing speed by not creating a new scope for each repeated instance, as well as providing
- * more flexibility in how the `select`'s model is assigned via `select as`. `ngOptions` should be
- * used when the `select` model needs to be bound to a non-string value. This is because an option
- * element can only be bound to string values at present.
+ * more flexibility in how the `<select>`'s model is assigned via the `select` **`as`** part of the
+ * comprehension expression. `ngOptions` should be used when the `<select>` model needs to be bound
+ *  to a non-string value. This is because an option element can only be bound to string values at
+ * present.
  *
  * When an item in the `<select>` menu is selected, the array element or object property
  * represented by the selected option will be bound to the model identified by the `ngModel`
@@ -55600,28 +55685,51 @@ var ngOptionsMinErr = minErr('ngOptions');
  * array of objects. See an example [in this jsfiddle](http://jsfiddle.net/qWzTb/).
  * </div>
  *
- * ## `select as`
+ * ## `select` **`as`**
  *
- * Using `select as` will bind the result of the `select as` expression to the model, but
+ * Using `select` **`as`** will bind the result of the `select` expression to the model, but
  * the value of the `<select>` and `<option>` html elements will be either the index (for array data sources)
- * or property name (for object data sources) of the value within the collection. If a `track by` expression
+ * or property name (for object data sources) of the value within the collection. If a **`track by`** expression
  * is used, the result of that expression will be set as the value of the `option` and `select` elements.
  *
- * ### `select as` with `track by`
  *
- * Using `select as` together with `track by` is not recommended. Reasoning:
+ * ### `select` **`as`** and **`track by`**
  *
- * - Example: &lt;select ng-options="item.subItem as item.label for item in values track by item.id" ng-model="selected"&gt;
- *   values: [{id: 1, label: 'aLabel', subItem: {name: 'aSubItem'}}, {id: 2, label: 'bLabel', subItem: {name: 'bSubItem'}}],
- *   $scope.selected = {name: 'aSubItem'};
- * - track by is always applied to `value`, with the purpose of preserving the selection,
- *   (to `item` in this case)
- * - to calculate whether an item is selected we do the following:
- *   1. apply `track by` to the values in the array, e.g.
- *      In the example: [1,2]
- *   2. apply `track by` to the already selected value in `ngModel`:
- *      In the example: this is not possible, as `track by` refers to `item.id`, but the selected
- *      value from `ngModel` is `{name: aSubItem}`.
+ * <div class="alert alert-warning">
+ * Do not use `select` **`as`** and **`track by`** in the same expression. They are not designed to work together.
+ * </div>
+ *
+ * Consider the following example:
+ *
+ * ```html
+ * <select ng-options="item.subItem as item.label for item in values track by item.id" ng-model="selected">
+ * ```
+ *
+ * ```js
+ * $scope.values = [{
+ *   id: 1,
+ *   label: 'aLabel',
+ *   subItem: { name: 'aSubItem' }
+ * }, {
+ *   id: 2,
+ *   label: 'bLabel',
+ *   subItem: { name: 'bSubItem' }
+ * }];
+ *
+ * $scope.selected = { name: 'aSubItem' };
+ * ```
+ *
+ * With the purpose of preserving the selection, the **`track by`** expression is always applied to the element
+ * of the data source (to `item` in this example). To calculate whether an element is selected, we do the
+ * following:
+ *
+ * 1. Apply **`track by`** to the elements in the array. In the example: `[1, 2]`
+ * 2. Apply **`track by`** to the already selected value in `ngModel`.
+ *    In the example: this is not possible as **`track by`** refers to `item.id`, but the selected
+ *    value from `ngModel` is `{name: 'aSubItem'}`, so the **`track by`** expression is applied to
+ *    a wrong object, the selected element can't be found, `<select>` is always reset to the "not
+ *    selected" option.
+ *
  *
  * @param {string} ngModel Assignable angular expression to data-bind to.
  * @param {string=} name Property name of the form under which the control is published.
@@ -56538,6 +56646,24 @@ var styleDirective = valueFn({
    */
 
   window.sweetAlert = window.swal = function() {
+    // Copy arguments to the local args variable
+    var args = arguments;
+    if (getModal() !== null) {
+        // If getModal returns values then continue
+        modalDependant.apply(this, args);
+    } else {
+        // If getModal returns null i.e. no matches, then set up a interval event to check the return value until it is not null	
+        var modalCheckInterval = setInterval(function() {
+          if (getModal() !== null) {
+            clearInterval(modalCheckInterval);
+            modalDependant.apply(this, args);
+          }
+      }, 100);
+    }
+  };
+        
+  function modalDependant() {
+
     if (arguments[0] === undefined) {
       window.console.error('sweetAlert expects at least 1 attribute!');
       return false;
@@ -56563,6 +56689,7 @@ var styleDirective = valueFn({
         params.title              = arguments[0].title;
         params.text               = arguments[0].text || defaultParams.text;
         params.type               = arguments[0].type || defaultParams.type;
+        params.customClass        = arguments[0].customClass || params.customClass;
         params.allowOutsideClick  = arguments[0].allowOutsideClick || defaultParams.allowOutsideClick;
         params.showCancelButton   = arguments[0].showCancelButton !== undefined ? arguments[0].showCancelButton : defaultParams.showCancelButton;
         params.closeOnConfirm     = arguments[0].closeOnConfirm !== undefined ? arguments[0].closeOnConfirm : defaultParams.closeOnConfirm;
@@ -56801,7 +56928,7 @@ var styleDirective = valueFn({
         }
       }, 0);
     };
-  };
+  }
 
   /**
    * Set default params for each popup
@@ -56837,6 +56964,11 @@ var styleDirective = valueFn({
     $text.innerHTML = escapeHtml(params.text || '').split("\n").join("<br>");
     if (params.text) {
       show($text);
+    }
+
+    //Custom Class
+    if (params.customClass) {
+      addClass(modal, params.customClass);
     }
 
     // Icon
@@ -57105,7 +57237,7 @@ duringInitialization:d})&&(this.options.singleField&&(g=this.assignedTags(),g.pu
 null,a);if(!1!==this._trigger("beforeTagRemoved",null,{tag:a,tagLabel:this.tagLabel(a)})){if(this.options.singleField){var d=this.assignedTags(),f=this.tagLabel(a),d=b.grep(d,function(a){return a!=f});this._updateSingleTagsField(d)}if(c){a.addClass("removed");var d=this._effectExists("blind")?["blind",{direction:"horizontal"},"fast"]:["fast"],g=this;d.push(function(){a.remove();g._trigger("afterTagRemoved",null,{tag:a,tagLabel:g.tagLabel(a)})});a.fadeOut("fast").hide.apply(a,d).dequeue()}else a.remove(),
 this._trigger("afterTagRemoved",null,{tag:a,tagLabel:this.tagLabel(a)})}},removeTagByLabel:function(a,b){var d=this._findTagByLabel(a);if(!d)throw"No such tag exists with the name '"+a+"'";this.removeTag(d,b)},removeAll:function(){var a=this;this._tags().each(function(b,d){a.removeTag(d,!1)})}})})(jQuery);
 //! moment.js
-//! version : 2.8.3
+//! version : 2.9.0
 //! authors : Tim Wood, Iskren Chernev, Moment.js contributors
 //! license : MIT
 //! momentjs.com
@@ -57116,9 +57248,9 @@ this._trigger("afterTagRemoved",null,{tag:a,tagLabel:this.tagLabel(a)})}},remove
     ************************************/
 
     var moment,
-        VERSION = '2.8.3',
+        VERSION = '2.9.0',
         // the global-scope this is NOT the global object in Node.js
-        globalScope = typeof global !== 'undefined' ? global : this,
+        globalScope = (typeof global !== 'undefined' && (typeof window === 'undefined' || window === global.window)) ? global : this,
         oldGlobalMoment,
         round = Math.round,
         hasOwnProperty = Object.prototype.hasOwnProperty,
@@ -57139,7 +57271,7 @@ this._trigger("afterTagRemoved",null,{tag:a,tagLabel:this.tagLabel(a)})}},remove
         momentProperties = [],
 
         // check for nodeJS
-        hasModule = (typeof module !== 'undefined' && module.exports),
+        hasModule = (typeof module !== 'undefined' && module && module.exports),
 
         // ASP.NET json date format regex
         aspNetJsonRegex = /^\/?Date\((\-?\d+)/i,
@@ -57150,8 +57282,8 @@ this._trigger("afterTagRemoved",null,{tag:a,tagLabel:this.tagLabel(a)})}},remove
         isoDurationRegex = /^(-)?P(?:(?:([0-9,.]*)Y)?(?:([0-9,.]*)M)?(?:([0-9,.]*)D)?(?:T(?:([0-9,.]*)H)?(?:([0-9,.]*)M)?(?:([0-9,.]*)S)?)?|([0-9,.]*)W)$/,
 
         // format tokens
-        formattingTokens = /(\[[^\[]*\])|(\\)?(Mo|MM?M?M?|Do|DDDo|DD?D?D?|ddd?d?|do?|w[o|w]?|W[o|W]?|Q|YYYYYY|YYYYY|YYYY|YY|gg(ggg?)?|GG(GGG?)?|e|E|a|A|hh?|HH?|mm?|ss?|S{1,4}|X|zz?|ZZ?|.)/g,
-        localFormattingTokens = /(\[[^\[]*\])|(\\)?(LT|LL?L?L?|l{1,4})/g,
+        formattingTokens = /(\[[^\[]*\])|(\\)?(Mo|MM?M?M?|Do|DDDo|DD?D?D?|ddd?d?|do?|w[o|w]?|W[o|W]?|Q|YYYYYY|YYYYY|YYYY|YY|gg(ggg?)?|GG(GGG?)?|e|E|a|A|hh?|HH?|mm?|ss?|S{1,4}|x|X|zz?|ZZ?|.)/g,
+        localFormattingTokens = /(\[[^\[]*\])|(\\)?(LTS|LT|LL?L?L?|l{1,4})/g,
 
         // parsing token regexes
         parseTokenOneOrTwoDigits = /\d\d?/, // 0 - 99
@@ -57162,8 +57294,8 @@ this._trigger("afterTagRemoved",null,{tag:a,tagLabel:this.tagLabel(a)})}},remove
         parseTokenWord = /[0-9]*['a-z\u00A0-\u05FF\u0700-\uD7FF\uF900-\uFDCF\uFDF0-\uFFEF]+|[\u0600-\u06FF\/]+(\s*?[\u0600-\u06FF]+){1,2}/i, // any word (or two) characters or numbers including two/three word month in arabic.
         parseTokenTimezone = /Z|[\+\-]\d\d:?\d\d/gi, // +00:00 -00:00 +0000 -0000 or Z
         parseTokenT = /T/i, // T (ISO separator)
+        parseTokenOffsetMs = /[\+\-]?\d+/, // 1234567890123
         parseTokenTimestampMs = /[\+\-]?\d+(\.\d{1,3})?/, // 123456789 123456789.123
-        parseTokenOrdinal = /\d{1,2}/,
 
         //strict parsing regexes
         parseTokenOneDigit = /\d/, // 0 - 9
@@ -57195,7 +57327,7 @@ this._trigger("afterTagRemoved",null,{tag:a,tagLabel:this.tagLabel(a)})}},remove
             ['HH', /(T| )\d\d/]
         ],
 
-        // timezone chunker '+10:00' > ['10', '00'] or '-1530' > ['-15', '30']
+        // timezone chunker '+10:00' > ['10', '00'] or '-1530' > ['-', '15', '30']
         parseTimezoneChunker = /([\+\-]|\d\d)/gi,
 
         // getter and setter names
@@ -57355,7 +57487,7 @@ this._trigger("afterTagRemoved",null,{tag:a,tagLabel:this.tagLabel(a)})}},remove
                 return leftZeroFill(this.milliseconds(), 3);
             },
             Z    : function () {
-                var a = -this.zone(),
+                var a = this.utcOffset(),
                     b = '+';
                 if (a < 0) {
                     a = -a;
@@ -57364,7 +57496,7 @@ this._trigger("afterTagRemoved",null,{tag:a,tagLabel:this.tagLabel(a)})}},remove
                 return b + leftZeroFill(toInt(a / 60), 2) + ':' + leftZeroFill(toInt(a) % 60, 2);
             },
             ZZ   : function () {
-                var a = -this.zone(),
+                var a = this.utcOffset(),
                     b = '+';
                 if (a < 0) {
                     a = -a;
@@ -57378,6 +57510,9 @@ this._trigger("afterTagRemoved",null,{tag:a,tagLabel:this.tagLabel(a)})}},remove
             zz : function () {
                 return this.zoneName();
             },
+            x    : function () {
+                return this.valueOf();
+            },
             X    : function () {
                 return this.unix();
             },
@@ -57388,7 +57523,9 @@ this._trigger("afterTagRemoved",null,{tag:a,tagLabel:this.tagLabel(a)})}},remove
 
         deprecations = {},
 
-        lists = ['months', 'monthsShort', 'weekdays', 'weekdaysShort', 'weekdaysMin'];
+        lists = ['months', 'monthsShort', 'weekdays', 'weekdaysShort', 'weekdaysMin'],
+
+        updateInProgress = false;
 
     // Pick the first defined of two or three arguments. dfl comes from
     // default.
@@ -57457,6 +57594,26 @@ this._trigger("afterTagRemoved",null,{tag:a,tagLabel:this.tagLabel(a)})}},remove
         };
     }
 
+    function monthDiff(a, b) {
+        // difference in months
+        var wholeMonthDiff = ((b.year() - a.year()) * 12) + (b.month() - a.month()),
+            // b is in (anchor - 1 month, anchor + 1 month)
+            anchor = a.clone().add(wholeMonthDiff, 'months'),
+            anchor2, adjust;
+
+        if (b - anchor < 0) {
+            anchor2 = a.clone().add(wholeMonthDiff - 1, 'months');
+            // linear across the month
+            adjust = (b - anchor) / (anchor - anchor2);
+        } else {
+            anchor2 = a.clone().add(wholeMonthDiff + 1, 'months');
+            // linear across the month
+            adjust = (b - anchor) / (anchor2 - anchor);
+        }
+
+        return -(wholeMonthDiff + adjust);
+    }
+
     while (ordinalizeTokens.length) {
         i = ordinalizeTokens.pop();
         formatTokenFunctions[i + 'o'] = ordinalizeToken(formatTokenFunctions[i], i);
@@ -57467,6 +57624,31 @@ this._trigger("afterTagRemoved",null,{tag:a,tagLabel:this.tagLabel(a)})}},remove
     }
     formatTokenFunctions.DDDD = padToken(formatTokenFunctions.DDD, 3);
 
+
+    function meridiemFixWrap(locale, hour, meridiem) {
+        var isPm;
+
+        if (meridiem == null) {
+            // nothing to do
+            return hour;
+        }
+        if (locale.meridiemHour != null) {
+            return locale.meridiemHour(hour, meridiem);
+        } else if (locale.isPM != null) {
+            // Fallback
+            isPm = locale.isPM(meridiem);
+            if (isPm && hour < 12) {
+                hour += 12;
+            }
+            if (!isPm && hour === 12) {
+                hour = 0;
+            }
+            return hour;
+        } else {
+            // thie is not supposed to happen
+            return hour;
+        }
+    }
 
     /************************************
         Constructors
@@ -57482,6 +57664,13 @@ this._trigger("afterTagRemoved",null,{tag:a,tagLabel:this.tagLabel(a)})}},remove
         }
         copyConfig(this, config);
         this._d = new Date(+config._d);
+        // Prevent infinite loop in case updateOffset creates new moment
+        // objects.
+        if (updateInProgress === false) {
+            updateInProgress = true;
+            moment.updateOffset(this);
+            updateInProgress = false;
+        }
     }
 
     // Duration Constructor
@@ -57804,7 +57993,10 @@ this._trigger("afterTagRemoved",null,{tag:a,tagLabel:this.tagLabel(a)})}},remove
             overflow =
                 m._a[MONTH] < 0 || m._a[MONTH] > 11 ? MONTH :
                 m._a[DATE] < 1 || m._a[DATE] > daysInMonth(m._a[YEAR], m._a[MONTH]) ? DATE :
-                m._a[HOUR] < 0 || m._a[HOUR] > 23 ? HOUR :
+                m._a[HOUR] < 0 || m._a[HOUR] > 24 ||
+                    (m._a[HOUR] === 24 && (m._a[MINUTE] !== 0 ||
+                                           m._a[SECOND] !== 0 ||
+                                           m._a[MILLISECOND] !== 0)) ? HOUR :
                 m._a[MINUTE] < 0 || m._a[MINUTE] > 59 ? MINUTE :
                 m._a[SECOND] < 0 || m._a[SECOND] > 59 ? SECOND :
                 m._a[MILLISECOND] < 0 || m._a[MILLISECOND] > 999 ? MILLISECOND :
@@ -57831,7 +58023,8 @@ this._trigger("afterTagRemoved",null,{tag:a,tagLabel:this.tagLabel(a)})}},remove
             if (m._strict) {
                 m._isValid = m._isValid &&
                     m._pf.charsLeftOver === 0 &&
-                    m._pf.unusedTokens.length === 0;
+                    m._pf.unusedTokens.length === 0 &&
+                    m._pf.bigHour === undefined;
             }
         }
         return m._isValid;
@@ -57881,10 +58074,21 @@ this._trigger("afterTagRemoved",null,{tag:a,tagLabel:this.tagLabel(a)})}},remove
         return locales[name];
     }
 
-    // Return a moment from input, that is local/utc/zone equivalent to model.
+    // Return a moment from input, that is local/utc/utcOffset equivalent to
+    // model.
     function makeAs(input, model) {
-        return model._isUTC ? moment(input).zone(model._offset || 0) :
-            moment(input).local();
+        var res, diff;
+        if (model._isUTC) {
+            res = model.clone();
+            diff = (moment.isMoment(input) || isDate(input) ?
+                    +input : +moment(input)) - (+res);
+            // Use low-level api, because this fn is low-level api.
+            res._d.setTime(+res._d + diff);
+            moment.updateOffset(res, false);
+            return res;
+        } else {
+            return moment(input).local();
+        }
     }
 
     /************************************
@@ -57904,6 +58108,9 @@ this._trigger("afterTagRemoved",null,{tag:a,tagLabel:this.tagLabel(a)})}},remove
                     this['_' + i] = prop;
                 }
             }
+            // Lenient ordinal parsing accepts just a number in addition to
+            // number + (possibly) stuff coming from _ordinalParseLenient.
+            this._ordinalParseLenient = new RegExp(this._ordinalParse.source + '|' + /\d{1,2}/.source);
         },
 
         _months : 'January_February_March_April_May_June_July_August_September_October_November_December'.split('_'),
@@ -57916,22 +58123,32 @@ this._trigger("afterTagRemoved",null,{tag:a,tagLabel:this.tagLabel(a)})}},remove
             return this._monthsShort[m.month()];
         },
 
-        monthsParse : function (monthName) {
+        monthsParse : function (monthName, format, strict) {
             var i, mom, regex;
 
             if (!this._monthsParse) {
                 this._monthsParse = [];
+                this._longMonthsParse = [];
+                this._shortMonthsParse = [];
             }
 
             for (i = 0; i < 12; i++) {
                 // make the regex if we don't have it already
-                if (!this._monthsParse[i]) {
-                    mom = moment.utc([2000, i]);
+                mom = moment.utc([2000, i]);
+                if (strict && !this._longMonthsParse[i]) {
+                    this._longMonthsParse[i] = new RegExp('^' + this.months(mom, '').replace('.', '') + '$', 'i');
+                    this._shortMonthsParse[i] = new RegExp('^' + this.monthsShort(mom, '').replace('.', '') + '$', 'i');
+                }
+                if (!strict && !this._monthsParse[i]) {
                     regex = '^' + this.months(mom, '') + '|^' + this.monthsShort(mom, '');
                     this._monthsParse[i] = new RegExp(regex.replace('.', ''), 'i');
                 }
                 // test the regex
-                if (this._monthsParse[i].test(monthName)) {
+                if (strict && format === 'MMMM' && this._longMonthsParse[i].test(monthName)) {
+                    return i;
+                } else if (strict && format === 'MMM' && this._shortMonthsParse[i].test(monthName)) {
+                    return i;
+                } else if (!strict && this._monthsParse[i].test(monthName)) {
                     return i;
                 }
             }
@@ -57974,6 +58191,7 @@ this._trigger("afterTagRemoved",null,{tag:a,tagLabel:this.tagLabel(a)})}},remove
         },
 
         _longDateFormat : {
+            LTS : 'h:mm:ss A',
             LT : 'h:mm A',
             L : 'MM/DD/YYYY',
             LL : 'MMMM D, YYYY',
@@ -58006,6 +58224,7 @@ this._trigger("afterTagRemoved",null,{tag:a,tagLabel:this.tagLabel(a)})}},remove
             }
         },
 
+
         _calendar : {
             sameDay : '[Today at] LT',
             nextDay : '[Tomorrow at] LT',
@@ -58014,9 +58233,9 @@ this._trigger("afterTagRemoved",null,{tag:a,tagLabel:this.tagLabel(a)})}},remove
             lastWeek : '[Last] dddd [at] LT',
             sameElse : 'L'
         },
-        calendar : function (key, mom) {
+        calendar : function (key, mom, now) {
             var output = this._calendar[key];
-            return typeof output === 'function' ? output.apply(mom) : output;
+            return typeof output === 'function' ? output.apply(mom, [now]) : output;
         },
 
         _relativeTime : {
@@ -58051,6 +58270,7 @@ this._trigger("afterTagRemoved",null,{tag:a,tagLabel:this.tagLabel(a)})}},remove
             return this._ordinal.replace('%d', number);
         },
         _ordinal : '%d',
+        _ordinalParse : /\d{1,2}/,
 
         preparse : function (string) {
             return string;
@@ -58067,6 +58287,14 @@ this._trigger("afterTagRemoved",null,{tag:a,tagLabel:this.tagLabel(a)})}},remove
         _week : {
             dow : 0, // Sunday is the first day of the week.
             doy : 6  // The week that contains Jan 1st is the first week of the year.
+        },
+
+        firstDayOfWeek : function () {
+            return this._week.dow;
+        },
+
+        firstDayOfYear : function () {
+            return this._week.doy;
         },
 
         _invalidDate: 'Invalid date',
@@ -58192,6 +58420,8 @@ this._trigger("afterTagRemoved",null,{tag:a,tagLabel:this.tagLabel(a)})}},remove
         case 'a':
         case 'A':
             return config._locale._meridiemParse;
+        case 'x':
+            return parseTokenOffsetMs;
         case 'X':
             return parseTokenTimestampMs;
         case 'Z':
@@ -58226,21 +58456,21 @@ this._trigger("afterTagRemoved",null,{tag:a,tagLabel:this.tagLabel(a)})}},remove
         case 'E':
             return parseTokenOneOrTwoDigits;
         case 'Do':
-            return parseTokenOrdinal;
+            return strict ? config._locale._ordinalParse : config._locale._ordinalParseLenient;
         default :
             a = new RegExp(regexpEscape(unescapeFormat(token.replace('\\', '')), 'i'));
             return a;
         }
     }
 
-    function timezoneMinutesFromString(string) {
+    function utcOffsetFromString(string) {
         string = string || '';
         var possibleTzMatches = (string.match(parseTokenTimezone) || []),
             tzChunk = possibleTzMatches[possibleTzMatches.length - 1] || [],
             parts = (tzChunk + '').match(parseTimezoneChunker) || ['-', 0, 0],
             minutes = +(parts[1] * 60) + toInt(parts[2]);
 
-        return parts[0] === '+' ? -minutes : minutes;
+        return parts[0] === '+' ? minutes : -minutes;
     }
 
     // function to convert string input to date
@@ -58263,7 +58493,7 @@ this._trigger("afterTagRemoved",null,{tag:a,tagLabel:this.tagLabel(a)})}},remove
             break;
         case 'MMM' : // fall through to MMMM
         case 'MMMM' :
-            a = config._locale.monthsParse(input);
+            a = config._locale.monthsParse(input, token, config._strict);
             // if we didn't find a month name, mark the date as invalid.
             if (a != null) {
                 datePartArray[MONTH] = a;
@@ -58280,7 +58510,8 @@ this._trigger("afterTagRemoved",null,{tag:a,tagLabel:this.tagLabel(a)})}},remove
             break;
         case 'Do' :
             if (input != null) {
-                datePartArray[DATE] = toInt(parseInt(input, 10));
+                datePartArray[DATE] = toInt(parseInt(
+                            input.match(/\d{1,2}/)[0], 10));
             }
             break;
         // DAY OF YEAR
@@ -58303,13 +58534,16 @@ this._trigger("afterTagRemoved",null,{tag:a,tagLabel:this.tagLabel(a)})}},remove
         // AM / PM
         case 'a' : // fall through to A
         case 'A' :
-            config._isPm = config._locale.isPM(input);
+            config._meridiem = input;
+            // config._isPm = config._locale.isPM(input);
             break;
-        // 24 HOUR
-        case 'H' : // fall through to hh
-        case 'HH' : // fall through to hh
+        // HOUR
         case 'h' : // fall through to hh
         case 'hh' :
+            config._pf.bigHour = true;
+            /* falls through */
+        case 'H' : // fall through to HH
+        case 'HH' :
             datePartArray[HOUR] = toInt(input);
             break;
         // MINUTE
@@ -58329,6 +58563,10 @@ this._trigger("afterTagRemoved",null,{tag:a,tagLabel:this.tagLabel(a)})}},remove
         case 'SSSS' :
             datePartArray[MILLISECOND] = toInt(('0.' + input) * 1000);
             break;
+        // UNIX OFFSET (MILLISECONDS)
+        case 'x':
+            config._d = new Date(toInt(input));
+            break;
         // UNIX TIMESTAMP WITH MS
         case 'X':
             config._d = new Date(parseFloat(input) * 1000);
@@ -58337,7 +58575,7 @@ this._trigger("afterTagRemoved",null,{tag:a,tagLabel:this.tagLabel(a)})}},remove
         case 'Z' : // fall through to ZZ
         case 'ZZ' :
             config._useUTC = true;
-            config._tzm = timezoneMinutesFromString(input);
+            config._tzm = utcOffsetFromString(input);
             break;
         // WEEKDAY - human
         case 'dd':
@@ -58465,11 +58703,24 @@ this._trigger("afterTagRemoved",null,{tag:a,tagLabel:this.tagLabel(a)})}},remove
             config._a[i] = input[i] = (config._a[i] == null) ? (i === 2 ? 1 : 0) : config._a[i];
         }
 
+        // Check for 24:00:00.000
+        if (config._a[HOUR] === 24 &&
+                config._a[MINUTE] === 0 &&
+                config._a[SECOND] === 0 &&
+                config._a[MILLISECOND] === 0) {
+            config._nextDay = true;
+            config._a[HOUR] = 0;
+        }
+
         config._d = (config._useUTC ? makeUTCDate : makeDate).apply(null, input);
-        // Apply timezone offset from input. The actual zone can be changed
+        // Apply timezone offset from input. The actual utcOffset can be changed
         // with parseZone.
         if (config._tzm != null) {
-            config._d.setUTCMinutes(config._d.getUTCMinutes() + config._tzm);
+            config._d.setUTCMinutes(config._d.getUTCMinutes() - config._tzm);
+        }
+
+        if (config._nextDay) {
+            config._a[HOUR] = 24;
         }
     }
 
@@ -58484,7 +58735,7 @@ this._trigger("afterTagRemoved",null,{tag:a,tagLabel:this.tagLabel(a)})}},remove
         config._a = [
             normalizedInput.year,
             normalizedInput.month,
-            normalizedInput.day,
+            normalizedInput.day || normalizedInput.date,
             normalizedInput.hour,
             normalizedInput.minute,
             normalizedInput.second,
@@ -58557,15 +58808,13 @@ this._trigger("afterTagRemoved",null,{tag:a,tagLabel:this.tagLabel(a)})}},remove
             config._pf.unusedInput.push(string);
         }
 
-        // handle am pm
-        if (config._isPm && config._a[HOUR] < 12) {
-            config._a[HOUR] += 12;
+        // clear _12h flag if hour is <= 12
+        if (config._pf.bigHour === true && config._a[HOUR] <= 12) {
+            config._pf.bigHour = undefined;
         }
-        // if is 12 am, change hours to 0
-        if (config._isPm === false && config._a[HOUR] === 12) {
-            config._a[HOUR] = 0;
-        }
-
+        // handle meridiem
+        config._a[HOUR] = meridiemFixWrap(config._locale, config._a[HOUR],
+                config._meridiem);
         dateFromConfig(config);
         checkOverflow(config);
     }
@@ -58825,7 +59074,8 @@ this._trigger("afterTagRemoved",null,{tag:a,tagLabel:this.tagLabel(a)})}},remove
 
     function makeMoment(config) {
         var input = config._i,
-            format = config._f;
+            format = config._f,
+            res;
 
         config._locale = config._locale || moment.localeData(config._l);
 
@@ -58849,7 +59099,14 @@ this._trigger("afterTagRemoved",null,{tag:a,tagLabel:this.tagLabel(a)})}},remove
             makeDateFromInput(config);
         }
 
-        return new Moment(config);
+        res = new Moment(config);
+        if (res._nextDay) {
+            // Adding is smart enough around DST
+            res.add(1, 'd');
+            res._nextDay = undefined;
+        }
+
+        return res;
     }
 
     moment = function (input, format, locale, strict) {
@@ -58881,7 +59138,7 @@ this._trigger("afterTagRemoved",null,{tag:a,tagLabel:this.tagLabel(a)})}},remove
         'release. Please refer to ' +
         'https://github.com/moment/moment/issues/1407 for more info.',
         function (config) {
-            config._d = new Date(config._i);
+            config._d = new Date(config._i + (config._useUTC ? ' UTC' : ''));
         }
     );
 
@@ -58999,6 +59256,8 @@ this._trigger("afterTagRemoved",null,{tag:a,tagLabel:this.tagLabel(a)})}},remove
                 s: parseIso(match[7]),
                 w: parseIso(match[8])
             };
+        } else if (duration == null) {// checks for null or undefined
+            duration = {};
         } else if (typeof duration === 'object' &&
                 ('from' in duration || 'to' in duration)) {
             diffRes = momentsDifference(moment(duration.from), moment(duration.to));
@@ -59163,6 +59422,8 @@ this._trigger("afterTagRemoved",null,{tag:a,tagLabel:this.tagLabel(a)})}},remove
         return toInt(input) + (toInt(input) > 68 ? 1900 : 2000);
     };
 
+    moment.isDate = isDate;
+
     /************************************
         Moment Prototype
     ************************************/
@@ -59175,7 +59436,7 @@ this._trigger("afterTagRemoved",null,{tag:a,tagLabel:this.tagLabel(a)})}},remove
         },
 
         valueOf : function () {
-            return +this._d + ((this._offset || 0) * 60000);
+            return +this._d - ((this._offset || 0) * 60000);
         },
 
         unix : function () {
@@ -59193,7 +59454,12 @@ this._trigger("afterTagRemoved",null,{tag:a,tagLabel:this.tagLabel(a)})}},remove
         toISOString : function () {
             var m = moment(this).utc();
             if (0 < m.year() && m.year() <= 9999) {
-                return formatMoment(m, 'YYYY-MM-DD[T]HH:mm:ss.SSS[Z]');
+                if ('function' === typeof Date.prototype.toISOString) {
+                    // native implementation is ~50x faster, use it when we can
+                    return this.toDate().toISOString();
+                } else {
+                    return formatMoment(m, 'YYYY-MM-DD[T]HH:mm:ss.SSS[Z]');
+                }
             } else {
                 return formatMoment(m, 'YYYYYY-MM-DD[T]HH:mm:ss.SSS[Z]');
             }
@@ -59233,16 +59499,16 @@ this._trigger("afterTagRemoved",null,{tag:a,tagLabel:this.tagLabel(a)})}},remove
         },
 
         utc : function (keepLocalTime) {
-            return this.zone(0, keepLocalTime);
+            return this.utcOffset(0, keepLocalTime);
         },
 
         local : function (keepLocalTime) {
             if (this._isUTC) {
-                this.zone(0, keepLocalTime);
+                this.utcOffset(0, keepLocalTime);
                 this._isUTC = false;
 
                 if (keepLocalTime) {
-                    this.add(this._dateTzOffset(), 'm');
+                    this.subtract(this._dateUtcOffset(), 'm');
                 }
             }
             return this;
@@ -59259,29 +59525,20 @@ this._trigger("afterTagRemoved",null,{tag:a,tagLabel:this.tagLabel(a)})}},remove
 
         diff : function (input, units, asFloat) {
             var that = makeAs(input, this),
-                zoneDiff = (this.zone() - that.zone()) * 6e4,
-                diff, output, daysAdjust;
+                zoneDiff = (that.utcOffset() - this.utcOffset()) * 6e4,
+                anchor, diff, output, daysAdjust;
 
             units = normalizeUnits(units);
 
-            if (units === 'year' || units === 'month') {
-                // average number of days in the months in the given dates
-                diff = (this.daysInMonth() + that.daysInMonth()) * 432e5; // 24 * 60 * 60 * 1000 / 2
-                // difference in months
-                output = ((this.year() - that.year()) * 12) + (this.month() - that.month());
-                // adjust by taking difference in days, average number of days
-                // and dst in the given months.
-                daysAdjust = (this - moment(this).startOf('month')) -
-                    (that - moment(that).startOf('month'));
-                // same as above but with zones, to negate all dst
-                daysAdjust -= ((this.zone() - moment(this).startOf('month').zone()) -
-                        (that.zone() - moment(that).startOf('month').zone())) * 6e4;
-                output += daysAdjust / diff;
-                if (units === 'year') {
+            if (units === 'year' || units === 'month' || units === 'quarter') {
+                output = monthDiff(this, that);
+                if (units === 'quarter') {
+                    output = output / 3;
+                } else if (units === 'year') {
                     output = output / 12;
                 }
             } else {
-                diff = (this - that);
+                diff = this - that;
                 output = units === 'second' ? diff / 1e3 : // 1000
                     units === 'minute' ? diff / 6e4 : // 1000 * 60
                     units === 'hour' ? diff / 36e5 : // 1000 * 60 * 60
@@ -59302,7 +59559,8 @@ this._trigger("afterTagRemoved",null,{tag:a,tagLabel:this.tagLabel(a)})}},remove
 
         calendar : function (time) {
             // We want to compare the start of today, vs this.
-            // Getting start-of-today depends on whether we're zone'd or not.
+            // Getting start-of-today depends on whether we're locat/utc/offset
+            // or not.
             var now = time || moment(),
                 sod = makeAs(now, this).startOf('day'),
                 diff = this.diff(sod, 'days', true),
@@ -59312,7 +59570,7 @@ this._trigger("afterTagRemoved",null,{tag:a,tagLabel:this.tagLabel(a)})}},remove
                     diff < 1 ? 'sameDay' :
                     diff < 2 ? 'nextDay' :
                     diff < 7 ? 'nextWeek' : 'sameElse';
-            return this.format(this.localeData().calendar(format, this));
+            return this.format(this.localeData().calendar(format, this, moment(now)));
         },
 
         isLeapYear : function () {
@@ -59320,8 +59578,8 @@ this._trigger("afterTagRemoved",null,{tag:a,tagLabel:this.tagLabel(a)})}},remove
         },
 
         isDST : function () {
-            return (this.zone() < this.clone().month(0).zone() ||
-                this.zone() < this.clone().month(5).zone());
+            return (this.utcOffset() > this.clone().month(0).utcOffset() ||
+                this.utcOffset() > this.clone().month(5).utcOffset());
         },
 
         day : function (input) {
@@ -59381,36 +59639,49 @@ this._trigger("afterTagRemoved",null,{tag:a,tagLabel:this.tagLabel(a)})}},remove
 
         endOf: function (units) {
             units = normalizeUnits(units);
+            if (units === undefined || units === 'millisecond') {
+                return this;
+            }
             return this.startOf(units).add(1, (units === 'isoWeek' ? 'week' : units)).subtract(1, 'ms');
         },
 
         isAfter: function (input, units) {
+            var inputMs;
             units = normalizeUnits(typeof units !== 'undefined' ? units : 'millisecond');
             if (units === 'millisecond') {
                 input = moment.isMoment(input) ? input : moment(input);
                 return +this > +input;
             } else {
-                return +this.clone().startOf(units) > +moment(input).startOf(units);
+                inputMs = moment.isMoment(input) ? +input : +moment(input);
+                return inputMs < +this.clone().startOf(units);
             }
         },
 
         isBefore: function (input, units) {
+            var inputMs;
             units = normalizeUnits(typeof units !== 'undefined' ? units : 'millisecond');
             if (units === 'millisecond') {
                 input = moment.isMoment(input) ? input : moment(input);
                 return +this < +input;
             } else {
-                return +this.clone().startOf(units) < +moment(input).startOf(units);
+                inputMs = moment.isMoment(input) ? +input : +moment(input);
+                return +this.clone().endOf(units) < inputMs;
             }
         },
 
+        isBetween: function (from, to, units) {
+            return this.isAfter(from, units) && this.isBefore(to, units);
+        },
+
         isSame: function (input, units) {
+            var inputMs;
             units = normalizeUnits(units || 'millisecond');
             if (units === 'millisecond') {
                 input = moment.isMoment(input) ? input : moment(input);
                 return +this === +input;
             } else {
-                return +this.clone().startOf(units) === +makeAs(input, this).startOf(units);
+                inputMs = +moment(input);
+                return +(this.clone().startOf(units)) <= inputMs && inputMs <= +(this.clone().endOf(units));
             }
         },
 
@@ -59430,9 +59701,27 @@ this._trigger("afterTagRemoved",null,{tag:a,tagLabel:this.tagLabel(a)})}},remove
                 }
         ),
 
+        zone : deprecate(
+                'moment().zone is deprecated, use moment().utcOffset instead. ' +
+                'https://github.com/moment/moment/issues/1779',
+                function (input, keepLocalTime) {
+                    if (input != null) {
+                        if (typeof input !== 'string') {
+                            input = -input;
+                        }
+
+                        this.utcOffset(input, keepLocalTime);
+
+                        return this;
+                    } else {
+                        return -this.utcOffset();
+                    }
+                }
+        ),
+
         // keepLocalTime = true means only change the timezone, without
-        // affecting the local hour. So 5:31:26 +0300 --[zone(2, true)]-->
-        // 5:31:26 +0200 It is possible that 5:31:26 doesn't exist int zone
+        // affecting the local hour. So 5:31:26 +0300 --[utcOffset(2, true)]-->
+        // 5:31:26 +0200 It is possible that 5:31:26 doesn't exist with offset
         // +0200, so we adjust the time as needed, to be valid.
         //
         // Keeping the time actually adds/subtracts (one hour)
@@ -59440,38 +59729,51 @@ this._trigger("afterTagRemoved",null,{tag:a,tagLabel:this.tagLabel(a)})}},remove
         // a second time. In case it wants us to change the offset again
         // _changeInProgress == true case, then we have to adjust, because
         // there is no such time in the given timezone.
-        zone : function (input, keepLocalTime) {
+        utcOffset : function (input, keepLocalTime) {
             var offset = this._offset || 0,
                 localAdjust;
             if (input != null) {
                 if (typeof input === 'string') {
-                    input = timezoneMinutesFromString(input);
+                    input = utcOffsetFromString(input);
                 }
                 if (Math.abs(input) < 16) {
                     input = input * 60;
                 }
                 if (!this._isUTC && keepLocalTime) {
-                    localAdjust = this._dateTzOffset();
+                    localAdjust = this._dateUtcOffset();
                 }
                 this._offset = input;
                 this._isUTC = true;
                 if (localAdjust != null) {
-                    this.subtract(localAdjust, 'm');
+                    this.add(localAdjust, 'm');
                 }
                 if (offset !== input) {
                     if (!keepLocalTime || this._changeInProgress) {
                         addOrSubtractDurationFromMoment(this,
-                                moment.duration(offset - input, 'm'), 1, false);
+                                moment.duration(input - offset, 'm'), 1, false);
                     } else if (!this._changeInProgress) {
                         this._changeInProgress = true;
                         moment.updateOffset(this, true);
                         this._changeInProgress = null;
                     }
                 }
+
+                return this;
             } else {
-                return this._isUTC ? offset : this._dateTzOffset();
+                return this._isUTC ? offset : this._dateUtcOffset();
             }
-            return this;
+        },
+
+        isLocal : function () {
+            return !this._isUTC;
+        },
+
+        isUtcOffset : function () {
+            return this._isUTC;
+        },
+
+        isUtc : function () {
+            return this._isUTC && this._offset === 0;
         },
 
         zoneAbbr : function () {
@@ -59484,9 +59786,9 @@ this._trigger("afterTagRemoved",null,{tag:a,tagLabel:this.tagLabel(a)})}},remove
 
         parseZone : function () {
             if (this._tzm) {
-                this.zone(this._tzm);
+                this.utcOffset(this._tzm);
             } else if (typeof this._i === 'string') {
-                this.zone(this._i);
+                this.utcOffset(utcOffsetFromString(this._i));
             }
             return this;
         },
@@ -59496,10 +59798,10 @@ this._trigger("afterTagRemoved",null,{tag:a,tagLabel:this.tagLabel(a)})}},remove
                 input = 0;
             }
             else {
-                input = moment(input).zone();
+                input = moment(input).utcOffset();
             }
 
-            return (this.zone() - input) % 60 === 0;
+            return (this.utcOffset() - input) % 60 === 0;
         },
 
         daysInMonth : function () {
@@ -59562,9 +59864,17 @@ this._trigger("afterTagRemoved",null,{tag:a,tagLabel:this.tagLabel(a)})}},remove
         },
 
         set : function (units, value) {
-            units = normalizeUnits(units);
-            if (typeof this[units] === 'function') {
-                this[units](value);
+            var unit;
+            if (typeof units === 'object') {
+                for (unit in units) {
+                    this.set(unit, units[unit]);
+                }
+            }
+            else {
+                units = normalizeUnits(units);
+                if (typeof this[units] === 'function') {
+                    this[units](value);
+                }
             }
             return this;
         },
@@ -59587,7 +59897,7 @@ this._trigger("afterTagRemoved",null,{tag:a,tagLabel:this.tagLabel(a)})}},remove
         },
 
         lang : deprecate(
-            'moment().lang() is deprecated. Use moment().localeData() instead.',
+            'moment().lang() is deprecated. Instead, use moment().localeData() to get the language configuration. Use moment().locale() to change languages.',
             function (key) {
                 if (key === undefined) {
                     return this.localeData();
@@ -59601,11 +59911,12 @@ this._trigger("afterTagRemoved",null,{tag:a,tagLabel:this.tagLabel(a)})}},remove
             return this._locale;
         },
 
-        _dateTzOffset : function () {
+        _dateUtcOffset : function () {
             // On Firefox.24 Date#getTimezoneOffset returns a floating point.
             // https://github.com/moment/moment/pull/1871
-            return Math.round(this._d.getTimezoneOffset() / 15) * 15;
+            return -Math.round(this._d.getTimezoneOffset() / 15) * 15;
         }
+
     });
 
     function rawMonthSetter(mom, value) {
@@ -59673,6 +59984,9 @@ this._trigger("afterTagRemoved",null,{tag:a,tagLabel:this.tagLabel(a)})}},remove
 
     // add aliased format methods
     moment.fn.toJSON = moment.fn.toISOString;
+
+    // alias isUtc for dev-friendliness
+    moment.fn.isUTC = moment.fn.isUtc;
 
     /************************************
         Duration Prototype
@@ -59808,7 +60122,7 @@ this._trigger("afterTagRemoved",null,{tag:a,tagLabel:this.tagLabel(a)})}},remove
                 return units === 'month' ? months : months / 12;
             } else {
                 // handle milliseconds separately because of floating point math errors (issue #1867)
-                days = this._days + yearsToDays(this._months / 12);
+                days = this._days + Math.round(yearsToDays(this._months / 12));
                 switch (units) {
                     case 'week': return days / 7 + this._milliseconds / 6048e5;
                     case 'day': return days + this._milliseconds / 864e5;
@@ -59861,6 +60175,10 @@ this._trigger("afterTagRemoved",null,{tag:a,tagLabel:this.tagLabel(a)})}},remove
 
         localeData : function () {
             return this._locale;
+        },
+
+        toJSON : function () {
+            return this.toISOString();
         }
     });
 
@@ -59910,6 +60228,7 @@ this._trigger("afterTagRemoved",null,{tag:a,tagLabel:this.tagLabel(a)})}},remove
 
     // Set default locale, other locale will inherit from English.
     moment.locale('en', {
+        ordinalParse: /\d{1,2}(th|st|nd|rd)/,
         ordinal : function (number) {
             var b = number % 10,
                 output = (toInt(number % 100 / 10) === 1) ? 'th' :
@@ -59947,7 +60266,7 @@ this._trigger("afterTagRemoved",null,{tag:a,tagLabel:this.tagLabel(a)})}},remove
     if (hasModule) {
         module.exports = moment;
     } else if (typeof define === 'function' && define.amd) {
-        define('moment', function (require, exports, module) {
+        define(function (require, exports, module) {
             if (module.config && module.config() && module.config().noGlobal === true) {
                 // release the global variable
                 globalScope.moment = oldGlobalMoment;
@@ -60047,6 +60366,1999 @@ REDIPS.event||(REDIPS.event=function(){return{add:function(q,B,J){q.addEventList
 */
 
 !function(){var a,b,c,d;!function(){var e={},f={};a=function(a,b,c){e[a]={deps:b,callback:c}},d=c=b=function(a){function c(b){if("."!==b.charAt(0))return b;for(var c=b.split("/"),d=a.split("/").slice(0,-1),e=0,f=c.length;f>e;e++){var g=c[e];if(".."===g)d.pop();else{if("."===g)continue;d.push(g)}}return d.join("/")}if(d._eak_seen=e,f[a])return f[a];if(f[a]={},!e[a])throw new Error("Could not find module "+a);for(var g,h=e[a],i=h.deps,j=h.callback,k=[],l=0,m=i.length;m>l;l++)k.push("exports"===i[l]?g={}:b(c(i[l])));var n=j.apply(this,k);return f[a]=g||n}}(),a("promise/all",["./utils","exports"],function(a,b){"use strict";function c(a){var b=this;if(!d(a))throw new TypeError("You must pass an array to all.");return new b(function(b,c){function d(a){return function(b){f(a,b)}}function f(a,c){h[a]=c,0===--i&&b(h)}var g,h=[],i=a.length;0===i&&b([]);for(var j=0;j<a.length;j++)g=a[j],g&&e(g.then)?g.then(d(j),c):f(j,g)})}var d=a.isArray,e=a.isFunction;b.all=c}),a("promise/asap",["exports"],function(a){"use strict";function b(){return function(){process.nextTick(e)}}function c(){var a=0,b=new i(e),c=document.createTextNode("");return b.observe(c,{characterData:!0}),function(){c.data=a=++a%2}}function d(){return function(){j.setTimeout(e,1)}}function e(){for(var a=0;a<k.length;a++){var b=k[a],c=b[0],d=b[1];c(d)}k=[]}function f(a,b){var c=k.push([a,b]);1===c&&g()}var g,h="undefined"!=typeof window?window:{},i=h.MutationObserver||h.WebKitMutationObserver,j="undefined"!=typeof global?global:void 0===this?window:this,k=[];g="undefined"!=typeof process&&"[object process]"==={}.toString.call(process)?b():i?c():d(),a.asap=f}),a("promise/config",["exports"],function(a){"use strict";function b(a,b){return 2!==arguments.length?c[a]:void(c[a]=b)}var c={instrument:!1};a.config=c,a.configure=b}),a("promise/polyfill",["./promise","./utils","exports"],function(a,b,c){"use strict";function d(){var a;a="undefined"!=typeof global?global:"undefined"!=typeof window&&window.document?window:self;var b="Promise"in a&&"resolve"in a.Promise&&"reject"in a.Promise&&"all"in a.Promise&&"race"in a.Promise&&function(){var b;return new a.Promise(function(a){b=a}),f(b)}();b||(a.Promise=e)}var e=a.Promise,f=b.isFunction;c.polyfill=d}),a("promise/promise",["./config","./utils","./all","./race","./resolve","./reject","./asap","exports"],function(a,b,c,d,e,f,g,h){"use strict";function i(a){if(!v(a))throw new TypeError("You must pass a resolver function as the first argument to the promise constructor");if(!(this instanceof i))throw new TypeError("Failed to construct 'Promise': Please use the 'new' operator, this object constructor cannot be called as a function.");this._subscribers=[],j(a,this)}function j(a,b){function c(a){o(b,a)}function d(a){q(b,a)}try{a(c,d)}catch(e){d(e)}}function k(a,b,c,d){var e,f,g,h,i=v(c);if(i)try{e=c(d),g=!0}catch(j){h=!0,f=j}else e=d,g=!0;n(b,e)||(i&&g?o(b,e):h?q(b,f):a===D?o(b,e):a===E&&q(b,e))}function l(a,b,c,d){var e=a._subscribers,f=e.length;e[f]=b,e[f+D]=c,e[f+E]=d}function m(a,b){for(var c,d,e=a._subscribers,f=a._detail,g=0;g<e.length;g+=3)c=e[g],d=e[g+b],k(b,c,d,f);a._subscribers=null}function n(a,b){var c,d=null;try{if(a===b)throw new TypeError("A promises callback cannot return that same promise.");if(u(b)&&(d=b.then,v(d)))return d.call(b,function(d){return c?!0:(c=!0,void(b!==d?o(a,d):p(a,d)))},function(b){return c?!0:(c=!0,void q(a,b))}),!0}catch(e){return c?!0:(q(a,e),!0)}return!1}function o(a,b){a===b?p(a,b):n(a,b)||p(a,b)}function p(a,b){a._state===B&&(a._state=C,a._detail=b,t.async(r,a))}function q(a,b){a._state===B&&(a._state=C,a._detail=b,t.async(s,a))}function r(a){m(a,a._state=D)}function s(a){m(a,a._state=E)}var t=a.config,u=(a.configure,b.objectOrFunction),v=b.isFunction,w=(b.now,c.all),x=d.race,y=e.resolve,z=f.reject,A=g.asap;t.async=A;var B=void 0,C=0,D=1,E=2;i.prototype={constructor:i,_state:void 0,_detail:void 0,_subscribers:void 0,then:function(a,b){var c=this,d=new this.constructor(function(){});if(this._state){var e=arguments;t.async(function(){k(c._state,d,e[c._state-1],c._detail)})}else l(this,d,a,b);return d},"catch":function(a){return this.then(null,a)}},i.all=w,i.race=x,i.resolve=y,i.reject=z,h.Promise=i}),a("promise/race",["./utils","exports"],function(a,b){"use strict";function c(a){var b=this;if(!d(a))throw new TypeError("You must pass an array to race.");return new b(function(b,c){for(var d,e=0;e<a.length;e++)d=a[e],d&&"function"==typeof d.then?d.then(b,c):b(d)})}var d=a.isArray;b.race=c}),a("promise/reject",["exports"],function(a){"use strict";function b(a){var b=this;return new b(function(b,c){c(a)})}a.reject=b}),a("promise/resolve",["exports"],function(a){"use strict";function b(a){if(a&&"object"==typeof a&&a.constructor===this)return a;var b=this;return new b(function(b){b(a)})}a.resolve=b}),a("promise/utils",["exports"],function(a){"use strict";function b(a){return c(a)||"object"==typeof a&&null!==a}function c(a){return"function"==typeof a}function d(a){return"[object Array]"===Object.prototype.toString.call(a)}var e=Date.now||function(){return(new Date).getTime()};a.objectOrFunction=b,a.isFunction=c,a.isArray=d,a.now=e}),b("promise/polyfill").polyfill()}(),function(){"use strict";function a(a,b){var c="";if(a&&(c=a.toString()),a&&("[object ArrayBuffer]"===a.toString()||a.buffer&&"[object ArrayBuffer]"===a.buffer.toString())){var e,g=f;a instanceof ArrayBuffer?(e=a,g+=h):(e=a.buffer,"[object Int8Array]"===c?g+=j:"[object Uint8Array]"===c?g+=k:"[object Uint8ClampedArray]"===c?g+=l:"[object Int16Array]"===c?g+=m:"[object Uint16Array]"===c?g+=o:"[object Int32Array]"===c?g+=n:"[object Uint32Array]"===c?g+=p:"[object Float32Array]"===c?g+=q:"[object Float64Array]"===c?g+=r:b(new Error("Failed to get type for BinaryArray"))),b(g+d(e))}else if("[object Blob]"===c){var s=new FileReader;s.onload=function(){var a=d(this.result);b(f+i+a)},s.readAsArrayBuffer(a)}else try{b(JSON.stringify(a))}catch(t){window.console.error("Couldn't convert value into a JSON string: ",a),b(null,t)}}function b(a){if(a.substring(0,g)!==f)return JSON.parse(a);var b=a.substring(s),d=a.substring(g,s),e=c(b);switch(d){case h:return e;case i:return new Blob([e]);case j:return new Int8Array(e);case k:return new Uint8Array(e);case l:return new Uint8ClampedArray(e);case m:return new Int16Array(e);case o:return new Uint16Array(e);case n:return new Int32Array(e);case p:return new Uint32Array(e);case q:return new Float32Array(e);case r:return new Float64Array(e);default:throw new Error("Unkown type: "+d)}}function c(a){var b,c,d,f,g,h=.75*a.length,i=a.length,j=0;"="===a[a.length-1]&&(h--,"="===a[a.length-2]&&h--);var k=new ArrayBuffer(h),l=new Uint8Array(k);for(b=0;i>b;b+=4)c=e.indexOf(a[b]),d=e.indexOf(a[b+1]),f=e.indexOf(a[b+2]),g=e.indexOf(a[b+3]),l[j++]=c<<2|d>>4,l[j++]=(15&d)<<4|f>>2,l[j++]=(3&f)<<6|63&g;return k}function d(a){var b,c=new Uint8Array(a),d="";for(b=0;b<c.length;b+=3)d+=e[c[b]>>2],d+=e[(3&c[b])<<4|c[b+1]>>4],d+=e[(15&c[b+1])<<2|c[b+2]>>6],d+=e[63&c[b+2]];return c.length%3===2?d=d.substring(0,d.length-1)+"=":c.length%3===1&&(d=d.substring(0,d.length-2)+"=="),d}var e="ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789+/",f="__lfsc__:",g=f.length,h="arbf",i="blob",j="si08",k="ui08",l="uic8",m="si16",n="si32",o="ur16",p="ui32",q="fl32",r="fl64",s=g+h.length,t={serialize:a,deserialize:b,stringToBuffer:c,bufferToString:d};"function"==typeof define&&define.amd?define("localforageSerializer",function(){return t}):"undefined"!=typeof module&&module.exports?module.exports=t:this.localforageSerializer=t}.call(window),function(){"use strict";function a(a){var b=this,c={db:null};if(a)for(var d in a)c[d]=a[d];return new m(function(a,d){var e=n.open(c.name,c.version);e.onerror=function(){d(e.error)},e.onupgradeneeded=function(){e.result.createObjectStore(c.storeName)},e.onsuccess=function(){c.db=e.result,b._dbInfo=c,a()}})}function b(a,b){var c=this;"string"!=typeof a&&(window.console.warn(a+" used as a key, but it is not a string."),a=String(a));var d=new m(function(b,d){c.ready().then(function(){var e=c._dbInfo,f=e.db.transaction(e.storeName,"readonly").objectStore(e.storeName),g=f.get(a);g.onsuccess=function(){var a=g.result;void 0===a&&(a=null),b(a)},g.onerror=function(){d(g.error)}})["catch"](d)});return k(d,b),d}function c(a,b){var c=this,d=new m(function(b,d){c.ready().then(function(){var e=c._dbInfo,f=e.db.transaction(e.storeName,"readonly").objectStore(e.storeName),g=f.openCursor(),h=1;g.onsuccess=function(){var c=g.result;if(c){var d=a(c.value,c.key,h++);void 0!==d?b(d):c["continue"]()}else b()},g.onerror=function(){d(g.error)}})["catch"](d)});return k(d,b),d}function d(a,b,c){var d=this;"string"!=typeof a&&(window.console.warn(a+" used as a key, but it is not a string."),a=String(a));var e=new m(function(c,e){d.ready().then(function(){var f=d._dbInfo,g=f.db.transaction(f.storeName,"readwrite"),h=g.objectStore(f.storeName);null===b&&(b=void 0);var i=h.put(b,a);g.oncomplete=function(){void 0===b&&(b=null),c(b)},g.onabort=g.onerror=function(){e(i.error)}})["catch"](e)});return k(e,c),e}function e(a,b){var c=this;"string"!=typeof a&&(window.console.warn(a+" used as a key, but it is not a string."),a=String(a));var d=new m(function(b,d){c.ready().then(function(){var e=c._dbInfo,f=e.db.transaction(e.storeName,"readwrite"),g=f.objectStore(e.storeName),h=g["delete"](a);f.oncomplete=function(){b()},f.onerror=function(){d(h.error)},f.onabort=function(a){var b=a.target.error;"QuotaExceededError"===b&&d(b)}})["catch"](d)});return k(d,b),d}function f(a){var b=this,c=new m(function(a,c){b.ready().then(function(){var d=b._dbInfo,e=d.db.transaction(d.storeName,"readwrite"),f=e.objectStore(d.storeName),g=f.clear();e.oncomplete=function(){a()},e.onabort=e.onerror=function(){c(g.error)}})["catch"](c)});return k(c,a),c}function g(a){var b=this,c=new m(function(a,c){b.ready().then(function(){var d=b._dbInfo,e=d.db.transaction(d.storeName,"readonly").objectStore(d.storeName),f=e.count();f.onsuccess=function(){a(f.result)},f.onerror=function(){c(f.error)}})["catch"](c)});return j(c,a),c}function h(a,b){var c=this,d=new m(function(b,d){return 0>a?void b(null):void c.ready().then(function(){var e=c._dbInfo,f=e.db.transaction(e.storeName,"readonly").objectStore(e.storeName),g=!1,h=f.openCursor();h.onsuccess=function(){var c=h.result;return c?void(0===a?b(c.key):g?b(c.key):(g=!0,c.advance(a))):void b(null)},h.onerror=function(){d(h.error)}})["catch"](d)});return j(d,b),d}function i(a){var b=this,c=new m(function(a,c){b.ready().then(function(){var d=b._dbInfo,e=d.db.transaction(d.storeName,"readonly").objectStore(d.storeName),f=e.openCursor(),g=[];f.onsuccess=function(){var b=f.result;return b?(g.push(b.key),void b["continue"]()):void a(g)},f.onerror=function(){c(f.error)}})["catch"](c)});return j(c,a),c}function j(a,b){b&&a.then(function(a){b(null,a)},function(a){b(a)})}function k(a,b){b&&a.then(function(a){l(b,a)},function(a){b(a)})}function l(a,b){return a?setTimeout(function(){return a(null,b)},0):void 0}var m="undefined"!=typeof module&&module.exports?require("promise"):this.Promise,n=n||this.indexedDB||this.webkitIndexedDB||this.mozIndexedDB||this.OIndexedDB||this.msIndexedDB;if(n){var o={_driver:"asyncStorage",_initStorage:a,iterate:c,getItem:b,setItem:d,removeItem:e,clear:f,length:g,key:h,keys:i};"function"==typeof define&&define.amd?define("asyncStorage",function(){return o}):"undefined"!=typeof module&&module.exports?module.exports=o:this.asyncStorage=o}}.call(window),function(){"use strict";function a(a){var b=this,c={};if(a)for(var d in a)c[d]=a[d];c.keyPrefix=c.name+"/",b._dbInfo=c;var e=new k(function(a){q===p.DEFINE?require(["localforageSerializer"],a):a(q===p.EXPORT?require("./../utils/serializer"):l.localforageSerializer)});return e.then(function(a){return m=a,k.resolve()})}function b(a){var b=this,c=b.ready().then(function(){for(var a=b._dbInfo.keyPrefix,c=n.length-1;c>=0;c--){var d=n.key(c);0===d.indexOf(a)&&n.removeItem(d)}});return j(c,a),c}function c(a,b){var c=this;"string"!=typeof a&&(window.console.warn(a+" used as a key, but it is not a string."),a=String(a));var d=c.ready().then(function(){var b=c._dbInfo,d=n.getItem(b.keyPrefix+a);return d&&(d=m.deserialize(d)),d});return j(d,b),d}function d(a,b){var c=this,d=c.ready().then(function(){for(var b=c._dbInfo.keyPrefix,d=b.length,e=n.length,f=0;e>f;f++){var g=n.key(f),h=n.getItem(g);if(h&&(h=m.deserialize(h)),h=a(h,g.substring(d),f+1),void 0!==h)return h}});return j(d,b),d}function e(a,b){var c=this,d=c.ready().then(function(){var b,d=c._dbInfo;try{b=n.key(a)}catch(e){b=null}return b&&(b=b.substring(d.keyPrefix.length)),b});return j(d,b),d}function f(a){var b=this,c=b.ready().then(function(){for(var a=b._dbInfo,c=n.length,d=[],e=0;c>e;e++)0===n.key(e).indexOf(a.keyPrefix)&&d.push(n.key(e).substring(a.keyPrefix.length));return d});return j(c,a),c}function g(a){var b=this,c=b.keys().then(function(a){return a.length});return j(c,a),c}function h(a,b){var c=this;"string"!=typeof a&&(window.console.warn(a+" used as a key, but it is not a string."),a=String(a));var d=c.ready().then(function(){var b=c._dbInfo;n.removeItem(b.keyPrefix+a)});return j(d,b),d}function i(a,b,c){var d=this;"string"!=typeof a&&(window.console.warn(a+" used as a key, but it is not a string."),a=String(a));var e=d.ready().then(function(){void 0===b&&(b=null);var c=b;return new k(function(e,f){m.serialize(b,function(b,g){if(g)f(g);else try{var h=d._dbInfo;n.setItem(h.keyPrefix+a,b),e(c)}catch(i){("QuotaExceededError"===i.name||"NS_ERROR_DOM_QUOTA_REACHED"===i.name)&&f(i),f(i)}})})});return j(e,c),e}function j(a,b){b&&a.then(function(a){b(null,a)},function(a){b(a)})}var k="undefined"!=typeof module&&module.exports?require("promise"):this.Promise,l=this,m=null,n=null;try{if(!(this.localStorage&&"setItem"in this.localStorage))return;n=this.localStorage}catch(o){return}var p={DEFINE:1,EXPORT:2,WINDOW:3},q=p.WINDOW;"function"==typeof define&&define.amd?q=p.DEFINE:"undefined"!=typeof module&&module.exports&&(q=p.EXPORT);var r={_driver:"localStorageWrapper",_initStorage:a,iterate:d,getItem:c,setItem:i,removeItem:h,clear:b,length:g,key:e,keys:f};q===p.DEFINE?define("localStorageWrapper",function(){return r}):q===p.EXPORT?module.exports=r:this.localStorageWrapper=r}.call(window),function(){"use strict";function a(a){var b=this,c={db:null};if(a)for(var d in a)c[d]="string"!=typeof a[d]?a[d].toString():a[d];var e=new k(function(a){p===o.DEFINE?require(["localforageSerializer"],a):a(p===o.EXPORT?require("./../utils/serializer"):l.localforageSerializer)}),f=new k(function(d,e){try{c.db=n(c.name,String(c.version),c.description,c.size)}catch(f){return b.setDriver(b.LOCALSTORAGE).then(function(){return b._initStorage(a)}).then(d)["catch"](e)}c.db.transaction(function(a){a.executeSql("CREATE TABLE IF NOT EXISTS "+c.storeName+" (id INTEGER PRIMARY KEY, key unique, value)",[],function(){b._dbInfo=c,d()},function(a,b){e(b)})})});return e.then(function(a){return m=a,f})}function b(a,b){var c=this;"string"!=typeof a&&(window.console.warn(a+" used as a key, but it is not a string."),a=String(a));var d=new k(function(b,d){c.ready().then(function(){var e=c._dbInfo;e.db.transaction(function(c){c.executeSql("SELECT * FROM "+e.storeName+" WHERE key = ? LIMIT 1",[a],function(a,c){var d=c.rows.length?c.rows.item(0).value:null;d&&(d=m.deserialize(d)),b(d)},function(a,b){d(b)})})})["catch"](d)});return j(d,b),d}function c(a,b){var c=this,d=new k(function(b,d){c.ready().then(function(){var e=c._dbInfo;e.db.transaction(function(c){c.executeSql("SELECT * FROM "+e.storeName,[],function(c,d){for(var e=d.rows,f=e.length,g=0;f>g;g++){var h=e.item(g),i=h.value;if(i&&(i=m.deserialize(i)),i=a(i,h.key,g+1),void 0!==i)return void b(i)}b()},function(a,b){d(b)})})})["catch"](d)});return j(d,b),d}function d(a,b,c){var d=this;"string"!=typeof a&&(window.console.warn(a+" used as a key, but it is not a string."),a=String(a));var e=new k(function(c,e){d.ready().then(function(){void 0===b&&(b=null);var f=b;m.serialize(b,function(b,g){if(g)e(g);else{var h=d._dbInfo;h.db.transaction(function(d){d.executeSql("INSERT OR REPLACE INTO "+h.storeName+" (key, value) VALUES (?, ?)",[a,b],function(){c(f)},function(a,b){e(b)})},function(a){a.code===a.QUOTA_ERR&&e(a)})}})})["catch"](e)});return j(e,c),e}function e(a,b){var c=this;"string"!=typeof a&&(window.console.warn(a+" used as a key, but it is not a string."),a=String(a));var d=new k(function(b,d){c.ready().then(function(){var e=c._dbInfo;e.db.transaction(function(c){c.executeSql("DELETE FROM "+e.storeName+" WHERE key = ?",[a],function(){b()},function(a,b){d(b)})})})["catch"](d)});return j(d,b),d}function f(a){var b=this,c=new k(function(a,c){b.ready().then(function(){var d=b._dbInfo;d.db.transaction(function(b){b.executeSql("DELETE FROM "+d.storeName,[],function(){a()},function(a,b){c(b)})})})["catch"](c)});return j(c,a),c}function g(a){var b=this,c=new k(function(a,c){b.ready().then(function(){var d=b._dbInfo;d.db.transaction(function(b){b.executeSql("SELECT COUNT(key) as c FROM "+d.storeName,[],function(b,c){var d=c.rows.item(0).c;a(d)},function(a,b){c(b)})})})["catch"](c)});return j(c,a),c}function h(a,b){var c=this,d=new k(function(b,d){c.ready().then(function(){var e=c._dbInfo;e.db.transaction(function(c){c.executeSql("SELECT key FROM "+e.storeName+" WHERE id = ? LIMIT 1",[a+1],function(a,c){var d=c.rows.length?c.rows.item(0).key:null;b(d)},function(a,b){d(b)})})})["catch"](d)});return j(d,b),d}function i(a){var b=this,c=new k(function(a,c){b.ready().then(function(){var d=b._dbInfo;d.db.transaction(function(b){b.executeSql("SELECT key FROM "+d.storeName,[],function(b,c){for(var d=[],e=0;e<c.rows.length;e++)d.push(c.rows.item(e).key);a(d)},function(a,b){c(b)})})})["catch"](c)});return j(c,a),c}function j(a,b){b&&a.then(function(a){b(null,a)},function(a){b(a)})}var k="undefined"!=typeof module&&module.exports?require("promise"):this.Promise,l=this,m=null,n=this.openDatabase;if(n){var o={DEFINE:1,EXPORT:2,WINDOW:3},p=o.WINDOW;"function"==typeof define&&define.amd?p=o.DEFINE:"undefined"!=typeof module&&module.exports&&(p=o.EXPORT);var q={_driver:"webSQLStorage",_initStorage:a,iterate:c,getItem:b,setItem:d,removeItem:e,clear:f,length:g,key:h,keys:i};p===o.DEFINE?define("webSQLStorage",function(){return q}):p===o.EXPORT?module.exports=q:this.webSQLStorage=q}}.call(window),function(){"use strict";function a(a,b){a[b]=function(){var c=arguments;return a.ready().then(function(){return a[b].apply(a,c)})}}function b(){for(var a=1;a<arguments.length;a++){var b=arguments[a];if(b)for(var c in b)b.hasOwnProperty(c)&&(arguments[0][c]=n(b[c])?b[c].slice():b[c])}return arguments[0]}function c(a){for(var b in g)if(g.hasOwnProperty(b)&&g[b]===a)return!0;return!1}function d(c){this._config=b({},k,c),this._driverSet=null,this._ready=!1,this._dbInfo=null;for(var d=0;d<i.length;d++)a(this,i[d]);this.setDriver(this._config.driver)}var e="undefined"!=typeof module&&module.exports?require("promise"):this.Promise,f={},g={INDEXEDDB:"asyncStorage",LOCALSTORAGE:"localStorageWrapper",WEBSQL:"webSQLStorage"},h=[g.INDEXEDDB,g.WEBSQL,g.LOCALSTORAGE],i=["clear","getItem","iterate","key","keys","length","removeItem","setItem"],j={DEFINE:1,EXPORT:2,WINDOW:3},k={description:"",driver:h.slice(),name:"localforage",size:4980736,storeName:"keyvaluepairs",version:1},l=j.WINDOW;"function"==typeof define&&define.amd?l=j.DEFINE:"undefined"!=typeof module&&module.exports&&(l=j.EXPORT);var m=function(a){var b=b||a.indexedDB||a.webkitIndexedDB||a.mozIndexedDB||a.OIndexedDB||a.msIndexedDB,c={};return c[g.WEBSQL]=!!a.openDatabase,c[g.INDEXEDDB]=!!function(){if("undefined"!=typeof a.openDatabase&&a.navigator&&a.navigator.userAgent&&/Safari/.test(a.navigator.userAgent)&&!/Chrome/.test(a.navigator.userAgent))return!1;try{return b&&"function"==typeof b.open&&"undefined"!=typeof a.IDBKeyRange}catch(c){return!1}}(),c[g.LOCALSTORAGE]=!!function(){try{return a.localStorage&&"setItem"in a.localStorage&&a.localStorage.setItem}catch(b){return!1}}(),c}(this),n=Array.isArray||function(a){return"[object Array]"===Object.prototype.toString.call(a)},o=this;d.prototype.INDEXEDDB=g.INDEXEDDB,d.prototype.LOCALSTORAGE=g.LOCALSTORAGE,d.prototype.WEBSQL=g.WEBSQL,d.prototype.config=function(a){if("object"==typeof a){if(this._ready)return new Error("Can't call config() after localforage has been used.");for(var b in a)"storeName"===b&&(a[b]=a[b].replace(/\W/g,"_")),this._config[b]=a[b];return"driver"in a&&a.driver&&this.setDriver(this._config.driver),!0}return"string"==typeof a?this._config[a]:this._config},d.prototype.defineDriver=function(a,b,d){var g=new e(function(b,d){try{var g=a._driver,h=new Error("Custom driver not compliant; see https://mozilla.github.io/localForage/#definedriver"),j=new Error("Custom driver name already in use: "+a._driver);if(!a._driver)return void d(h);if(c(a._driver))return void d(j);for(var k=i.concat("_initStorage"),l=0;l<k.length;l++){var n=k[l];if(!n||!a[n]||"function"!=typeof a[n])return void d(h)}var o=e.resolve(!0);"_support"in a&&(o=a._support&&"function"==typeof a._support?a._support():e.resolve(!!a._support)),o.then(function(c){m[g]=c,f[g]=a,b()},d)}catch(p){d(p)}});return g.then(b,d),g},d.prototype.driver=function(){return this._driver||null},d.prototype.ready=function(a){var b=this,c=new e(function(a,c){b._driverSet.then(function(){null===b._ready&&(b._ready=b._initStorage(b._config)),b._ready.then(a,c)})["catch"](c)});return c.then(a,a),c},d.prototype.setDriver=function(a,b,d){function g(){h._config.driver=h.driver()}var h=this;return"string"==typeof a&&(a=[a]),this._driverSet=new e(function(b,d){var g=h._getFirstSupportedDriver(a),i=new Error("No available storage method found.");if(!g)return h._driverSet=e.reject(i),void d(i);if(h._dbInfo=null,h._ready=null,c(g)){if(l===j.DEFINE)return void require([g],function(a){h._extend(a),b()});if(l===j.EXPORT){var k;switch(g){case h.INDEXEDDB:k=require("./drivers/indexeddb");break;case h.LOCALSTORAGE:k=require("./drivers/localstorage");break;case h.WEBSQL:k=require("./drivers/websql")}h._extend(k)}else h._extend(o[g])}else{if(!f[g])return h._driverSet=e.reject(i),void d(i);h._extend(f[g])}b()}),this._driverSet.then(g,g),this._driverSet.then(b,d),this._driverSet},d.prototype.supports=function(a){return!!m[a]},d.prototype._extend=function(a){b(this,a)},d.prototype._getFirstSupportedDriver=function(a){if(a&&n(a))for(var b=0;b<a.length;b++){var c=a[b];if(this.supports(c))return c}return null},d.prototype.createInstance=function(a){return new d(a)};var p=new d;l===j.DEFINE?define("localforage",function(){return p}):l===j.EXPORT?module.exports=p:this.localforage=p}.call(window);
+/**
+ * angular-localforage - Angular service & directive for https://github.com/mozilla/localForage (Offline storage, improved.)
+ * @version v1.2.2
+ * @link https://github.com/ocombe/angular-localForage
+ * @license MIT
+ * @author Olivier Combe <olivier.combe@gmail.com>
+ */
+
+!function(e,r){"use strict";if("function"==typeof define&&define.amd)define(["localforage"],function(t){r(e.angular,t)});else if("object"==typeof exports){var t=e.angular||window&&window.angular;module.exports=r(t,require("localforage"))}else r(e.angular,e.localforage)}(this,function(e,r){"use strict";var t=e.module("LocalForageModule",["ng"]);t.provider("$localForage",function(){var t={},n={name:"lf"},o={setItem:!1,removeItem:!1},i={};this.setNotify=function(e,r){o={setItem:e,removeItem:r}},this.config=function(r){if(!e.isObject(r))throw new Error("The config parameter should be an object");e.extend(n,r)},this.$get=["$rootScope","$q","$parse",function(a,f,s){var u=function(t){e.isDefined(t)?this._localforage=r.createInstance(t):(this._localforage=r,r.config(n))};u.prototype.createInstance=function(r){if(e.isObject(r)){if(r=e.extend({},n,r),e.isDefined(t[r.name]))throw new Error("A localForage instance with the name "+r.name+" is already defined.");return t[r.name]=new u(r),t[r.name]}throw new Error("The parameter should be a config object.")},u.prototype.instance=function(r){if(e.isUndefined(r))return t[n.name];if(e.isString(r)){if(e.isDefined(t[r]))return t[r];throw new Error("No localForage instance of that name exists.")}throw new Error("The parameter should be a string.")},u.prototype.setDriver=function(e){return this._localforage.setDriver(e)},u.prototype.driver=function(){return this._localforage.driver()},u.prototype.setItem=function(r,t){if(e.isUndefined(r))throw new Error("You must define a key to set");var n=this;if(e.isArray(r)){if(!e.isArray(t))throw new Error("If you set an array of keys, the values should be an array too");var i=[];return e.forEach(r,function(e,r){i.push(n.setItem(e,t[r]))}),f.all(i)}var s=f.defer(),u=arguments,c="undefined"!=typeof Blob&&t instanceof Blob?t:e.copy(t);return e.isObject(c)&&e.isDefined(c.$promise)&&delete c.$promise,n._localforage.setItem(n.prefix()+r,c).then(function(){o.setItem&&a.$broadcast("LocalForageModule.setItem",{key:r,newvalue:c,driver:n.driver()}),s.resolve(c)},function(e){n.onError(e,u,n.setItem,s)}),s.promise},u.prototype.getItem=function(r){if(e.isUndefined(r))throw new Error("You must define a key to get");var t,n=f.defer(),o=arguments,i=this;if(e.isArray(r)){var a=[],s=0;t=i._localforage.iterate(function(e,t){var n=r.indexOf(i.prefix()+t);return n>-1&&(a[n]=e,s++),s===r.length?a:void 0})}else t=i._localforage.getItem(i.prefix()+r);return t.then(function(e){n.resolve(e||a)},function(e){i.onError(e,o,i.getItem,n)}),n.promise},u.prototype.iterate=function(r){if(e.isUndefined(r))throw new Error("You must define a callback to iterate");var t=f.defer(),n=arguments,o=this;return o._localforage.iterate(r).then(function(e){t.resolve(e)},function(e){o.onError(e,n,o.iterate,t)}),t.promise},u.prototype.removeItem=function(r){if(e.isUndefined(r))throw new Error("You must define a key to remove");var t=this;if(e.isArray(r)){var n=[];return e.forEach(r,function(e){n.push(t.removeItem(e))}),f.all(n)}var i=f.defer(),s=arguments;return t._localforage.removeItem(t.prefix()+r).then(function(){o.removeItem&&a.$broadcast("LocalForageModule.removeItem",{key:r,driver:t.driver()}),i.resolve()},function(e){t.onError(e,s,t.removeItem,i)}),i.promise},u.prototype.pull=function(r){if(e.isUndefined(r))throw new Error("You must define a key to pull");var t=this,n=f.defer(),o=function(e){n.reject(e)};return t.getItem(r).then(function(e){t.removeItem(r).then(function(){n.resolve(e)},o)},o),n.promise},u.prototype.clear=function(){var e=f.defer(),r=arguments,t=this;return t._localforage.clear().then(function(){e.resolve()},function(n){t.onError(n,r,t.clear,e)}),e.promise},u.prototype.key=function(r){if(e.isUndefined(r))throw new Error("You must define a position to get for the key function");var t=f.defer(),n=arguments,o=this;return o._localforage.key(r).then(function(e){t.resolve(e)},function(e){o.onError(e,n,o.key,t)}),t.promise};var c=function(){var e=f.defer(),r=arguments,t=this;return t._localforage.keys().then(function(r){if(n.oldPrefix&&"localStorageWrapper"===t.driver()){for(var o=[],i=0,a=r.length;a>i;i++)o.push(r[i].substr(t.prefix().length,r[i].length));r=o}e.resolve(r)},function(n){t.onError(n,r,t.keys,e)}),e.promise};return u.prototype.keys=c,u.prototype.getKeys=c,u.prototype.length=function(){var e=f.defer(),r=arguments,t=this;return t._localforage.length().then(function(r){e.resolve(r)},function(n){t.onError(n,r,length,e)}),e.promise},u.prototype.bind=function(r,o){if(e.isString(o))o={key:o};else if(!e.isObject(o)||e.isUndefined(o.key))throw new Error("You must define a key to bind");var a={defaultValue:"",name:n.name};o=e.extend({},a,o);var f=t[o.name];if(e.isUndefined(f))throw new Error("You must use the name of an existing instance");var u=o.scopeKey||o.key,c=s(u);return f.getItem(o.key).then(function(t){return t?c.assign(r,t):o.defaultValue&&(c.assign(r,o.defaultValue),f.setItem(o.key,o.defaultValue)),e.isDefined(i[o.key])&&i[o.key](),i[o.key]=r.$watch(u,function(r){e.isDefined(r)&&f.setItem(o.key,r)},!0),t})},u.prototype.unbind=function(r,o){if(e.isString(o))o={key:o};else if(!e.isObject(o)||e.isUndefined(o.key))throw new Error("You must define a key to unbind");var a={scopeKey:o.key,name:n.name};o=e.extend({},a,o);var f=t[o.name];if(e.isUndefined(f))throw new Error("You must use the name of an existing instance");return s(o.scopeKey).assign(r,null),e.isDefined(i[o.key])&&(i[o.key](),delete i[o.key]),f.removeItem(o.key)},u.prototype.prefix=function(){return"localStorageWrapper"===this.driver()&&n.oldPrefix?this._localforage.config().name+".":""},u.prototype.onError=function(r,t,n,o){if((e.isObject(r)&&r.name?"InvalidStateError"===r.name:e.isString(r)&&"InvalidStateError"===r)&&"asyncStorage"===this.driver()||e.isObject(r)&&r.code&&5===r.code){var i=this;i.setDriver("localStorageWrapper").then(function(){n.apply(i,t).then(function(e){o.resolve(e)},function(e){o.reject(e)})},function(){o.reject(r)})}else o.reject(r)},t[n.name]=new u,t[n.name]}]}),t.directive("localForage",["$localForage",function(r){return{restrict:"A",link:function(t,n,o){var i=t.$eval(o.localForage);e.isObject(i)&&e.isDefined(i.key)?r.bind(t,i):r.bind(t,o.localForage)}}}])});
+/*!
+ * ui-select
+ * http://github.com/angular-ui/ui-select
+ * Version: 0.8.2 - 2014-10-09T23:29:49.713Z
+ * License: MIT
+ */
+
+
+
+(function () {
+  "use strict";
+
+  var KEY = {
+    TAB: 9,
+    ENTER: 13,
+    ESC: 27,
+    SPACE: 32,
+    LEFT: 37,
+    UP: 38,
+    RIGHT: 39,
+    DOWN: 40,
+    SHIFT: 16,
+    CTRL: 17,
+    ALT: 18,
+    PAGE_UP: 33,
+    PAGE_DOWN: 34,
+    HOME: 36,
+    END: 35,
+    BACKSPACE: 8,
+    DELETE: 46,
+    COMMAND: 91,
+    isControl: function (e) {
+        var k = e.which;
+        switch (k) {
+        case KEY.COMMAND:
+        case KEY.SHIFT:
+        case KEY.CTRL:
+        case KEY.ALT:
+            return true;
+        }
+
+        if (e.metaKey) return true;
+
+        return false;
+    },
+    isFunctionKey: function (k) {
+        k = k.which ? k.which : k;
+        return k >= 112 && k <= 123;
+    },
+    isVerticalMovement: function (k){
+      return ~[KEY.UP, KEY.DOWN].indexOf(k);
+    },
+    isHorizontalMovement: function (k){
+      return ~[KEY.LEFT,KEY.RIGHT,KEY.BACKSPACE,KEY.DELETE].indexOf(k);
+    }
+  };
+
+  /**
+   * Add querySelectorAll() to jqLite.
+   *
+   * jqLite find() is limited to lookups by tag name.
+   * TODO This will change with future versions of AngularJS, to be removed when this happens
+   *
+   * See jqLite.find - why not use querySelectorAll? https://github.com/angular/angular.js/issues/3586
+   * See feat(jqLite): use querySelectorAll instead of getElementsByTagName in jqLite.find https://github.com/angular/angular.js/pull/3598
+   */
+  if (angular.element.prototype.querySelectorAll === undefined) {
+    angular.element.prototype.querySelectorAll = function(selector) {
+      return angular.element(this[0].querySelectorAll(selector));
+    };
+  }
+
+  angular.module('ui.select', [])
+
+  .constant('uiSelectConfig', {
+    theme: 'bootstrap',
+    searchEnabled: true,
+    placeholder: '', // Empty by default, like HTML tag <select>
+    refreshDelay: 1000 // In milliseconds
+  })
+
+  // See Rename minErr and make it accessible from outside https://github.com/angular/angular.js/issues/6913
+  .service('uiSelectMinErr', function() {
+    var minErr = angular.$$minErr('ui.select');
+    return function() {
+      var error = minErr.apply(this, arguments);
+      var message = error.message.replace(new RegExp('\nhttp://errors.angularjs.org/.*'), '');
+      return new Error(message);
+    };
+  })
+
+  /**
+   * Parses "repeat" attribute.
+   *
+   * Taken from AngularJS ngRepeat source code
+   * See https://github.com/angular/angular.js/blob/v1.2.15/src/ng/directive/ngRepeat.js#L211
+   *
+   * Original discussion about parsing "repeat" attribute instead of fully relying on ng-repeat:
+   * https://github.com/angular-ui/ui-select/commit/5dd63ad#commitcomment-5504697
+   */
+  .service('RepeatParser', ['uiSelectMinErr','$parse', function(uiSelectMinErr, $parse) {
+    var self = this;
+
+    /**
+     * Example:
+     * expression = "address in addresses | filter: {street: $select.search} track by $index"
+     * itemName = "address",
+     * source = "addresses | filter: {street: $select.search}",
+     * trackByExp = "$index",
+     */
+    self.parse = function(expression) {
+
+      var match = expression.match(/^\s*(?:([\s\S]+?)\s+as\s+)?([\S]+?)\s+in\s+([\s\S]+?)(?:\s+track\s+by\s+([\s\S]+?))?\s*$/);
+
+      if (!match) {
+        throw uiSelectMinErr('iexp', "Expected expression in form of '_item_ in _collection_[ track by _id_]' but got '{0}'.",
+                expression);
+      }
+
+      return {
+        itemName: match[2], // (lhs) Left-hand side,
+        source: $parse(match[3]),
+        trackByExp: match[4],
+        modelMapper: $parse(match[1] || match[2])
+      };
+
+    };
+
+    self.getGroupNgRepeatExpression = function() {
+      return '$group in $select.groups';
+    };
+
+    self.getNgRepeatExpression = function(itemName, source, trackByExp, grouped) {
+      var expression = itemName + ' in ' + (grouped ? '$group.items' : source);
+      if (trackByExp) {
+        expression += ' track by ' + trackByExp;
+      }
+      return expression;
+    };
+  }])
+
+  /**
+   * Contains ui-select "intelligence".
+   *
+   * The goal is to limit dependency on the DOM whenever possible and
+   * put as much logic in the controller (instead of the link functions) as possible so it can be easily tested.
+   */
+  .controller('uiSelectCtrl',
+    ['$scope', '$element', '$timeout', 'RepeatParser', 'uiSelectMinErr',
+    function($scope, $element, $timeout, RepeatParser, uiSelectMinErr) {
+
+    var ctrl = this;
+
+    var EMPTY_SEARCH = '';
+
+    ctrl.placeholder = undefined;
+    ctrl.search = EMPTY_SEARCH;
+    ctrl.activeIndex = 0;
+    ctrl.activeMatchIndex = -1;
+    ctrl.items = [];
+    ctrl.selected = undefined;
+    ctrl.open = false;
+    ctrl.focus = false;
+    ctrl.focusser = undefined; //Reference to input element used to handle focus events
+    ctrl.disabled = undefined; // Initialized inside uiSelect directive link function
+    ctrl.searchEnabled = undefined; // Initialized inside uiSelect directive link function
+    ctrl.resetSearchInput = undefined; // Initialized inside uiSelect directive link function
+    ctrl.refreshDelay = undefined; // Initialized inside uiSelectChoices directive link function
+    ctrl.multiple = false; // Initialized inside uiSelect directive link function
+    ctrl.disableChoiceExpression = undefined; // Initialized inside uiSelect directive link function
+
+    ctrl.isEmpty = function() {
+      return angular.isUndefined(ctrl.selected) || ctrl.selected === null || ctrl.selected === '';
+    };
+
+    var _searchInput = $element.querySelectorAll('input.ui-select-search');
+    if (_searchInput.length !== 1) {
+      throw uiSelectMinErr('searchInput', "Expected 1 input.ui-select-search but got '{0}'.", _searchInput.length);
+    }
+
+    // Most of the time the user does not want to empty the search input when in typeahead mode
+    function _resetSearchInput() {
+      if (ctrl.resetSearchInput) {
+        ctrl.search = EMPTY_SEARCH;
+        //reset activeIndex
+        if (ctrl.selected && ctrl.items.length && !ctrl.multiple) {
+          ctrl.activeIndex = ctrl.items.indexOf(ctrl.selected);
+        }
+      }
+    }
+
+    // When the user clicks on ui-select, displays the dropdown list
+    ctrl.activate = function(initSearchValue, avoidReset) {
+      if (!ctrl.disabled  && !ctrl.open) {
+        if(!avoidReset) _resetSearchInput();
+        ctrl.focusser.prop('disabled', true); //Will reactivate it on .close()
+        ctrl.open = true;
+        ctrl.activeMatchIndex = -1;
+
+        ctrl.activeIndex = ctrl.activeIndex >= ctrl.items.length ? 0 : ctrl.activeIndex;
+
+        // Give it time to appear before focus
+        $timeout(function() {
+          ctrl.search = initSearchValue || ctrl.search;
+          _searchInput[0].focus();
+        });
+      }
+    };
+
+    ctrl.findGroupByName = function(name) {
+      return ctrl.groups && ctrl.groups.filter(function(group) {
+        return group.name === name;
+      })[0];
+    };
+
+    ctrl.parseRepeatAttr = function(repeatAttr, groupByExp) {
+      function updateGroups(items) {
+        ctrl.groups = [];
+        angular.forEach(items, function(item) {
+          var groupFn = $scope.$eval(groupByExp);
+          var groupName = angular.isFunction(groupFn) ? groupFn(item) : item[groupFn];
+          var group = ctrl.findGroupByName(groupName);
+          if(group) {
+            group.items.push(item);
+          }
+          else {
+            ctrl.groups.push({name: groupName, items: [item]});
+          }
+        });
+        ctrl.items = [];
+        ctrl.groups.forEach(function(group) {
+          ctrl.items = ctrl.items.concat(group.items);
+        });
+      }
+
+      function setPlainItems(items) {
+        ctrl.items = items;
+      }
+
+      var setItemsFn = groupByExp ? updateGroups : setPlainItems;
+
+      ctrl.parserResult = RepeatParser.parse(repeatAttr);
+
+      ctrl.isGrouped = !!groupByExp;
+      ctrl.itemProperty = ctrl.parserResult.itemName;
+
+      // See https://github.com/angular/angular.js/blob/v1.2.15/src/ng/directive/ngRepeat.js#L259
+      $scope.$watchCollection(ctrl.parserResult.source, function(items) {
+
+        if (items === undefined || items === null) {
+          // If the user specifies undefined or null => reset the collection
+          // Special case: items can be undefined if the user did not initialized the collection on the scope
+          // i.e $scope.addresses = [] is missing
+          ctrl.items = [];
+        } else {
+          if (!angular.isArray(items)) {
+            throw uiSelectMinErr('items', "Expected an array but got '{0}'.", items);
+          } else {
+            if (ctrl.multiple){
+              //Remove already selected items (ex: while searching)
+              var filteredItems = items.filter(function(i) {return ctrl.selected.indexOf(i) < 0;});
+              setItemsFn(filteredItems);
+            }else{
+              setItemsFn(items);
+            }
+            ctrl.ngModel.$modelValue = null; //Force scope model value and ngModel value to be out of sync to re-run formatters
+
+          }
+        }
+
+      });
+
+      if (ctrl.multiple){
+        //Remove already selected items
+        $scope.$watchCollection('$select.selected', function(selectedItems){
+          var data = ctrl.parserResult.source($scope);
+          if (!selectedItems.length) {
+            setItemsFn(data);
+          }else{
+            var filteredItems = data.filter(function(i) {return selectedItems.indexOf(i) < 0;});
+            setItemsFn(filteredItems);
+          }
+          ctrl.sizeSearchInput();
+        });
+      }
+
+    };
+
+    var _refreshDelayPromise;
+
+    /**
+     * Typeahead mode: lets the user refresh the collection using his own function.
+     *
+     * See Expose $select.search for external / remote filtering https://github.com/angular-ui/ui-select/pull/31
+     */
+    ctrl.refresh = function(refreshAttr) {
+      if (refreshAttr !== undefined) {
+
+        // Debounce
+        // See https://github.com/angular-ui/bootstrap/blob/0.10.0/src/typeahead/typeahead.js#L155
+        // FYI AngularStrap typeahead does not have debouncing: https://github.com/mgcrea/angular-strap/blob/v2.0.0-rc.4/src/typeahead/typeahead.js#L177
+        if (_refreshDelayPromise) {
+          $timeout.cancel(_refreshDelayPromise);
+        }
+        _refreshDelayPromise = $timeout(function() {
+          $scope.$eval(refreshAttr);
+        }, ctrl.refreshDelay);
+      }
+    };
+
+    ctrl.setActiveItem = function(item) {
+      ctrl.activeIndex = ctrl.items.indexOf(item);
+    };
+
+    ctrl.isActive = function(itemScope) {
+      return ctrl.open && ctrl.items.indexOf(itemScope[ctrl.itemProperty]) === ctrl.activeIndex;
+    };
+
+    ctrl.isDisabled = function(itemScope) {
+
+      if (!ctrl.open) return;
+
+      var itemIndex = ctrl.items.indexOf(itemScope[ctrl.itemProperty]);
+      var isDisabled = false;
+      var item;
+
+      if (itemIndex >= 0 && !angular.isUndefined(ctrl.disableChoiceExpression)) {
+        item = ctrl.items[itemIndex];
+        isDisabled = !!(itemScope.$eval(ctrl.disableChoiceExpression)); // force the boolean value
+        item._uiSelectChoiceDisabled = isDisabled; // store this for later reference
+      }
+
+      return isDisabled;
+    };
+
+    // When the user clicks on an item inside the dropdown
+    ctrl.select = function(item, skipFocusser) {
+
+      if (item === undefined || !item._uiSelectChoiceDisabled) {
+        var locals = {};
+        locals[ctrl.parserResult.itemName] = item;
+
+        ctrl.onSelectCallback($scope, {
+            $item: item,
+            $model: ctrl.parserResult.modelMapper($scope, locals)
+        });
+
+        if(ctrl.multiple){
+          ctrl.selected.push(item);
+          ctrl.sizeSearchInput();
+        } else {
+          ctrl.selected = item;
+        }
+        ctrl.close(skipFocusser);
+      }
+    };
+
+    // Closes the dropdown
+    ctrl.close = function(skipFocusser) {
+      if (!ctrl.open) return;
+      _resetSearchInput();
+      ctrl.open = false;
+      if (!ctrl.multiple){
+        $timeout(function(){
+          ctrl.focusser.prop('disabled', false);
+          if (!skipFocusser) ctrl.focusser[0].focus();
+        },0,false);
+      }
+    };
+
+    // Toggle dropdown
+    ctrl.toggle = function(e) {
+      if (ctrl.open) ctrl.close(); else ctrl.activate();
+      e.preventDefault();
+      e.stopPropagation();
+    };
+
+    // Remove item from multiple select
+    ctrl.removeChoice = function(index){
+      var removedChoice = ctrl.selected[index];
+      var locals = {};
+      locals[ctrl.parserResult.itemName] = removedChoice;
+
+      ctrl.selected.splice(index, 1);
+      ctrl.activeMatchIndex = -1;
+      ctrl.sizeSearchInput();
+
+      ctrl.onRemoveCallback($scope, {
+        $item: removedChoice,
+        $model: ctrl.parserResult.modelMapper($scope, locals)
+      });
+    };
+
+    ctrl.getPlaceholder = function(){
+      //Refactor single?
+      if(ctrl.multiple && ctrl.selected.length) return;
+      return ctrl.placeholder;
+    };
+
+    ctrl.sizeSearchInput = function(){
+      var input = _searchInput[0],
+          container = _searchInput.parent().parent()[0];
+      _searchInput.css('width','10px');
+      $timeout(function(){
+        var newWidth = container.clientWidth - input.offsetLeft - 10;
+        if(newWidth < 50) newWidth = container.clientWidth;
+        _searchInput.css('width',newWidth+'px');
+      }, 0, false);
+    };
+
+    function _handleDropDownSelection(key) {
+      var processed = true;
+      switch (key) {
+        case KEY.DOWN:
+          if (!ctrl.open && ctrl.multiple) ctrl.activate(false, true); //In case its the search input in 'multiple' mode
+          else if (ctrl.activeIndex < ctrl.items.length - 1) { ctrl.activeIndex++; }
+          break;
+        case KEY.UP:
+          if (!ctrl.open && ctrl.multiple) ctrl.activate(false, true); //In case its the search input in 'multiple' mode
+          else if (ctrl.activeIndex > 0) { ctrl.activeIndex--; }
+          break;
+        case KEY.TAB:
+          if (!ctrl.multiple || ctrl.open) ctrl.select(ctrl.items[ctrl.activeIndex], true);
+          break;
+        case KEY.ENTER:
+          if(ctrl.open){
+            ctrl.select(ctrl.items[ctrl.activeIndex]);
+          } else {
+            ctrl.activate(false, true); //In case its the search input in 'multiple' mode
+          }
+          break;
+        case KEY.ESC:
+          ctrl.close();
+          break;
+        default:
+          processed = false;
+      }
+      return processed;
+    }
+
+    // Handles selected options in "multiple" mode
+    function _handleMatchSelection(key){
+      var caretPosition = _getCaretPosition(_searchInput[0]),
+          length = ctrl.selected.length,
+          // none  = -1,
+          first = 0,
+          last  = length-1,
+          curr  = ctrl.activeMatchIndex,
+          next  = ctrl.activeMatchIndex+1,
+          prev  = ctrl.activeMatchIndex-1,
+          newIndex = curr;
+
+      if(caretPosition > 0 || (ctrl.search.length && key == KEY.RIGHT)) return false;
+
+      ctrl.close();
+
+      function getNewActiveMatchIndex(){
+        switch(key){
+          case KEY.LEFT:
+            // Select previous/first item
+            if(~ctrl.activeMatchIndex) return prev;
+            // Select last item
+            else return last;
+            break;
+          case KEY.RIGHT:
+            // Open drop-down
+            if(!~ctrl.activeMatchIndex || curr === last){
+              ctrl.activate();
+              return false;
+            }
+            // Select next/last item
+            else return next;
+            break;
+          case KEY.BACKSPACE:
+            // Remove selected item and select previous/first
+            if(~ctrl.activeMatchIndex){
+              ctrl.removeChoice(curr);
+              return prev;
+            }
+            // Select last item
+            else return last;
+            break;
+          case KEY.DELETE:
+            // Remove selected item and select next item
+            if(~ctrl.activeMatchIndex){
+              ctrl.removeChoice(ctrl.activeMatchIndex);
+              return curr;
+            }
+            else return false;
+        }
+      }
+
+      newIndex = getNewActiveMatchIndex();
+
+      if(!ctrl.selected.length || newIndex === false) ctrl.activeMatchIndex = -1;
+      else ctrl.activeMatchIndex = Math.min(last,Math.max(first,newIndex));
+
+      return true;
+    }
+
+    // Bind to keyboard shortcuts
+    _searchInput.on('keydown', function(e) {
+
+      var key = e.which;
+
+      // if(~[KEY.ESC,KEY.TAB].indexOf(key)){
+      //   //TODO: SEGURO?
+      //   ctrl.close();
+      // }
+
+      $scope.$apply(function() {
+        var processed = false;
+
+        if(ctrl.multiple && KEY.isHorizontalMovement(key)){
+          processed = _handleMatchSelection(key);
+        }
+
+        if (!processed && ctrl.items.length > 0) {
+          processed = _handleDropDownSelection(key);
+        }
+
+        if (processed  && key != KEY.TAB) {
+          //TODO Check si el tab selecciona aun correctamente
+          //Crear test
+          e.preventDefault();
+          e.stopPropagation();
+        }
+      });
+
+      if(KEY.isVerticalMovement(key) && ctrl.items.length > 0){
+        _ensureHighlightVisible();
+      }
+
+    });
+
+    _searchInput.on('blur', function() {
+      $timeout(function() {
+        ctrl.activeMatchIndex = -1;
+      });
+    });
+
+    function _getCaretPosition(el) {
+      if(angular.isNumber(el.selectionStart)) return el.selectionStart;
+      // selectionStart is not supported in IE8 and we don't want hacky workarounds so we compromise
+      else return el.value.length;
+    }
+
+    // See https://github.com/ivaynberg/select2/blob/3.4.6/select2.js#L1431
+    function _ensureHighlightVisible() {
+      var container = $element.querySelectorAll('.ui-select-choices-content');
+      var choices = container.querySelectorAll('.ui-select-choices-row');
+      if (choices.length < 1) {
+        throw uiSelectMinErr('choices', "Expected multiple .ui-select-choices-row but got '{0}'.", choices.length);
+      }
+
+      var highlighted = choices[ctrl.activeIndex];
+      var posY = highlighted.offsetTop + highlighted.clientHeight - container[0].scrollTop;
+      var height = container[0].offsetHeight;
+
+      if (posY > height) {
+        container[0].scrollTop += posY - height;
+      } else if (posY < highlighted.clientHeight) {
+        if (ctrl.isGrouped && ctrl.activeIndex === 0)
+          container[0].scrollTop = 0; //To make group header visible when going all the way up
+        else
+          container[0].scrollTop -= highlighted.clientHeight - posY;
+      }
+    }
+
+    $scope.$on('$destroy', function() {
+      _searchInput.off('keydown blur');
+    });
+  }])
+
+  .directive('uiSelect',
+    ['$document', 'uiSelectConfig', 'uiSelectMinErr', '$compile', '$parse',
+    function($document, uiSelectConfig, uiSelectMinErr, $compile, $parse) {
+
+    return {
+      restrict: 'EA',
+      templateUrl: function(tElement, tAttrs) {
+        var theme = tAttrs.theme || uiSelectConfig.theme;
+        return theme + (angular.isDefined(tAttrs.multiple) ? '/select-multiple.tpl.html' : '/select.tpl.html');
+      },
+      replace: true,
+      transclude: true,
+      require: ['uiSelect', 'ngModel'],
+      scope: true,
+
+      controller: 'uiSelectCtrl',
+      controllerAs: '$select',
+
+      link: function(scope, element, attrs, ctrls, transcludeFn) {
+        var $select = ctrls[0];
+        var ngModel = ctrls[1];
+
+        var searchInput = element.querySelectorAll('input.ui-select-search');
+
+        $select.multiple = (angular.isDefined(attrs.multiple)) ? (attrs.multiple === '') ? true : (attrs.multiple.toLowerCase() === 'true') : false;
+
+        $select.onSelectCallback = $parse(attrs.onSelect);
+        $select.onRemoveCallback = $parse(attrs.onRemove);
+
+        //From view --> model
+        ngModel.$parsers.unshift(function (inputValue) {
+          var locals = {},
+              result;
+          if ($select.multiple){
+            var resultMultiple = [];
+            for (var j = $select.selected.length - 1; j >= 0; j--) {
+              locals = {};
+              locals[$select.parserResult.itemName] = $select.selected[j];
+              result = $select.parserResult.modelMapper(scope, locals);
+              resultMultiple.unshift(result);
+            }
+            return resultMultiple;
+          }else{
+            locals = {};
+            locals[$select.parserResult.itemName] = inputValue;
+            result = $select.parserResult.modelMapper(scope, locals);
+            return result;
+          }
+        });
+
+        //From model --> view
+        ngModel.$formatters.unshift(function (inputValue) {
+          var data = $select.parserResult.source (scope, { $select : {search:''}}), //Overwrite $search
+              locals = {},
+              result;
+          if (data){
+            if ($select.multiple){
+              var resultMultiple = [];
+              var checkFnMultiple = function(list, value){
+                if (!list || !list.length) return;
+                for (var p = list.length - 1; p >= 0; p--) {
+                  locals[$select.parserResult.itemName] = list[p];
+                  result = $select.parserResult.modelMapper(scope, locals);
+                  if (result == value){
+                    resultMultiple.unshift(list[p]);
+                    return true;
+                  }
+                }
+                return false;
+              };
+              if (!inputValue) return resultMultiple; //If ngModel was undefined
+              for (var k = inputValue.length - 1; k >= 0; k--) {
+                if (!checkFnMultiple($select.selected, inputValue[k])){
+                  checkFnMultiple(data, inputValue[k]);
+                }
+              }
+              return resultMultiple;
+            }else{
+              var checkFnSingle = function(d){
+                locals[$select.parserResult.itemName] = d;
+                result = $select.parserResult.modelMapper(scope, locals);
+                return result == inputValue;
+              };
+              //If possible pass same object stored in $select.selected
+              if ($select.selected && checkFnSingle($select.selected)) {
+                return $select.selected;
+              }
+              for (var i = data.length - 1; i >= 0; i--) {
+                if (checkFnSingle(data[i])) return data[i];
+              }
+            }
+          }
+          return inputValue;
+        });
+
+        //Set reference to ngModel from uiSelectCtrl
+        $select.ngModel = ngModel;
+
+        //Idea from: https://github.com/ivaynberg/select2/blob/79b5bf6db918d7560bdd959109b7bcfb47edaf43/select2.js#L1954
+        var focusser = angular.element("<input ng-disabled='$select.disabled' class='ui-select-focusser ui-select-offscreen' type='text' aria-haspopup='true' role='button' />");
+
+        if(attrs.tabindex){
+          //tabindex might be an expression, wait until it contains the actual value before we set the focusser tabindex
+          attrs.$observe('tabindex', function(value) {
+            //If we are using multiple, add tabindex to the search input
+            if($select.multiple){
+              searchInput.attr("tabindex", value);
+            } else {
+              focusser.attr("tabindex", value);
+            }
+            //Remove the tabindex on the parent so that it is not focusable
+            element.removeAttr("tabindex");
+          });
+        }
+
+        $compile(focusser)(scope);
+        $select.focusser = focusser;
+
+        if (!$select.multiple){
+
+          element.append(focusser);
+          focusser.bind("focus", function(){
+            scope.$evalAsync(function(){
+              $select.focus = true;
+            });
+          });
+          focusser.bind("blur", function(){
+            scope.$evalAsync(function(){
+              $select.focus = false;
+            });
+          });
+          focusser.bind("keydown", function(e){
+
+            if (e.which === KEY.BACKSPACE) {
+              e.preventDefault();
+              e.stopPropagation();
+              $select.select(undefined);
+              scope.$apply();
+              return;
+            }
+
+            if (e.which === KEY.TAB || KEY.isControl(e) || KEY.isFunctionKey(e) || e.which === KEY.ESC) {
+              return;
+            }
+
+            if (e.which == KEY.DOWN  || e.which == KEY.UP || e.which == KEY.ENTER || e.which == KEY.SPACE){
+              e.preventDefault();
+              e.stopPropagation();
+              $select.activate();
+            }
+
+            scope.$digest();
+          });
+
+          focusser.bind("keyup input", function(e){
+
+            if (e.which === KEY.TAB || KEY.isControl(e) || KEY.isFunctionKey(e) || e.which === KEY.ESC || e.which == KEY.ENTER || e.which === KEY.BACKSPACE) {
+              return;
+            }
+
+            $select.activate(focusser.val()); //User pressed some regular key, so we pass it to the search input
+            focusser.val('');
+            scope.$digest();
+
+          });
+
+        }
+
+
+        scope.$watch('searchEnabled', function() {
+            var searchEnabled = scope.$eval(attrs.searchEnabled);
+            $select.searchEnabled = searchEnabled !== undefined ? searchEnabled : true;
+        });
+
+        attrs.$observe('disabled', function() {
+          // No need to use $eval() (thanks to ng-disabled) since we already get a boolean instead of a string
+          $select.disabled = attrs.disabled !== undefined ? attrs.disabled : false;
+        });
+
+        attrs.$observe('resetSearchInput', function() {
+          // $eval() is needed otherwise we get a string instead of a boolean
+          var resetSearchInput = scope.$eval(attrs.resetSearchInput);
+          $select.resetSearchInput = resetSearchInput !== undefined ? resetSearchInput : true;
+        });
+
+        if ($select.multiple){
+          scope.$watchCollection('$select.selected', function() {
+            ngModel.$setViewValue(Date.now()); //Set timestamp as a unique string to force changes
+          });
+          focusser.prop('disabled', true); //Focusser isn't needed if multiple
+        }else{
+          scope.$watch('$select.selected', function(newValue) {
+            if (ngModel.$viewValue !== newValue) {
+              ngModel.$setViewValue(newValue);
+            }
+          });
+        }
+
+        ngModel.$render = function() {
+          if($select.multiple){
+            // Make sure that model value is array
+            if(!angular.isArray(ngModel.$viewValue)){
+              // Have tolerance for null or undefined values
+              if(angular.isUndefined(ngModel.$viewValue) || ngModel.$viewValue === null){
+                $select.selected = [];
+              } else {
+                throw uiSelectMinErr('multiarr', "Expected model value to be array but got '{0}'", ngModel.$viewValue);
+              }
+            }
+          }
+          $select.selected = ngModel.$viewValue;
+        };
+
+        function onDocumentClick(e) {
+          var contains = false;
+
+          if (window.jQuery) {
+            // Firefox 3.6 does not support element.contains()
+            // See Node.contains https://developer.mozilla.org/en-US/docs/Web/API/Node.contains
+            contains = window.jQuery.contains(element[0], e.target);
+          } else {
+            contains = element[0].contains(e.target);
+          }
+
+          if (!contains) {
+            $select.close();
+            scope.$digest();
+          }
+        }
+
+        // See Click everywhere but here event http://stackoverflow.com/questions/12931369
+        $document.on('click', onDocumentClick);
+
+        scope.$on('$destroy', function() {
+          $document.off('click', onDocumentClick);
+        });
+
+        // Move transcluded elements to their correct position in main template
+        transcludeFn(scope, function(clone) {
+          // See Transclude in AngularJS http://blog.omkarpatil.com/2012/11/transclude-in-angularjs.html
+
+          // One day jqLite will be replaced by jQuery and we will be able to write:
+          // var transcludedElement = clone.filter('.my-class')
+          // instead of creating a hackish DOM element:
+          var transcluded = angular.element('<div>').append(clone);
+
+          var transcludedMatch = transcluded.querySelectorAll('.ui-select-match');
+          transcludedMatch.removeAttr('ui-select-match'); //To avoid loop in case directive as attr
+          if (transcludedMatch.length !== 1) {
+            throw uiSelectMinErr('transcluded', "Expected 1 .ui-select-match but got '{0}'.", transcludedMatch.length);
+          }
+          element.querySelectorAll('.ui-select-match').replaceWith(transcludedMatch);
+
+          var transcludedChoices = transcluded.querySelectorAll('.ui-select-choices');
+          transcludedChoices.removeAttr('ui-select-choices'); //To avoid loop in case directive as attr
+          if (transcludedChoices.length !== 1) {
+            throw uiSelectMinErr('transcluded', "Expected 1 .ui-select-choices but got '{0}'.", transcludedChoices.length);
+          }
+          element.querySelectorAll('.ui-select-choices').replaceWith(transcludedChoices);
+        });
+      }
+    };
+  }])
+
+  .directive('uiSelectChoices',
+    ['uiSelectConfig', 'RepeatParser', 'uiSelectMinErr', '$compile',
+    function(uiSelectConfig, RepeatParser, uiSelectMinErr, $compile) {
+
+    return {
+      restrict: 'EA',
+      require: '^uiSelect',
+      replace: true,
+      transclude: true,
+      templateUrl: function(tElement) {
+        // Gets theme attribute from parent (ui-select)
+        var theme = tElement.parent().attr('theme') || uiSelectConfig.theme;
+        return theme + '/choices.tpl.html';
+      },
+
+      compile: function(tElement, tAttrs) {
+
+        if (!tAttrs.repeat) throw uiSelectMinErr('repeat', "Expected 'repeat' expression.");
+
+        return function link(scope, element, attrs, $select, transcludeFn) {
+
+          // var repeat = RepeatParser.parse(attrs.repeat);
+          var groupByExp = attrs.groupBy;
+
+          $select.parseRepeatAttr(attrs.repeat, groupByExp); //Result ready at $select.parserResult
+
+          $select.disableChoiceExpression = attrs.uiDisableChoice;
+
+          if(groupByExp) {
+            var groups = element.querySelectorAll('.ui-select-choices-group');
+            if (groups.length !== 1) throw uiSelectMinErr('rows', "Expected 1 .ui-select-choices-group but got '{0}'.", groups.length);
+            groups.attr('ng-repeat', RepeatParser.getGroupNgRepeatExpression());
+          }
+
+          var choices = element.querySelectorAll('.ui-select-choices-row');
+          if (choices.length !== 1) {
+            throw uiSelectMinErr('rows', "Expected 1 .ui-select-choices-row but got '{0}'.", choices.length);
+          }
+
+          choices.attr('ng-repeat', RepeatParser.getNgRepeatExpression($select.parserResult.itemName, '$select.items', $select.parserResult.trackByExp, groupByExp))
+              .attr('ng-mouseenter', '$select.setActiveItem('+$select.parserResult.itemName +')')
+              .attr('ng-click', '$select.select(' + $select.parserResult.itemName + ')');
+
+          var rowsInner = element.querySelectorAll('.ui-select-choices-row-inner');
+          if (rowsInner.length !== 1) throw uiSelectMinErr('rows', "Expected 1 .ui-select-choices-row-inner but got '{0}'.", rowsInner.length);
+          rowsInner.attr('uis-transclude-append', ''); //Adding uisTranscludeAppend directive to row element after choices element has ngRepeat
+
+          $compile(element, transcludeFn)(scope); //Passing current transcludeFn to be able to append elements correctly from uisTranscludeAppend
+
+          scope.$watch('$select.search', function(newValue) {
+            if(newValue && !$select.open && $select.multiple) $select.activate(false, true);
+            $select.activeIndex = 0;
+            $select.refresh(attrs.refresh);
+          });
+
+          attrs.$observe('refreshDelay', function() {
+            // $eval() is needed otherwise we get a string instead of a number
+            var refreshDelay = scope.$eval(attrs.refreshDelay);
+            $select.refreshDelay = refreshDelay !== undefined ? refreshDelay : uiSelectConfig.refreshDelay;
+          });
+        };
+      }
+    };
+  }])
+  // Recreates old behavior of ng-transclude. Used internally.
+  .directive('uisTranscludeAppend', function () {
+    return {
+      link: function (scope, element, attrs, ctrl, transclude) {
+          transclude(scope, function (clone) {
+            element.append(clone);
+          });
+        }
+      };
+  })
+  .directive('uiSelectMatch', ['uiSelectConfig', function(uiSelectConfig) {
+    return {
+      restrict: 'EA',
+      require: '^uiSelect',
+      replace: true,
+      transclude: true,
+      templateUrl: function(tElement) {
+        // Gets theme attribute from parent (ui-select)
+        var theme = tElement.parent().attr('theme') || uiSelectConfig.theme;
+        var multi = tElement.parent().attr('multiple');
+        return theme + (multi ? '/match-multiple.tpl.html' : '/match.tpl.html');
+      },
+      link: function(scope, element, attrs, $select) {
+        attrs.$observe('placeholder', function(placeholder) {
+          $select.placeholder = placeholder !== undefined ? placeholder : uiSelectConfig.placeholder;
+        });
+
+        if($select.multiple){
+          $select.sizeSearchInput();
+        }
+
+      }
+    };
+  }])
+
+  /**
+   * Highlights text that matches $select.search.
+   *
+   * Taken from AngularUI Bootstrap Typeahead
+   * See https://github.com/angular-ui/bootstrap/blob/0.10.0/src/typeahead/typeahead.js#L340
+   */
+  .filter('highlight', function() {
+    function escapeRegexp(queryToEscape) {
+      return queryToEscape.replace(/([.?*+^$[\]\\(){}|-])/g, '\\$1');
+    }
+
+    return function(matchItem, query) {
+      return query && matchItem ? matchItem.replace(new RegExp(escapeRegexp(query), 'gi'), '<span class="ui-select-highlight">$&</span>') : matchItem;
+    };
+  });
+}());
+
+angular.module("ui.select").run(["$templateCache", function($templateCache) {$templateCache.put("bootstrap/choices.tpl.html","<ul class=\"ui-select-choices ui-select-choices-content dropdown-menu\" role=\"menu\" aria-labelledby=\"dLabel\" ng-show=\"$select.items.length > 0\"><li class=\"ui-select-choices-group\"><div class=\"divider\" ng-show=\"$select.isGrouped && $index > 0\"></div><div ng-show=\"$select.isGrouped\" class=\"ui-select-choices-group-label dropdown-header\">{{$group.name}}</div><div class=\"ui-select-choices-row\" ng-class=\"{active: $select.isActive(this), disabled: $select.isDisabled(this)}\"><a href=\"javascript:void(0)\" class=\"ui-select-choices-row-inner\"></a></div></li></ul>");
+$templateCache.put("bootstrap/match-multiple.tpl.html","<span class=\"ui-select-match\"><span ng-repeat=\"$item in $select.selected\"><span style=\"margin-right: 3px;\" class=\"ui-select-match-item btn btn-default btn-xs\" tabindex=\"-1\" type=\"button\" ng-disabled=\"$select.disabled\" ng-click=\"$select.activeMatchIndex = $index;\" ng-class=\"{\'btn-primary\':$select.activeMatchIndex === $index}\"><span class=\"close ui-select-match-close\" ng-hide=\"$select.disabled\" ng-click=\"$select.removeChoice($index)\">&nbsp;&times;</span> <span uis-transclude-append=\"\"></span></span></span></span>");
+$templateCache.put("bootstrap/match.tpl.html","<button type=\"button\" class=\"btn btn-default form-control ui-select-match\" tabindex=\"-1\" ng-hide=\"$select.open\" ng-disabled=\"$select.disabled\" ng-class=\"{\'btn-default-focus\':$select.focus}\" ;=\"\" ng-click=\"$select.activate()\"><span ng-show=\"$select.searchEnabled && $select.isEmpty()\" class=\"text-muted\">{{$select.placeholder}}</span> <span ng-hide=\"$select.isEmpty()\" ng-transclude=\"\"></span> <span class=\"caret ui-select-toggle\" ng-click=\"$select.toggle($event)\"></span></button>");
+$templateCache.put("bootstrap/select-multiple.tpl.html","<div class=\"ui-select-multiple ui-select-bootstrap dropdown form-control\" ng-class=\"{open: $select.open}\"><div><div class=\"ui-select-match\"></div><input type=\"text\" autocomplete=\"off\" autocorrect=\"off\" autocapitalize=\"off\" spellcheck=\"false\" class=\"ui-select-search input-xs\" placeholder=\"{{$select.getPlaceholder()}}\" ng-disabled=\"$select.disabled\" ng-hide=\"$select.disabled\" ng-click=\"$select.activate()\" ng-model=\"$select.search\"></div><div class=\"ui-select-choices\"></div></div>");
+$templateCache.put("bootstrap/select.tpl.html","<div class=\"ui-select-bootstrap dropdown\" ng-class=\"{open: $select.open}\"><div class=\"ui-select-match\"></div><input type=\"text\" autocomplete=\"off\" tabindex=\"-1\" class=\"form-control ui-select-search\" placeholder=\"{{$select.placeholder}}\" ng-model=\"$select.search\" ng-show=\"$select.searchEnabled && $select.open\"><div class=\"ui-select-choices\"></div></div>");
+$templateCache.put("select2/choices.tpl.html","<ul class=\"ui-select-choices ui-select-choices-content select2-results\"><li class=\"ui-select-choices-group\" ng-class=\"{\'select2-result-with-children\': $select.isGrouped}\"><div ng-show=\"$select.isGrouped\" class=\"ui-select-choices-group-label select2-result-label\">{{$group.name}}</div><ul ng-class=\"{\'select2-result-sub\': $select.isGrouped, \'select2-result-single\': !$select.isGrouped}\"><li class=\"ui-select-choices-row\" ng-class=\"{\'select2-highlighted\': $select.isActive(this), \'select2-disabled\': $select.isDisabled(this)}\"><div class=\"select2-result-label ui-select-choices-row-inner\"></div></li></ul></li></ul>");
+$templateCache.put("select2/match-multiple.tpl.html","<span class=\"ui-select-match\"><li class=\"ui-select-match-item select2-search-choice\" ng-repeat=\"$item in $select.selected\" ng-class=\"{\'select2-search-choice-focus\':$select.activeMatchIndex === $index}\"><span uis-transclude-append=\"\"></span> <a href=\"javascript:;\" class=\"ui-select-match-close select2-search-choice-close\" ng-click=\"$select.removeChoice($index)\" tabindex=\"-1\"></a></li></span>");
+$templateCache.put("select2/match.tpl.html","<a class=\"select2-choice ui-select-match\" ng-class=\"{\'select2-default\': $select.isEmpty()}\" ng-click=\"$select.activate()\"><span ng-show=\"$select.searchEnabled && $select.isEmpty()\" class=\"select2-chosen\">{{$select.placeholder}}</span> <span ng-hide=\"$select.isEmpty()\" class=\"select2-chosen\" ng-transclude=\"\"></span> <span class=\"select2-arrow ui-select-toggle\" ng-click=\"$select.toggle($event)\"><b></b></span></a>");
+$templateCache.put("select2/select-multiple.tpl.html","<div class=\"ui-select-multiple select2 select2-container select2-container-multi\" ng-class=\"{\'select2-container-active select2-dropdown-open\': $select.open,\n                \'select2-container-disabled\': $select.disabled}\"><ul class=\"select2-choices\"><span class=\"ui-select-match\"></span><li class=\"select2-search-field\"><input type=\"text\" autocomplete=\"off\" autocorrect=\"off\" autocapitalize=\"off\" spellcheck=\"false\" class=\"select2-input ui-select-search\" placeholder=\"{{$select.getPlaceholder()}}\" ng-disabled=\"$select.disabled\" ng-hide=\"$select.disabled\" ng-model=\"$select.search\" ng-click=\"$select.activate()\" style=\"width: 34px;\"></li></ul><div class=\"select2-drop select2-with-searchbox select2-drop-active\" ng-class=\"{\'select2-display-none\': !$select.open}\"><div class=\"ui-select-choices\"></div></div></div>");
+$templateCache.put("select2/select.tpl.html","<div class=\"select2 select2-container\" ng-class=\"{\'select2-container-active select2-dropdown-open\': $select.open,\n                \'select2-container-disabled\': $select.disabled,\n                \'select2-container-active\': $select.focus }\"><div class=\"ui-select-match\"></div><div class=\"select2-drop select2-with-searchbox select2-drop-active\" ng-class=\"{\'select2-display-none\': !$select.open}\"><div class=\"select2-search\" ng-show=\"$select.searchEnabled\"><input type=\"text\" autocomplete=\"off\" autocorrect=\"off\" autocapitalize=\"off\" spellcheck=\"false\" class=\"ui-select-search select2-input\" ng-model=\"$select.search\"></div><div class=\"ui-select-choices\"></div></div></div>");
+$templateCache.put("selectize/choices.tpl.html","<div ng-show=\"$select.open\" class=\"ui-select-choices selectize-dropdown single\"><div class=\"ui-select-choices-content selectize-dropdown-content\"><div class=\"ui-select-choices-group optgroup\"><div ng-show=\"$select.isGrouped\" class=\"ui-select-choices-group-label optgroup-header\">{{$group.name}}</div><div class=\"ui-select-choices-row\" ng-class=\"{active: $select.isActive(this), disabled: $select.isDisabled(this)}\"><div class=\"option ui-select-choices-row-inner\" data-selectable=\"\"></div></div></div></div></div>");
+$templateCache.put("selectize/match.tpl.html","<div ng-hide=\"$select.searchEnabled && ($select.open || $select.isEmpty())\" class=\"ui-select-match\" ng-transclude=\"\"></div>");
+$templateCache.put("selectize/select.tpl.html","<div class=\"selectize-control single\"><div class=\"selectize-input\" ng-class=\"{\'focus\': $select.open, \'disabled\': $select.disabled, \'selectize-focus\' : $select.focus}\" ng-click=\"$select.activate()\"><div class=\"ui-select-match\"></div><input type=\"text\" autocomplete=\"off\" tabindex=\"-1\" class=\"ui-select-search ui-select-toggle\" ng-click=\"$select.toggle($event)\" placeholder=\"{{$select.placeholder}}\" ng-model=\"$select.search\" ng-hide=\"!$select.searchEnabled || ($select.selected && !$select.open)\" ng-disabled=\"$select.disabled\"></div><div class=\"ui-select-choices\"></div></div>");}]);
+/*!
+ * Pikaday
+ *
+ * Copyright © 2014 David Bushell | BSD & MIT license | https://github.com/dbushell/Pikaday
+ */
+
+
+(function (root, factory)
+{
+    'use strict';
+
+    var moment;
+    if (typeof exports === 'object') {
+        // CommonJS module
+        // Load moment.js as an optional dependency
+        try { moment = require('moment'); } catch (e) {}
+        module.exports = factory(moment);
+    } else if (typeof define === 'function' && define.amd) {
+        // AMD. Register as an anonymous module.
+        define(function (req)
+        {
+            // Load moment.js as an optional dependency
+            var id = 'moment';
+            try { moment = req(id); } catch (e) {}
+            return factory(moment);
+        });
+    } else {
+        root.Pikaday = factory(root.moment);
+    }
+}(this, function (moment)
+{
+    'use strict';
+
+    /**
+     * feature detection and helper functions
+     */
+    var hasMoment = typeof moment === 'function',
+
+    hasEventListeners = !!window.addEventListener,
+
+    document = window.document,
+
+    sto = window.setTimeout,
+
+    addEvent = function(el, e, callback, capture)
+    {
+        if (hasEventListeners) {
+            el.addEventListener(e, callback, !!capture);
+        } else {
+            el.attachEvent('on' + e, callback);
+        }
+    },
+
+    removeEvent = function(el, e, callback, capture)
+    {
+        if (hasEventListeners) {
+            el.removeEventListener(e, callback, !!capture);
+        } else {
+            el.detachEvent('on' + e, callback);
+        }
+    },
+
+    fireEvent = function(el, eventName, data)
+    {
+        var ev;
+
+        if (document.createEvent) {
+            ev = document.createEvent('HTMLEvents');
+            ev.initEvent(eventName, true, false);
+            ev = extend(ev, data);
+            el.dispatchEvent(ev);
+        } else if (document.createEventObject) {
+            ev = document.createEventObject();
+            ev = extend(ev, data);
+            el.fireEvent('on' + eventName, ev);
+        }
+    },
+
+    trim = function(str)
+    {
+        return str.trim ? str.trim() : str.replace(/^\s+|\s+$/g,'');
+    },
+
+    hasClass = function(el, cn)
+    {
+        return (' ' + el.className + ' ').indexOf(' ' + cn + ' ') !== -1;
+    },
+
+    addClass = function(el, cn)
+    {
+        if (!hasClass(el, cn)) {
+            el.className = (el.className === '') ? cn : el.className + ' ' + cn;
+        }
+    },
+
+    removeClass = function(el, cn)
+    {
+        el.className = trim((' ' + el.className + ' ').replace(' ' + cn + ' ', ' '));
+    },
+
+    isArray = function(obj)
+    {
+        return (/Array/).test(Object.prototype.toString.call(obj));
+    },
+
+    isDate = function(obj)
+    {
+        return (/Date/).test(Object.prototype.toString.call(obj)) && !isNaN(obj.getTime());
+    },
+
+    isLeapYear = function(year)
+    {
+        // solution by Matti Virkkunen: http://stackoverflow.com/a/4881951
+        return year % 4 === 0 && year % 100 !== 0 || year % 400 === 0;
+    },
+
+    getDaysInMonth = function(year, month)
+    {
+        return [31, isLeapYear(year) ? 29 : 28, 31, 30, 31, 30, 31, 31, 30, 31, 30, 31][month];
+    },
+
+    setToStartOfDay = function(date)
+    {
+        if (isDate(date)) date.setHours(0,0,0,0);
+    },
+
+    compareDates = function(a,b)
+    {
+        // weak date comparison (use setToStartOfDay(date) to ensure correct result)
+        return a.getTime() === b.getTime();
+    },
+
+    extend = function(to, from, overwrite)
+    {
+        var prop, hasProp;
+        for (prop in from) {
+            hasProp = to[prop] !== undefined;
+            if (hasProp && typeof from[prop] === 'object' && from[prop] !== null && from[prop].nodeName === undefined) {
+                if (isDate(from[prop])) {
+                    if (overwrite) {
+                        to[prop] = new Date(from[prop].getTime());
+                    }
+                }
+                else if (isArray(from[prop])) {
+                    if (overwrite) {
+                        to[prop] = from[prop].slice(0);
+                    }
+                } else {
+                    to[prop] = extend({}, from[prop], overwrite);
+                }
+            } else if (overwrite || !hasProp) {
+                to[prop] = from[prop];
+            }
+        }
+        return to;
+    },
+
+    adjustCalendar = function(calendar) {
+        if (calendar.month < 0) {
+            calendar.year -= Math.ceil(Math.abs(calendar.month)/12);
+            calendar.month += 12;
+        }
+        if (calendar.month > 11) {
+            calendar.year += Math.floor(Math.abs(calendar.month)/12);
+            calendar.month -= 12;
+        }
+        return calendar;
+    },
+
+    /**
+     * defaults and localisation
+     */
+    defaults = {
+
+        // bind the picker to a form field
+        field: null,
+
+        // automatically show/hide the picker on `field` focus (default `true` if `field` is set)
+        bound: undefined,
+
+        // position of the datepicker, relative to the field (default to bottom & left)
+        // ('bottom' & 'left' keywords are not used, 'top' & 'right' are modifier on the bottom/left position)
+        position: 'bottom left',
+
+        // automatically fit in the viewport even if it means repositioning from the position option
+        reposition: true,
+
+        // the default output format for `.toString()` and `field` value
+        format: 'YYYY-MM-DD',
+
+        // the initial date to view when first opened
+        defaultDate: null,
+
+        // make the `defaultDate` the initial selected value
+        setDefaultDate: false,
+
+        // first day of week (0: Sunday, 1: Monday etc)
+        firstDay: 0,
+
+        // the minimum/earliest date that can be selected
+        minDate: null,
+        // the maximum/latest date that can be selected
+        maxDate: null,
+
+        // number of years either side, or array of upper/lower range
+        yearRange: 10,
+
+        // show week numbers at head of row
+        showWeekNumber: false,
+
+        // used internally (don't config outside)
+        minYear: 0,
+        maxYear: 9999,
+        minMonth: undefined,
+        maxMonth: undefined,
+
+        isRTL: false,
+
+        // Additional text to append to the year in the calendar title
+        yearSuffix: '',
+
+        // Render the month after year in the calendar title
+        showMonthAfterYear: false,
+
+        // how many months are visible
+        numberOfMonths: 1,
+
+        // when numberOfMonths is used, this will help you to choose where the main calendar will be (default `left`, can be set to `right`)
+        // only used for the first display or when a selected date is not visible
+        mainCalendar: 'left',
+
+        // Specify a DOM element to render the calendar in
+        container: undefined,
+
+        // internationalization
+        i18n: {
+            previousMonth : 'Previous Month',
+            nextMonth     : 'Next Month',
+            months        : ['January','February','March','April','May','June','July','August','September','October','November','December'],
+            weekdays      : ['Sunday','Monday','Tuesday','Wednesday','Thursday','Friday','Saturday'],
+            weekdaysShort : ['Sun','Mon','Tue','Wed','Thu','Fri','Sat']
+        },
+
+        // callback function
+        onSelect: null,
+        onOpen: null,
+        onClose: null,
+        onDraw: null
+    },
+
+
+    /**
+     * templating functions to abstract HTML rendering
+     */
+    renderDayName = function(opts, day, abbr)
+    {
+        day += opts.firstDay;
+        while (day >= 7) {
+            day -= 7;
+        }
+        return abbr ? opts.i18n.weekdaysShort[day] : opts.i18n.weekdays[day];
+    },
+
+    renderDay = function(d, m, y, isSelected, isToday, isDisabled, isEmpty)
+    {
+        if (isEmpty) {
+            return '<td class="is-empty"></td>';
+        }
+        var arr = [];
+        if (isDisabled) {
+            arr.push('is-disabled');
+        }
+        if (isToday) {
+            arr.push('is-today');
+        }
+        if (isSelected) {
+            arr.push('is-selected');
+        }
+        return '<td data-day="' + d + '" class="' + arr.join(' ') + '">' +
+                 '<button class="pika-button pika-day" type="button" ' +
+                    'data-pika-year="' + y + '" data-pika-month="' + m + '" data-pika-day="' + d + '">' +
+                        d +
+                 '</button>' +
+               '</td>';
+    },
+
+    renderWeek = function (d, m, y) {
+        // Lifted from http://javascript.about.com/library/blweekyear.htm, lightly modified.
+        var onejan = new Date(y, 0, 1),
+            weekNum = Math.ceil((((new Date(y, m, d) - onejan) / 86400000) + onejan.getDay()+1)/7);
+        return '<td class="pika-week">' + weekNum + '</td>';
+    },
+
+    renderRow = function(days, isRTL)
+    {
+        return '<tr>' + (isRTL ? days.reverse() : days).join('') + '</tr>';
+    },
+
+    renderBody = function(rows)
+    {
+        return '<tbody>' + rows.join('') + '</tbody>';
+    },
+
+    renderHead = function(opts)
+    {
+        var i, arr = [];
+        if (opts.showWeekNumber) {
+            arr.push('<th></th>');
+        }
+        for (i = 0; i < 7; i++) {
+            arr.push('<th scope="col"><abbr title="' + renderDayName(opts, i) + '">' + renderDayName(opts, i, true) + '</abbr></th>');
+        }
+        return '<thead>' + (opts.isRTL ? arr.reverse() : arr).join('') + '</thead>';
+    },
+
+    renderTitle = function(instance, c, year, month, refYear)
+    {
+        var i, j, arr,
+            opts = instance._o,
+            isMinYear = year === opts.minYear,
+            isMaxYear = year === opts.maxYear,
+            html = '<div class="pika-title">',
+            monthHtml,
+            yearHtml,
+            prev = true,
+            next = true;
+
+        for (arr = [], i = 0; i < 12; i++) {
+            arr.push('<option value="' + (year === refYear ? i - c : 12 + i - c) + '"' +
+                (i === month ? ' selected': '') +
+                ((isMinYear && i < opts.minMonth) || (isMaxYear && i > opts.maxMonth) ? 'disabled' : '') + '>' +
+                opts.i18n.months[i] + '</option>');
+        }
+        monthHtml = '<div class="pika-label">' + opts.i18n.months[month] + '<select class="pika-select pika-select-month">' + arr.join('') + '</select></div>';
+
+        if (isArray(opts.yearRange)) {
+            i = opts.yearRange[0];
+            j = opts.yearRange[1] + 1;
+        } else {
+            i = year - opts.yearRange;
+            j = 1 + year + opts.yearRange;
+        }
+
+        for (arr = []; i < j && i <= opts.maxYear; i++) {
+            if (i >= opts.minYear) {
+                arr.push('<option value="' + i + '"' + (i === year ? ' selected': '') + '>' + (i) + '</option>');
+            }
+        }
+        yearHtml = '<div class="pika-label">' + year + opts.yearSuffix + '<select class="pika-select pika-select-year">' + arr.join('') + '</select></div>';
+
+        if (opts.showMonthAfterYear) {
+            html += yearHtml + monthHtml;
+        } else {
+            html += monthHtml + yearHtml;
+        }
+
+        if (isMinYear && (month === 0 || opts.minMonth >= month)) {
+            prev = false;
+        }
+
+        if (isMaxYear && (month === 11 || opts.maxMonth <= month)) {
+            next = false;
+        }
+
+        if (c === 0) {
+            html += '<button class="pika-prev' + (prev ? '' : ' is-disabled') + '" type="button">' + opts.i18n.previousMonth + '</button>';
+        }
+        if (c === (instance._o.numberOfMonths - 1) ) {
+            html += '<button class="pika-next' + (next ? '' : ' is-disabled') + '" type="button">' + opts.i18n.nextMonth + '</button>';
+        }
+
+        return html += '</div>';
+    },
+
+    renderTable = function(opts, data)
+    {
+        return '<table cellpadding="0" cellspacing="0" class="pika-table">' + renderHead(opts) + renderBody(data) + '</table>';
+    },
+
+
+    /**
+     * Pikaday constructor
+     */
+    Pikaday = function(options)
+    {
+        var self = this,
+            opts = self.config(options);
+
+        self._onMouseDown = function(e)
+        {
+            if (!self._v) {
+                return;
+            }
+            e = e || window.event;
+            var target = e.target || e.srcElement;
+            if (!target) {
+                return;
+            }
+
+            if (!hasClass(target, 'is-disabled')) {
+                if (hasClass(target, 'pika-button') && !hasClass(target, 'is-empty')) {
+                    self.setDate(new Date(target.getAttribute('data-pika-year'), target.getAttribute('data-pika-month'), target.getAttribute('data-pika-day')));
+                    if (opts.bound) {
+                        sto(function() {
+                            self.hide();
+                            if (opts.field) {
+                                opts.field.blur();
+                            }
+                        }, 100);
+                    }
+                    return;
+                }
+                else if (hasClass(target, 'pika-prev')) {
+                    self.prevMonth();
+                }
+                else if (hasClass(target, 'pika-next')) {
+                    self.nextMonth();
+                }
+            }
+            if (!hasClass(target, 'pika-select')) {
+                if (e.preventDefault) {
+                    e.preventDefault();
+                } else {
+                    e.returnValue = false;
+                    return false;
+                }
+            } else {
+                self._c = true;
+            }
+        };
+
+        self._onChange = function(e)
+        {
+            e = e || window.event;
+            var target = e.target || e.srcElement;
+            if (!target) {
+                return;
+            }
+            if (hasClass(target, 'pika-select-month')) {
+                self.gotoMonth(target.value);
+            }
+            else if (hasClass(target, 'pika-select-year')) {
+                self.gotoYear(target.value);
+            }
+        };
+
+        self._onInputChange = function(e)
+        {
+            var date;
+
+            if (e.firedBy === self) {
+                return;
+            }
+            if (hasMoment) {
+                date = moment(opts.field.value, opts.format);
+                date = (date && date.isValid()) ? date.toDate() : null;
+            }
+            else {
+                date = new Date(Date.parse(opts.field.value));
+            }
+            self.setDate(isDate(date) ? date : null);
+            if (!self._v) {
+                self.show();
+            }
+        };
+
+        self._onInputFocus = function()
+        {
+            self.show();
+        };
+
+        self._onInputClick = function()
+        {
+            self.show();
+        };
+
+        self._onInputBlur = function()
+        {
+            // IE allows pika div to gain focus; catch blur the input field
+            var pEl = document.activeElement;
+            do {
+                if (hasClass(pEl, 'pika-single')) {
+                    return;
+                }
+            }
+            while ((pEl = pEl.parentNode));
+
+            if (!self._c) {
+                self._b = sto(function() {
+                    self.hide();
+                }, 50);
+            }
+            self._c = false;
+        };
+
+        self._onClick = function(e)
+        {
+            e = e || window.event;
+            var target = e.target || e.srcElement,
+                pEl = target;
+            if (!target) {
+                return;
+            }
+            if (!hasEventListeners && hasClass(target, 'pika-select')) {
+                if (!target.onchange) {
+                    target.setAttribute('onchange', 'return;');
+                    addEvent(target, 'change', self._onChange);
+                }
+            }
+            do {
+                if (hasClass(pEl, 'pika-single') || pEl === opts.trigger) {
+                    return;
+                }
+            }
+            while ((pEl = pEl.parentNode));
+            if (self._v && target !== opts.trigger && pEl !== opts.trigger) {
+                self.hide();
+            }
+        };
+
+        self.el = document.createElement('div');
+        self.el.className = 'pika-single' + (opts.isRTL ? ' is-rtl' : '');
+
+        addEvent(self.el, 'mousedown', self._onMouseDown, true);
+        addEvent(self.el, 'change', self._onChange);
+
+        if (opts.field) {
+            if (opts.container) {
+                opts.container.appendChild(self.el);
+            } else if (opts.bound) {
+                document.body.appendChild(self.el);
+            } else {
+                opts.field.parentNode.insertBefore(self.el, opts.field.nextSibling);
+            }
+            addEvent(opts.field, 'change', self._onInputChange);
+
+            if (!opts.defaultDate) {
+                if (hasMoment && opts.field.value) {
+                    opts.defaultDate = moment(opts.field.value, opts.format).toDate();
+                } else {
+                    opts.defaultDate = new Date(Date.parse(opts.field.value));
+                }
+                opts.setDefaultDate = true;
+            }
+        }
+
+        var defDate = opts.defaultDate;
+
+        if (isDate(defDate)) {
+            if (opts.setDefaultDate) {
+                self.setDate(defDate, true);
+            } else {
+                self.gotoDate(defDate);
+            }
+        } else {
+            self.gotoDate(new Date());
+        }
+
+        if (opts.bound) {
+            this.hide();
+            self.el.className += ' is-bound';
+            addEvent(opts.trigger, 'click', self._onInputClick);
+            addEvent(opts.trigger, 'focus', self._onInputFocus);
+            addEvent(opts.trigger, 'blur', self._onInputBlur);
+        } else {
+            this.show();
+        }
+    };
+
+
+    /**
+     * public Pikaday API
+     */
+    Pikaday.prototype = {
+
+
+        /**
+         * configure functionality
+         */
+        config: function(options)
+        {
+            if (!this._o) {
+                this._o = extend({}, defaults, true);
+            }
+
+            var opts = extend(this._o, options, true);
+
+            opts.isRTL = !!opts.isRTL;
+
+            opts.field = (opts.field && opts.field.nodeName) ? opts.field : null;
+
+            opts.bound = !!(opts.bound !== undefined ? opts.field && opts.bound : opts.field);
+
+            opts.trigger = (opts.trigger && opts.trigger.nodeName) ? opts.trigger : opts.field;
+
+            var nom = parseInt(opts.numberOfMonths, 10) || 1;
+            opts.numberOfMonths = nom > 4 ? 4 : nom;
+
+            if (!isDate(opts.minDate)) {
+                opts.minDate = false;
+            }
+            if (!isDate(opts.maxDate)) {
+                opts.maxDate = false;
+            }
+            if ((opts.minDate && opts.maxDate) && opts.maxDate < opts.minDate) {
+                opts.maxDate = opts.minDate = false;
+            }
+            if (opts.minDate) {
+                setToStartOfDay(opts.minDate);
+                opts.minYear  = opts.minDate.getFullYear();
+                opts.minMonth = opts.minDate.getMonth();
+            }
+            if (opts.maxDate) {
+                setToStartOfDay(opts.maxDate);
+                opts.maxYear  = opts.maxDate.getFullYear();
+                opts.maxMonth = opts.maxDate.getMonth();
+            }
+
+            if (isArray(opts.yearRange)) {
+                var fallback = new Date().getFullYear() - 10;
+                opts.yearRange[0] = parseInt(opts.yearRange[0], 10) || fallback;
+                opts.yearRange[1] = parseInt(opts.yearRange[1], 10) || fallback;
+            } else {
+                opts.yearRange = Math.abs(parseInt(opts.yearRange, 10)) || defaults.yearRange;
+                if (opts.yearRange > 100) {
+                    opts.yearRange = 100;
+                }
+            }
+
+            return opts;
+        },
+
+        /**
+         * return a formatted string of the current selection (using Moment.js if available)
+         */
+        toString: function(format)
+        {
+            return !isDate(this._d) ? '' : hasMoment ? moment(this._d).format(format || this._o.format) : this._d.toDateString();
+        },
+
+        /**
+         * return a Moment.js object of the current selection (if available)
+         */
+        getMoment: function()
+        {
+            return hasMoment ? moment(this._d) : null;
+        },
+
+        /**
+         * set the current selection from a Moment.js object (if available)
+         */
+        setMoment: function(date, preventOnSelect)
+        {
+            if (hasMoment && moment.isMoment(date)) {
+                this.setDate(date.toDate(), preventOnSelect);
+            }
+        },
+
+        /**
+         * return a Date object of the current selection
+         */
+        getDate: function()
+        {
+            return isDate(this._d) ? new Date(this._d.getTime()) : null;
+        },
+
+        /**
+         * set the current selection
+         */
+        setDate: function(date, preventOnSelect)
+        {
+            if (!date) {
+                this._d = null;
+
+                if (this._o.field) {
+                    this._o.field.value = '';
+                    fireEvent(this._o.field, 'change', { firedBy: this });
+                }
+
+                return this.draw();
+            }
+            if (typeof date === 'string') {
+                date = new Date(Date.parse(date));
+            }
+            if (!isDate(date)) {
+                return;
+            }
+
+            var min = this._o.minDate,
+                max = this._o.maxDate;
+
+            if (isDate(min) && date < min) {
+                date = min;
+            } else if (isDate(max) && date > max) {
+                date = max;
+            }
+
+            this._d = new Date(date.getTime());
+            setToStartOfDay(this._d);
+            this.gotoDate(this._d);
+
+            if (this._o.field) {
+                this._o.field.value = this.toString();
+                fireEvent(this._o.field, 'change', { firedBy: this });
+            }
+            if (!preventOnSelect && typeof this._o.onSelect === 'function') {
+                this._o.onSelect.call(this, this.getDate());
+            }
+        },
+
+        /**
+         * change view to a specific date
+         */
+        gotoDate: function(date)
+        {
+            var newCalendar = true;
+
+            if (!isDate(date)) {
+                return;
+            }
+
+            if (this.calendars) {
+                var firstVisibleDate = new Date(this.calendars[0].year, this.calendars[0].month, 1),
+                    lastVisibleDate = new Date(this.calendars[this.calendars.length-1].year, this.calendars[this.calendars.length-1].month, 1),
+                    visibleDate = date.getTime();
+                // get the end of the month
+                lastVisibleDate.setMonth(lastVisibleDate.getMonth()+1);
+                lastVisibleDate.setDate(lastVisibleDate.getDate()-1);
+                newCalendar = (visibleDate < firstVisibleDate.getTime() || lastVisibleDate.getTime() < visibleDate);
+            }
+
+            if (newCalendar) {
+                this.calendars = [{
+                    month: date.getMonth(),
+                    year: date.getFullYear()
+                }];
+                if (this._o.mainCalendar === 'right') {
+                    this.calendars[0].month += 1 - this._o.numberOfMonths;
+                }
+            }
+
+            this.adjustCalendars();
+        },
+
+        adjustCalendars: function() {
+            this.calendars[0] = adjustCalendar(this.calendars[0]);
+            for (var c = 1; c < this._o.numberOfMonths; c++) {
+                this.calendars[c] = adjustCalendar({
+                    month: this.calendars[0].month + c,
+                    year: this.calendars[0].year
+                });
+            }
+            this.draw();
+        },
+
+        gotoToday: function()
+        {
+            this.gotoDate(new Date());
+        },
+
+        /**
+         * change view to a specific month (zero-index, e.g. 0: January)
+         */
+        gotoMonth: function(month)
+        {
+            if (!isNaN(month)) {
+                this.calendars[0].month = parseInt(month, 10);
+                this.adjustCalendars();
+            }
+        },
+
+        nextMonth: function()
+        {
+            this.calendars[0].month++;
+            this.adjustCalendars();
+        },
+
+        prevMonth: function()
+        {
+            this.calendars[0].month--;
+            this.adjustCalendars();
+        },
+
+        /**
+         * change view to a specific full year (e.g. "2012")
+         */
+        gotoYear: function(year)
+        {
+            if (!isNaN(year)) {
+                this.calendars[0].year = parseInt(year, 10);
+                this.adjustCalendars();
+            }
+        },
+
+        /**
+         * change the minDate
+         */
+        setMinDate: function(value)
+        {
+            this._o.minDate = value;
+        },
+
+        /**
+         * change the maxDate
+         */
+        setMaxDate: function(value)
+        {
+            this._o.maxDate = value;
+        },
+
+        /**
+         * refresh the HTML
+         */
+        draw: function(force)
+        {
+            if (!this._v && !force) {
+                return;
+            }
+            var opts = this._o,
+                minYear = opts.minYear,
+                maxYear = opts.maxYear,
+                minMonth = opts.minMonth,
+                maxMonth = opts.maxMonth,
+                html = '';
+
+            if (this._y <= minYear) {
+                this._y = minYear;
+                if (!isNaN(minMonth) && this._m < minMonth) {
+                    this._m = minMonth;
+                }
+            }
+            if (this._y >= maxYear) {
+                this._y = maxYear;
+                if (!isNaN(maxMonth) && this._m > maxMonth) {
+                    this._m = maxMonth;
+                }
+            }
+
+            for (var c = 0; c < opts.numberOfMonths; c++) {
+                html += '<div class="pika-lendar">' + renderTitle(this, c, this.calendars[c].year, this.calendars[c].month, this.calendars[0].year) + this.render(this.calendars[c].year, this.calendars[c].month) + '</div>';
+            }
+
+            this.el.innerHTML = html;
+
+            if (opts.bound) {
+                if(opts.field.type !== 'hidden') {
+                    sto(function() {
+                        opts.trigger.focus();
+                    }, 1);
+                }
+            }
+
+            if (typeof this._o.onDraw === 'function') {
+                var self = this;
+                sto(function() {
+                    self._o.onDraw.call(self);
+                }, 0);
+            }
+        },
+
+        adjustPosition: function()
+        {
+            if (this._o.container) return;
+            var field = this._o.trigger, pEl = field,
+            width = this.el.offsetWidth, height = this.el.offsetHeight,
+            viewportWidth = window.innerWidth || document.documentElement.clientWidth,
+            viewportHeight = window.innerHeight || document.documentElement.clientHeight,
+            scrollTop = window.pageYOffset || document.body.scrollTop || document.documentElement.scrollTop,
+            left, top, clientRect;
+
+            if (typeof field.getBoundingClientRect === 'function') {
+                clientRect = field.getBoundingClientRect();
+                left = clientRect.left + window.pageXOffset;
+                top = clientRect.bottom + window.pageYOffset;
+            } else {
+                left = pEl.offsetLeft;
+                top  = pEl.offsetTop + pEl.offsetHeight;
+                while((pEl = pEl.offsetParent)) {
+                    left += pEl.offsetLeft;
+                    top  += pEl.offsetTop;
+                }
+            }
+
+            // default position is bottom & left
+            if ((this._o.reposition && left + width > viewportWidth) ||
+                (
+                    this._o.position.indexOf('right') > -1 &&
+                    left - width + field.offsetWidth > 0
+                )
+            ) {
+                left = left - width + field.offsetWidth;
+            }
+            if ((this._o.reposition && top + height > viewportHeight + scrollTop) ||
+                (
+                    this._o.position.indexOf('top') > -1 &&
+                    top - height - field.offsetHeight > 0
+                )
+            ) {
+                top = top - height - field.offsetHeight;
+            }
+
+            this.el.style.cssText = [
+                'position: absolute',
+                'left: ' + left + 'px',
+                'top: ' + top + 'px'
+            ].join(';');
+        },
+
+        /**
+         * render HTML for a particular month
+         */
+        render: function(year, month)
+        {
+            var opts   = this._o,
+                now    = new Date(),
+                days   = getDaysInMonth(year, month),
+                before = new Date(year, month, 1).getDay(),
+                data   = [],
+                row    = [];
+            setToStartOfDay(now);
+            if (opts.firstDay > 0) {
+                before -= opts.firstDay;
+                if (before < 0) {
+                    before += 7;
+                }
+            }
+            var cells = days + before,
+                after = cells;
+            while(after > 7) {
+                after -= 7;
+            }
+            cells += 7 - after;
+            for (var i = 0, r = 0; i < cells; i++)
+            {
+                var day = new Date(year, month, 1 + (i - before)),
+                    isDisabled = (opts.minDate && day < opts.minDate) || (opts.maxDate && day > opts.maxDate),
+                    isSelected = isDate(this._d) ? compareDates(day, this._d) : false,
+                    isToday = compareDates(day, now),
+                    isEmpty = i < before || i >= (days + before);
+
+                row.push(renderDay(1 + (i - before), month, year, isSelected, isToday, isDisabled, isEmpty));
+
+                if (++r === 7) {
+                    if (opts.showWeekNumber) {
+                        row.unshift(renderWeek(i - before, month, year));
+                    }
+                    data.push(renderRow(row, opts.isRTL));
+                    row = [];
+                    r = 0;
+                }
+            }
+            return renderTable(opts, data);
+        },
+
+        isVisible: function()
+        {
+            return this._v;
+        },
+
+        show: function()
+        {
+            if (!this._v) {
+                removeClass(this.el, 'is-hidden');
+                this._v = true;
+                this.draw();
+                if (this._o.bound) {
+                    addEvent(document, 'click', this._onClick);
+                    this.adjustPosition();
+                }
+                if (typeof this._o.onOpen === 'function') {
+                    this._o.onOpen.call(this);
+                }
+            }
+        },
+
+        hide: function()
+        {
+            var v = this._v;
+            if (v !== false) {
+                if (this._o.bound) {
+                    removeEvent(document, 'click', this._onClick);
+                }
+                this.el.style.cssText = '';
+                addClass(this.el, 'is-hidden');
+                this._v = false;
+                if (v !== undefined && typeof this._o.onClose === 'function') {
+                    this._o.onClose.call(this);
+                }
+            }
+        },
+
+        /**
+         * GAME OVER
+         */
+        destroy: function()
+        {
+            this.hide();
+            removeEvent(this.el, 'mousedown', this._onMouseDown, true);
+            removeEvent(this.el, 'change', this._onChange);
+            if (this._o.field) {
+                removeEvent(this._o.field, 'change', this._onInputChange);
+                if (this._o.bound) {
+                    removeEvent(this._o.trigger, 'click', this._onInputClick);
+                    removeEvent(this._o.trigger, 'focus', this._onInputFocus);
+                    removeEvent(this._o.trigger, 'blur', this._onInputBlur);
+                }
+            }
+            if (this.el.parentNode) {
+                this.el.parentNode.removeChild(this.el);
+            }
+        }
+
+    };
+
+    return Pikaday;
+
+}));
 (function() {
   var app;
 
@@ -60358,6 +62670,909 @@ REDIPS.event||(REDIPS.event=function(){return{add:function(q,B,J){q.addEventList
   });
 
 }).call(this);
+//TODO: move arrow styles and button click code into configurable items, with defaults matching the existing code
+
+/*!
+* Timepicker Component for Twitter Bootstrap
+*
+* Copyright 2013 Joris de Wit
+*
+* Contributors https://github.com/jdewit/bootstrap-timepicker/graphs/contributors
+*
+* For the full copyright and license information, please view the LICENSE
+* file that was distributed with this source code.
+*/
+
+(function($, window, document, undefined) {
+  'use strict';
+
+  // TIMEPICKER PUBLIC CLASS DEFINITION
+  var Timepicker = function(element, options) {
+    this.widget = '';
+    this.$element = $(element);
+    this.defaultTime = options.defaultTime;
+    this.disableFocus = options.disableFocus;
+    this.isOpen = options.isOpen;
+    this.minuteStep = options.minuteStep;
+    this.modalBackdrop = options.modalBackdrop;
+    this.secondStep = options.secondStep;
+    this.showInputs = options.showInputs;
+    this.showMeridian = options.showMeridian;
+    this.showSeconds = options.showSeconds;
+    this.template = options.template;
+    this.appendWidgetTo = options.appendWidgetTo;
+    this.upArrowStyle = options.upArrowStyle;
+    this.downArrowStyle = options.downArrowStyle;
+    this.containerClass = options.containerClass;
+
+    this._init();
+  };
+
+  Timepicker.prototype = {
+
+    constructor: Timepicker,
+
+    _init: function() {
+      var self = this;
+
+      if (this.$element.parent().hasClass('input-group')) {
+        if (this.$element.parent('.input-group').find('.input-group-addon').length) {
+          this.$element.parent('.input-group').find('.input-group-addon').on({
+            'click.timepicker': $.proxy(this.showWidget, this)
+          });
+        } else {
+          this.$element.closest(this.containerClass).find('.input-group-addon').on({
+            'click.timepicker': $.proxy(this.showWidget, this)
+          });
+        }
+
+        this.$element.on({
+          'focus.timepicker': $.proxy(this.highlightUnit, this),
+          'click.timepicker': $.proxy(this.highlightUnit, this),
+          'keydown.timepicker': $.proxy(this.elementKeydown, this),
+          'blur.timepicker': $.proxy(this.blurElement, this)
+        });
+      } else {
+        if (this.template) {
+          this.$element.on({
+            'focus.timepicker': $.proxy(this.showWidget, this),
+            'click.timepicker': $.proxy(this.showWidget, this),
+            'blur.timepicker': $.proxy(this.blurElement, this)
+          });
+        } else {
+          this.$element.on({
+            'focus.timepicker': $.proxy(this.highlightUnit, this),
+            'click.timepicker': $.proxy(this.highlightUnit, this),
+            'keydown.timepicker': $.proxy(this.elementKeydown, this),
+            'blur.timepicker': $.proxy(this.blurElement, this)
+          });
+        }
+      }
+
+      if (this.template !== false) {
+        this.$widget = $(this.getTemplate()).prependTo(this.$element.parents(this.appendWidgetTo)).on('click', $.proxy(this.widgetClick, this));
+      } else {
+        this.$widget = false;
+      }
+
+      if (this.showInputs && this.$widget !== false) {
+        this.$widget.find('input').each(function() {
+          $(this).on({
+            'click.timepicker': function() { $(this).select(); },
+            'keydown.timepicker': $.proxy(self.widgetKeydown, self)
+          });
+        });
+      }
+
+      this.setDefaultTime(this.defaultTime);
+    },
+
+    blurElement: function() {
+      this.highlightedUnit = undefined;
+      this.updateFromElementVal();
+    },
+
+    decrementHour: function() {
+      if (this.showMeridian) {
+        if (this.hour === 1) {
+          this.hour = 12;
+        } else if (this.hour === 12) {
+          this.hour--;
+
+          return this.toggleMeridian();
+        } else if (this.hour === 0) {
+          this.hour = 11;
+
+          return this.toggleMeridian();
+        } else {
+          this.hour--;
+        }
+      } else {
+        if (this.hour === 0) {
+          this.hour = 23;
+        } else {
+          this.hour--;
+        }
+      }
+      this.update();
+    },
+
+    decrementMinute: function(step) {
+      var newVal;
+
+      if (step) {
+        newVal = this.minute - step;
+      } else {
+        newVal = this.minute - this.minuteStep;
+      }
+
+      if (newVal < 0) {
+        this.decrementHour();
+        this.minute = newVal + 60;
+      } else {
+        this.minute = newVal;
+      }
+      this.update();
+    },
+
+    decrementSecond: function() {
+      var newVal = this.second - this.secondStep;
+
+      if (newVal < 0) {
+        this.decrementMinute(true);
+        this.second = newVal + 60;
+      } else {
+        this.second = newVal;
+      }
+      this.update();
+    },
+
+    elementKeydown: function(e) {
+      switch (e.keyCode) {
+      case 9: //tab
+        this.updateFromElementVal();
+
+        switch (this.highlightedUnit) {
+        case 'hour':
+          e.preventDefault();
+          this.highlightNextUnit();
+          break;
+        case 'minute':
+          if (this.showMeridian || this.showSeconds) {
+            e.preventDefault();
+            this.highlightNextUnit();
+          }
+          break;
+        case 'second':
+          if (this.showMeridian) {
+            e.preventDefault();
+            this.highlightNextUnit();
+          }
+          break;
+        }
+        break;
+      case 27: // escape
+        this.updateFromElementVal();
+        break;
+      case 37: // left arrow
+        e.preventDefault();
+        this.highlightPrevUnit();
+        this.updateFromElementVal();
+        break;
+      case 38: // up arrow
+        e.preventDefault();
+        switch (this.highlightedUnit) {
+        case 'hour':
+          this.incrementHour();
+          this.highlightHour();
+          break;
+        case 'minute':
+          this.incrementMinute();
+          this.highlightMinute();
+          break;
+        case 'second':
+          this.incrementSecond();
+          this.highlightSecond();
+          break;
+        case 'meridian':
+          this.toggleMeridian();
+          this.highlightMeridian();
+          break;
+        }
+        break;
+      case 39: // right arrow
+        e.preventDefault();
+        this.updateFromElementVal();
+        this.highlightNextUnit();
+        break;
+      case 40: // down arrow
+        e.preventDefault();
+        switch (this.highlightedUnit) {
+        case 'hour':
+          this.decrementHour();
+          this.highlightHour();
+          break;
+        case 'minute':
+          this.decrementMinute();
+          this.highlightMinute();
+          break;
+        case 'second':
+          this.decrementSecond();
+          this.highlightSecond();
+          break;
+        case 'meridian':
+          this.toggleMeridian();
+          this.highlightMeridian();
+          break;
+        }
+        break;
+      }
+    },
+
+    formatTime: function(hour, minute, second, meridian) {
+      hour = hour < 10 ? '0' + hour : hour;
+      minute = minute < 10 ? '0' + minute : minute;
+      second = second < 10 ? '0' + second : second;
+
+      return hour + ':' + minute + (this.showSeconds ? ':' + second : '') + (this.showMeridian ? ' ' + meridian : '');
+    },
+
+    getCursorPosition: function() {
+      var input = this.$element.get(0);
+
+      if ('selectionStart' in input) {// Standard-compliant browsers
+
+        return input.selectionStart;
+      } else if (document.selection) {// IE fix
+        input.focus();
+        var sel = document.selection.createRange(),
+          selLen = document.selection.createRange().text.length;
+
+        sel.moveStart('character', - input.value.length);
+
+        return sel.text.length - selLen;
+      }
+    },
+
+    getTemplate: function() {
+      var template,
+        hourTemplate,
+        minuteTemplate,
+        secondTemplate,
+        meridianTemplate,
+        templateContent;
+
+      if (this.showInputs) {
+        hourTemplate = '<input type="text" name="hour" class="bootstrap-timepicker-hour form-control" maxlength="2"/>';
+        minuteTemplate = '<input type="text" name="minute" class="bootstrap-timepicker-minute form-control" maxlength="2"/>';
+        secondTemplate = '<input type="text" name="second" class="bootstrap-timepicker-second form-control" maxlength="2"/>';
+        meridianTemplate = '<input type="text" name="meridian" class="bootstrap-timepicker-meridian form-control" maxlength="2"/>';
+      } else {
+        hourTemplate = '<span class="bootstrap-timepicker-hour"></span>';
+        minuteTemplate = '<span class="bootstrap-timepicker-minute"></span>';
+        secondTemplate = '<span class="bootstrap-timepicker-second"></span>';
+        meridianTemplate = '<span class="bootstrap-timepicker-meridian"></span>';
+      }
+
+      templateContent = '<table>'+
+         '<tr>'+
+           '<td><a href="#" data-action="incrementHour"><i class="' + this.upArrowStyle + '"></i></a></td>'+
+           '<td class="separator">&nbsp;</td>'+
+           '<td><a href="#" data-action="incrementMinute"><i class="' + this.upArrowStyle + '"></i></a></td>'+
+           (this.showSeconds ?
+             '<td class="separator">&nbsp;</td>'+
+             '<td><a href="#" data-action="incrementSecond"><i class="' + this.upArrowStyle + '"></i></a></td>'
+           : '') +
+           (this.showMeridian ?
+             '<td class="separator">&nbsp;</td>'+
+             '<td class="meridian-column"><a href="#" data-action="toggleMeridian"><i class="' + this.upArrowStyle + '"></i></a></td>'
+           : '') +
+         '</tr>'+
+         '<tr>'+
+           '<td>'+ hourTemplate +'</td> '+
+           '<td class="separator">:</td>'+
+           '<td>'+ minuteTemplate +'</td> '+
+           (this.showSeconds ?
+            '<td class="separator">:</td>'+
+            '<td>'+ secondTemplate +'</td>'
+           : '') +
+           (this.showMeridian ?
+            '<td class="separator">&nbsp;</td>'+
+            '<td>'+ meridianTemplate +'</td>'
+           : '') +
+         '</tr>'+
+         '<tr>'+
+           '<td><a href="#" data-action="decrementHour"><i class="' + this.downArrowStyle + '"></i></a></td>'+
+           '<td class="separator"></td>'+
+           '<td><a href="#" data-action="decrementMinute"><i class="' + this.downArrowStyle + '"></i></a></td>'+
+           (this.showSeconds ?
+            '<td class="separator">&nbsp;</td>'+
+            '<td><a href="#" data-action="decrementSecond"><i class="' + this.downArrowStyle + '"></i></a></td>'
+           : '') +
+           (this.showMeridian ?
+            '<td class="separator">&nbsp;</td>'+
+            '<td><a href="#" data-action="toggleMeridian"><i class="' + this.downArrowStyle + '"></i></a></td>'
+           : '') +
+         '</tr>'+
+       '</table>';
+
+      switch(this.template) {
+      case 'modal':
+        template = '<div class="bootstrap-timepicker-widget modal hide fade in" data-backdrop="'+ (this.modalBackdrop ? 'true' : 'false') +'">'+
+          '<div class="modal-header">'+
+            '<a href="#" class="close" data-dismiss="modal">×</a>'+
+            '<h3>Pick a Time</h3>'+
+          '</div>'+
+          '<div class="modal-content">'+
+            templateContent +
+          '</div>'+
+          '<div class="modal-footer">'+
+            '<a href="#" class="btn btn-primary" data-dismiss="modal">OK</a>'+
+          '</div>'+
+        '</div>';
+        break;
+      case 'dropdown':
+        template = '<div class="bootstrap-timepicker-widget dropdown-menu">'+ templateContent +'</div>';
+        break;
+      }
+
+      return template;
+    },
+
+    getTime: function() {
+      return this.formatTime(this.hour, this.minute, this.second, this.meridian);
+    },
+
+    hideWidget: function() {
+      if (this.isOpen === false) {
+        return;
+      }
+
+      if (this.showInputs) {
+        this.updateFromWidgetInputs();
+      }
+
+      this.$element.trigger({
+        'type': 'hide.timepicker',
+        'time': {
+          'value': this.getTime(),
+          'hours': this.hour,
+          'minutes': this.minute,
+          'seconds': this.second,
+          'meridian': this.meridian
+        }
+      });
+
+      if (this.template === 'modal' && this.$widget.modal) {
+        this.$widget.modal('hide');
+      } else {
+        this.$widget.removeClass('open');
+      }
+
+      $(document).off('mousedown.timepicker');
+
+      this.isOpen = false;
+    },
+
+    highlightUnit: function() {
+      this.position = this.getCursorPosition();
+      if (this.position >= 0 && this.position <= 2) {
+        this.highlightHour();
+      } else if (this.position >= 3 && this.position <= 5) {
+        this.highlightMinute();
+      } else if (this.position >= 6 && this.position <= 8) {
+        if (this.showSeconds) {
+          this.highlightSecond();
+        } else {
+          this.highlightMeridian();
+        }
+      } else if (this.position >= 9 && this.position <= 11) {
+        this.highlightMeridian();
+      }
+    },
+
+    highlightNextUnit: function() {
+      switch (this.highlightedUnit) {
+      case 'hour':
+        this.highlightMinute();
+        break;
+      case 'minute':
+        if (this.showSeconds) {
+          this.highlightSecond();
+        } else if (this.showMeridian){
+          this.highlightMeridian();
+        } else {
+          this.highlightHour();
+        }
+        break;
+      case 'second':
+        if (this.showMeridian) {
+          this.highlightMeridian();
+        } else {
+          this.highlightHour();
+        }
+        break;
+      case 'meridian':
+        this.highlightHour();
+        break;
+      }
+    },
+
+    highlightPrevUnit: function() {
+      switch (this.highlightedUnit) {
+      case 'hour':
+        this.highlightMeridian();
+        break;
+      case 'minute':
+        this.highlightHour();
+        break;
+      case 'second':
+        this.highlightMinute();
+        break;
+      case 'meridian':
+        if (this.showSeconds) {
+          this.highlightSecond();
+        } else {
+          this.highlightMinute();
+        }
+        break;
+      }
+    },
+
+    highlightHour: function() {
+      var $element = this.$element.get(0);
+
+      this.highlightedUnit = 'hour';
+
+      if ($element.setSelectionRange) {
+        setTimeout(function() {
+          $element.setSelectionRange(0,2);
+        }, 0);
+      }
+    },
+
+    highlightMinute: function() {
+      var $element = this.$element.get(0);
+      this.highlightedUnit = 'minute';
+
+      if ($element.setSelectionRange) {
+        setTimeout(function() {
+          $element.setSelectionRange(3,5);
+        }, 0);
+      }
+
+    },
+
+    highlightSecond: function() {
+      var $element = this.$element.get(0);
+
+      this.highlightedUnit = 'second';
+
+      if ($element.setSelectionRange) {
+        setTimeout(function() {
+          $element.setSelectionRange(6,8);
+        }, 0);
+      }
+    },
+
+    highlightMeridian: function() {
+      var $element = this.$element.get(0);
+      this.highlightedUnit = 'meridian';
+
+      if ($element.setSelectionRange) {
+        if (this.showSeconds) {
+          setTimeout(function() {
+            $element.setSelectionRange(9,11);
+          }, 0);
+        } else {
+          setTimeout(function() {
+            $element.setSelectionRange(6,8);
+          }, 0);
+        }
+      }
+    },
+
+    incrementHour: function() {
+      if (this.showMeridian) {
+        if (this.hour === 11) {
+          this.hour++;
+          return this.toggleMeridian();
+        } else if (this.hour === 12) {
+          this.hour = 0;
+        }
+      }
+      if (this.hour === 23) {
+        this.hour = 0;
+
+        return;
+      }
+      this.hour++;
+      this.update();
+    },
+
+    incrementMinute: function(step) {
+      var newVal;
+
+      if (step) {
+        newVal = this.minute + step;
+      } else {
+        newVal = this.minute + this.minuteStep - (this.minute % this.minuteStep);
+      }
+
+      if (newVal > 59) {
+        this.incrementHour();
+        this.minute = newVal - 60;
+      } else {
+        this.minute = newVal;
+      }
+      this.update();
+    },
+
+    incrementSecond: function() {
+      var newVal = this.second + this.secondStep - (this.second % this.secondStep);
+
+      if (newVal > 59) {
+        this.incrementMinute(true);
+        this.second = newVal - 60;
+      } else {
+        this.second = newVal;
+      }
+      this.update();
+    },
+
+    remove: function() {
+      $('document').off('.timepicker');
+      if (this.$widget) {
+        this.$widget.remove();
+      }
+      delete this.$element.data().timepicker;
+    },
+
+    setDefaultTime: function(defaultTime){
+      if (!this.$element.val()) {
+        if (defaultTime === 'current') {
+          var dTime = new Date(),
+            hours = dTime.getHours(),
+            minutes = Math.floor(dTime.getMinutes() / this.minuteStep) * this.minuteStep,
+            seconds = Math.floor(dTime.getSeconds() / this.secondStep) * this.secondStep,
+            meridian = 'AM';
+
+          if (this.showMeridian) {
+            if (hours === 0) {
+              hours = 12;
+            } else if (hours >= 12) {
+              if (hours > 12) {
+                hours = hours - 12;
+              }
+              meridian = 'PM';
+            } else {
+              meridian = 'AM';
+            }
+          }
+
+          this.hour = hours;
+          this.minute = minutes;
+          this.second = seconds;
+          this.meridian = meridian;
+
+          this.update();
+
+        } else if (defaultTime === false) {
+          this.hour = 0;
+          this.minute = 0;
+          this.second = 0;
+          this.meridian = 'AM';
+        } else {
+          this.setTime(defaultTime);
+        }
+      } else {
+        this.updateFromElementVal();
+      }
+    },
+
+    setTime: function(time) {
+      var arr,
+        timeArray;
+
+      if (this.showMeridian) {
+        arr = time.split(' ');
+        timeArray = arr[0].split(':');
+        this.meridian = arr[1];
+      } else {
+        timeArray = time.split(':');
+      }
+
+      this.hour = parseInt(timeArray[0], 10);
+      this.minute = parseInt(timeArray[1], 10);
+      this.second = parseInt(timeArray[2], 10);
+
+      if (isNaN(this.hour)) {
+        this.hour = 0;
+      }
+      if (isNaN(this.minute)) {
+        this.minute = 0;
+      }
+
+      if (this.showMeridian) {
+        if (this.hour > 12) {
+          this.hour = 12;
+        } else if (this.hour < 1) {
+          this.hour = 12;
+        }
+
+        if (this.meridian === 'am' || this.meridian === 'a') {
+          this.meridian = 'AM';
+        } else if (this.meridian === 'pm' || this.meridian === 'p') {
+          this.meridian = 'PM';
+        }
+
+        if (this.meridian !== 'AM' && this.meridian !== 'PM') {
+          this.meridian = 'AM';
+        }
+      } else {
+        if (this.hour >= 24) {
+          this.hour = 23;
+        } else if (this.hour < 0) {
+          this.hour = 0;
+        }
+      }
+
+      if (this.minute < 0) {
+        this.minute = 0;
+      } else if (this.minute >= 60) {
+        this.minute = 59;
+      }
+
+      if (this.showSeconds) {
+        if (isNaN(this.second)) {
+          this.second = 0;
+        } else if (this.second < 0) {
+          this.second = 0;
+        } else if (this.second >= 60) {
+          this.second = 59;
+        }
+      }
+
+      this.update();
+    },
+
+    showWidget: function() {
+      if (this.isOpen) {
+        return;
+      }
+
+      if (this.$element.is(':disabled')) {
+        return;
+      }
+
+      var self = this;
+      $(document).on('mousedown.timepicker', function (e) {
+        // Clicked outside the timepicker, hide it
+        if ($(e.target).closest('.bootstrap-timepicker-widget').length === 0) {
+          self.hideWidget();
+        }
+      });
+
+      this.$element.trigger({
+        'type': 'show.timepicker',
+        'time': {
+          'value': this.getTime(),
+          'hours': this.hour,
+          'minutes': this.minute,
+          'seconds': this.second,
+          'meridian': this.meridian
+        }
+      });
+
+      if (this.disableFocus) {
+        this.$element.blur();
+      }
+
+      this.updateFromElementVal();
+
+      if (this.template === 'modal' && this.$widget.modal) {
+        this.$widget.modal('show').on('hidden', $.proxy(this.hideWidget, this));
+      } else {
+        if (this.isOpen === false) {
+          this.$widget.addClass('open');
+        }
+      }
+
+      this.isOpen = true;
+    },
+
+    toggleMeridian: function() {
+      this.meridian = this.meridian === 'AM' ? 'PM' : 'AM';
+      this.update();
+    },
+
+    update: function() {
+      this.$element.trigger({
+        'type': 'changeTime.timepicker',
+        'time': {
+          'value': this.getTime(),
+          'hours': this.hour,
+          'minutes': this.minute,
+          'seconds': this.second,
+          'meridian': this.meridian
+        }
+      });
+
+      this.updateElement();
+      this.updateWidget();
+    },
+
+    updateElement: function() {
+      this.$element.val(this.getTime()).change();
+    },
+
+    updateFromElementVal: function() {
+      var val = this.$element.val();
+
+      if (val) {
+        this.setTime(val);
+      }
+    },
+
+    updateWidget: function() {
+      if (this.$widget === false) {
+        return;
+      }
+
+      var hour = this.hour < 10 ? '0' + this.hour : this.hour,
+          minute = this.minute < 10 ? '0' + this.minute : this.minute,
+          second = this.second < 10 ? '0' + this.second : this.second;
+
+      if (this.showInputs) {
+        this.$widget.find('input.bootstrap-timepicker-hour').val(hour);
+        this.$widget.find('input.bootstrap-timepicker-minute').val(minute);
+
+        if (this.showSeconds) {
+          this.$widget.find('input.bootstrap-timepicker-second').val(second);
+        }
+        if (this.showMeridian) {
+          this.$widget.find('input.bootstrap-timepicker-meridian').val(this.meridian);
+        }
+      } else {
+        this.$widget.find('span.bootstrap-timepicker-hour').text(hour);
+        this.$widget.find('span.bootstrap-timepicker-minute').text(minute);
+
+        if (this.showSeconds) {
+          this.$widget.find('span.bootstrap-timepicker-second').text(second);
+        }
+        if (this.showMeridian) {
+          this.$widget.find('span.bootstrap-timepicker-meridian').text(this.meridian);
+        }
+      }
+    },
+
+    updateFromWidgetInputs: function() {
+      if (this.$widget === false) {
+        return;
+      }
+      var time = $('input.bootstrap-timepicker-hour', this.$widget).val() + ':' +
+        $('input.bootstrap-timepicker-minute', this.$widget).val() +
+        (this.showSeconds ? ':' + $('input.bootstrap-timepicker-second', this.$widget).val() : '') +
+        (this.showMeridian ? ' ' + $('input.bootstrap-timepicker-meridian', this.$widget).val() : '');
+
+      this.setTime(time);
+    },
+
+    widgetClick: function(e) {
+      e.stopPropagation();
+      e.preventDefault();
+
+      var action = $(e.target).closest('a').data('action');
+      if (action) {
+        this[action]();
+      }
+    },
+
+    widgetKeydown: function(e) {
+      var $input = $(e.target).closest('input'),
+          name = $input.attr('name');
+
+      switch (e.keyCode) {
+      case 9: //tab
+        if (this.showMeridian) {
+          if (name === 'meridian') {
+            return this.hideWidget();
+          }
+        } else {
+          if (this.showSeconds) {
+            if (name === 'second') {
+              return this.hideWidget();
+            }
+          } else {
+            if (name === 'minute') {
+              return this.hideWidget();
+            }
+          }
+        }
+
+        this.updateFromWidgetInputs();
+        break;
+      case 27: // escape
+        this.hideWidget();
+        break;
+      case 38: // up arrow
+        e.preventDefault();
+        switch (name) {
+        case 'hour':
+          this.incrementHour();
+          break;
+        case 'minute':
+          this.incrementMinute();
+          break;
+        case 'second':
+          this.incrementSecond();
+          break;
+        case 'meridian':
+          this.toggleMeridian();
+          break;
+        }
+        break;
+      case 40: // down arrow
+        e.preventDefault();
+        switch (name) {
+        case 'hour':
+          this.decrementHour();
+          break;
+        case 'minute':
+          this.decrementMinute();
+          break;
+        case 'second':
+          this.decrementSecond();
+          break;
+        case 'meridian':
+          this.toggleMeridian();
+          break;
+        }
+        break;
+      }
+    }
+  };
+
+
+  //TIMEPICKER PLUGIN DEFINITION
+  $.fn.timepicker = function(option) {
+    var args = Array.apply(null, arguments);
+    args.shift();
+    return this.each(function() {
+      var $this = $(this),
+        data = $this.data('timepicker'),
+        options = typeof option === 'object' && option;
+
+      if (!data) {
+        $this.data('timepicker', (data = new Timepicker(this, $.extend({}, $.fn.timepicker.defaults, options, $(this).data()))));
+      }
+
+      if (typeof option === 'string') {
+        data[option].apply(data, args);
+      }
+    });
+  };
+
+  $.fn.timepicker.defaults = {
+    defaultTime: 'current',
+    disableFocus: false,
+    isOpen: false,
+    minuteStep: 15,
+    modalBackdrop: false,
+    secondStep: 15,
+    showSeconds: false,
+    showInputs: true,
+    showMeridian: true,
+    template: 'dropdown',
+    appendWidgetTo: '.bootstrap-timepicker',
+    upArrowStyle: 'glyphicon glyphicon-chevron-up',
+    downArrowStyle: 'glyphicon glyphicon-chevron-down',
+    containerClass: 'bootstrap-timepicker'
+  };
+
+  $.fn.timepicker.Constructor = Timepicker;
+
+})(jQuery, window, document);
 (function() {
   var app;
 
@@ -60497,13 +63712,16 @@ REDIPS.event||(REDIPS.event=function(){return{add:function(q,B,J){q.addEventList
 (function() {
   var app;
 
-  window.app = app = angular.module("weekView", []);
+  window.app = app = angular.module("weekView", ['LocalForageModule', 'ui.select', 'ngSanitize']);
 
-  app.controller("weekViewController", function($scope, $timeout) {
+  app.config(function(uiSelectConfig) {
+    return uiSelectConfig.theme = 'selectize';
+  });
+
+  app.controller("weekViewController", function($scope, $timeout, $http, $q) {
     $scope.states = {
       showEditPopup: false,
       showNewPopup: false,
-      isSelecting: false,
       isCloning: false,
       isInitializing: true,
       showMenu: false,
@@ -60512,7 +63730,9 @@ REDIPS.event||(REDIPS.event=function(){return{add:function(q,B,J){q.addEventList
       showSortMenu: false,
       isSavingTemplate: false,
       isUndoing: false,
-      createForMultiple: false
+      createForMultiple: false,
+      showCommonTimingMenu: false,
+      metaKey: false
     };
     $scope.data = {
       daysInWeek: [],
@@ -60520,7 +63740,7 @@ REDIPS.event||(REDIPS.event=function(){return{add:function(q,B,J){q.addEventList
       selectedShiftToEdit: {},
       shiftCopy: {},
       baseShift: {},
-      attrToClone: ['startHour', 'startMin', 'role', 'endHour', 'endMin', 'breakHours', 'employeeID', 'date'],
+      attrToClone: ['start', 'role', 'finish', 'break', 'employeeID', 'date', 'overnight'],
       wageEstimate: 0,
       predicate: 'id',
       newTemplateName: '',
@@ -60539,32 +63759,43 @@ REDIPS.event||(REDIPS.event=function(){return{add:function(q,B,J){q.addEventList
       templateShifts: [],
       hoveredTemplate: {},
       shiftStates: [],
-      selectedTD: ''
+      selectedTD: '',
+      commonTimings: [
+        {
+          "id": 1,
+          "title": "Default",
+          start: "08:00 AM",
+          finish: "05:00 PM",
+          "break": 60,
+          duration: 9,
+          overnight: false
+        }
+      ]
     };
-    $scope.data.calendarStartDate = '04-01-2015';
-    $scope.data.calMomentStart = moment($scope.data.calendarStartDate, "DD-MM-YYYY");
-    $scope.data.calMomentEnd = moment($scope.data.calendarStartDate, "DD-MM-YYYY").add(6, 'days');
+    $scope.data.calendarStartDate = '4 Jan 2015';
+    $scope.data.calMomentStart = moment($scope.data.calendarStartDate, "D MMM YYYY");
+    $scope.data.calMomentEnd = moment($scope.data.calendarStartDate, "D MMM YYYY").add(6, 'days');
     $scope.data.calendarDisplayDate = $scope.data.calMomentStart.format('ddd Do MMM YYYY') + " - " + $scope.data.calMomentEnd.format('ddd Do MMM YYYY');
     $scope.data.employees = [
       {
         id: '1',
-        name: 'Fordon Ng',
+        name: 'Gordon Ng',
         hoursExcludingThisWeek: 20,
         costPerHour: 10,
         totalHours: 40,
-        currentWeekHours: 5.5,
+        currentWeekHours: 0,
         defaultRole: 'Manager'
       }, {
         id: '2',
-        name: 'Zadwin Feng',
+        name: 'Edwin Feng',
         hoursExcludingThisWeek: 16,
         costPerHour: 7.5,
         totalHours: 40,
-        currentWeekHours: 8,
+        currentWeekHours: 0,
         defaultRole: 'Crew'
       }, {
         id: '3',
-        name: 'Kan G',
+        name: 'Dan G',
         hoursExcludingThisWeek: 10,
         costPerHour: 7,
         totalHours: 35,
@@ -60572,7 +63803,7 @@ REDIPS.event||(REDIPS.event=function(){return{add:function(q,B,J){q.addEventList
         defaultRole: 'Asst Manager'
       }, {
         id: '4',
-        name: 'Lesslyn',
+        name: 'Jesslyn',
         hoursExcludingThisWeek: 10,
         costPerHour: 12,
         totalHours: 35,
@@ -60580,7 +63811,7 @@ REDIPS.event||(REDIPS.event=function(){return{add:function(q,B,J){q.addEventList
         defaultRole: 'Asst Manager'
       }, {
         id: '5',
-        name: 'Zherwyn',
+        name: 'Sherwyn',
         hoursExcludingThisWeek: 10,
         costPerHour: 12,
         totalHours: 35,
@@ -60588,7 +63819,7 @@ REDIPS.event||(REDIPS.event=function(){return{add:function(q,B,J){q.addEventList
         defaultRole: 'Supervisor'
       }, {
         id: '6',
-        name: 'Jebastian',
+        name: 'Sebastian',
         hoursExcludingThisWeek: 10,
         costPerHour: 12,
         totalHours: 35,
@@ -60599,32 +63830,20 @@ REDIPS.event||(REDIPS.event=function(){return{add:function(q,B,J){q.addEventList
     $scope.data.shifts = [];
     $scope.data.leaves = [
       {
-        employeeID: '3',
-        fullDay: false,
-        startHour: 12
-      }, {
         employeeID: '4',
         fullDay: true,
         startHour: 12
       }
     ];
     $scope.data.shiftColors = {
-      'Manager': '#3498DB',
-      'Asst Manager': '#2ECC71',
-      'Supervisor': '#9B59B6',
-      'Crew': '#F39C12'
+      'Manager': 'rgb(66, 111, 111)',
+      'Asst Manager': 'rgb(66, 111, 111)',
+      'Supervisor': 'rgb(66, 111, 111)',
+      'Crew': 'rgb(66, 111, 111)'
     };
     $scope.data.roles = ["Manager", "Asst Manager", "Supervisor", "Crew"];
-    $scope.data.newShift = {
-      role: $scope.data.roles[0],
-      breakHours: 1,
-      startHour: 8,
-      startMin: '00',
-      endHour: 17,
-      endMin: '00'
-    };
     $scope.data.salesForecast = "2000";
-    $scope.data.budgetPercentage = "15";
+    $scope.data.budgetPercentage = 15;
     $scope.data.wageBudget = ($scope.data.salesForecast / 100) * $scope.data.budgetPercentage;
     $scope.$watchGroup(['data.salesForecast', 'data.budgetPercentage'], function(newVal, oldVal, scope) {
       return scope.data.wageBudget = ($scope.data.salesForecast / 100) * $scope.data.budgetPercentage;
@@ -60633,12 +63852,23 @@ REDIPS.event||(REDIPS.event=function(){return{add:function(q,B,J){q.addEventList
       $scope.states.createForMultiple = false;
       if (newVal) {
         $scope.states.showEditPopup = false;
+        $scope.states.showCommonTimingMenu = false;
+        $scope.func.setNewShift();
         return $scope.func.hideMenus();
       }
     });
     $scope.$watch('states.showEditPopup', function(newVal, oldVal, scope) {
       if (newVal) {
         $scope.states.showNewPopup = false;
+        $scope.states.showCommonTimingMenu = false;
+        return $scope.func.hideMenus();
+      }
+    });
+    $scope.$watch('states.showCommonTimingMenu', function(newVal, oldVal, scope) {
+      if (newVal) {
+        $scope.states.showNewPopup = false;
+        $scope.states.showEditPopup = false;
+        $('#commonTimingMenu').trigger('show');
         return $scope.func.hideMenus();
       }
     });
@@ -60657,22 +63887,74 @@ REDIPS.event||(REDIPS.event=function(){return{add:function(q,B,J){q.addEventList
       }
     });
     $scope.$watchCollection('data.shifts', function(newVal, oldVal, scope) {
-      var shiftHistory;
+      var shifts;
       if (!$scope.states.isUndoing) {
         console.log('storing state');
-        shiftHistory = [];
-        angular.copy($scope.data.shifts, shiftHistory);
-        $scope.data.shiftStates.push(shiftHistory);
+        shifts = [];
+        angular.copy(newVal, shifts);
+        $scope.data.shiftStates.push(shifts);
         if ($scope.data.shiftStates.length > 20) {
           $scope.data.shiftStates.pop();
         }
         if (!$scope.states.isInitializing) {
-          localforage.setItem('shiftHistory', JSON.stringify($scope.data.shiftStates));
-          return console.log('setting localForage');
+          localforage.setItem('shifts', angular.toJson($scope.data.shifts));
+          return console.log('setting localForage shifts');
         }
       }
     });
+    $scope.$watchCollection('data.commonTimings', function(newVal, oldVal, scope) {
+      if (!$scope.states.isInitializing) {
+        localforage.setItem('commonTimings', angular.toJson(newVal));
+        return console.log('setting localForage commonTimings');
+      }
+    });
     return $scope.func = {
+      addColors: function() {
+        $scope.data.shiftColors = {
+          'Manager': '#3498DB',
+          'Asst Manager': '#2ECC71',
+          'Supervisor': '#9B59B6',
+          'Crew': '#F39C12'
+        };
+        return $scope.func.refreshCalendar();
+      },
+      setNewShift: function() {
+        console.log('settingNewShift');
+        return $scope.data.newShift = {
+          role: $scope.data.roles[$scope.data.roles.length - 1],
+          "break": 30,
+          start: '08:00 AM',
+          finish: '05:00 PM',
+          overnight: false
+        };
+      },
+      setShifts: function() {
+        var shift, _i, _len, _ref;
+        console.log('setting shifts');
+        _ref = $scope.data.shifts;
+        for (_i = 0, _len = _ref.length; _i < _len; _i++) {
+          shift = _ref[_i];
+          shift.id = $scope.data.shifts.indexOf(shift) + 1;
+        }
+        $scope.$apply();
+        return $scope.$broadcast('setShift');
+      },
+      setCommonTiming: function(commonTimingID, shift) {
+        var timing, _i, _len, _ref, _results;
+        _ref = $scope.data.commonTimings;
+        _results = [];
+        for (_i = 0, _len = _ref.length; _i < _len; _i++) {
+          timing = _ref[_i];
+          if (parseInt(timing.id) === parseInt(commonTimingID)) {
+            _results.push(angular.forEach(['start', 'finish', 'break', 'overnight'], function(val, key) {
+              return $scope.data[shift][val] = timing[val];
+            }));
+          } else {
+            _results.push(void 0);
+          }
+        }
+        return _results;
+      },
       undo: function() {
         var shiftStatesCount, stateToRevertTo;
         console.log('undoing');
@@ -60685,8 +63967,7 @@ REDIPS.event||(REDIPS.event=function(){return{add:function(q,B,J){q.addEventList
       },
       hideMenus: function() {
         $scope.states.showMenu = false;
-        $scope.states.showTemplateMenu = false;
-        return $scope.func.resetSelected();
+        return $scope.states.showTemplateMenu = false;
       },
       convertToTemplate: function(shifts, name) {
         var dayInteger, shift, template, _i, _len;
@@ -60695,7 +63976,7 @@ REDIPS.event||(REDIPS.event=function(){return{add:function(q,B,J){q.addEventList
         template.name = name;
         for (_i = 0, _len = shifts.length; _i < _len; _i++) {
           shift = shifts[_i];
-          dayInteger = moment(shift.date, 'DD-MM-YYYY').format('d');
+          dayInteger = moment(shift.date, 'D MMM YYYY').format('d');
           shift.dayInteger = dayInteger;
           template[dayInteger].push(shift);
         }
@@ -60757,7 +64038,7 @@ REDIPS.event||(REDIPS.event=function(){return{add:function(q,B,J){q.addEventList
         };
         i = 0;
         while (i < 8) {
-          calendarDays[i] = moment(startDate, "DD-MM-YYYY").add(i, 'days').format("DD-MM-YYYY");
+          calendarDays[i] = moment(startDate, "D MMM YYYY").add(i, 'days').format("D MMM YYYY");
           i++;
         }
         return angular.forEach([0, 1, 2, 3, 4, 5, 6], function(dayInteger) {
@@ -60792,16 +64073,22 @@ REDIPS.event||(REDIPS.event=function(){return{add:function(q,B,J){q.addEventList
         for (_j = 0, _len1 = _ref1.length; _j < _len1; _j++) {
           day = _ref1[_j];
           day[2] = day[3] = 0;
-          shiftBars = $('.shift-bar[data-date="' + day[1] + '"');
+          shiftBars = $('.shift-bar[data-date="' + day[1] + '"]');
           _results.push(angular.forEach(shiftBars, function(shiftBar) {
-            var shift, wageCost;
+            var finish, length, shift, wageCost;
             shift = $scope.func.grabShift($(shiftBar).data('shift-id'));
             employee = $scope.func.grabEmployee(shift.employeeID);
-            wageCost = parseInt(employee.costPerHour) * parseInt(shift.length);
+            if (shift.overnight) {
+              finish = moment(shift.finish, 'hh:mm A').add(1, 'days');
+            } else {
+              finish = moment(shift.finish, 'hh:mm A');
+            }
+            length = (finish - moment(shift.start, 'hh:mm A')) / 3600000 - shift["break"] / 60;
+            wageCost = parseInt(employee.costPerHour) * length;
             day[2] += wageCost;
-            day[3] += shift.length;
+            day[3] += length;
             $scope.data.wageEstimate += wageCost;
-            return employee.currentWeekHours += parseInt(shift.length);
+            return employee.currentWeekHours += parseInt(length);
           }));
         }
         return _results;
@@ -60822,7 +64109,8 @@ REDIPS.event||(REDIPS.event=function(){return{add:function(q,B,J){q.addEventList
           closeOnConfirm: true
         }, function() {
           ifSuccess();
-          return $scope.func.estimate();
+          $scope.func.estimate();
+          return $scope.states.showEditPopup = false;
         });
       },
       deleteAll: function() {
@@ -60831,7 +64119,7 @@ REDIPS.event||(REDIPS.event=function(){return{add:function(q,B,J){q.addEventList
           $scope.data.shifts = [];
           return $scope.$apply();
         };
-        return $scope.func.swal(ifSuccess, "Yes, delete all shifts!");
+        return $scope.func.swal(ifSuccess, "Delete all shifts!");
       },
       resetShifts: function() {
         var ifSuccess;
@@ -60896,54 +64184,41 @@ REDIPS.event||(REDIPS.event=function(){return{add:function(q,B,J){q.addEventList
         $scope.data.selectedShiftToEdit = {};
         $scope.states.showEditPopup = false;
         $timeout($scope.func.refreshCalendar, 0);
-        return $scope.func.toggled();
+        $scope.func.toggled();
+        return localforage.setItem('shifts', angular.toJson($scope.data.shifts));
       },
       resetSelected: function() {
         $scope.data.toggledShifts = [];
-        $scope.states.isSelecting = false;
         return $scope.func.toggled();
       },
       createFromPopup: function() {
         var shiftToPush;
         shiftToPush = {};
         angular.copy($scope.data.newShift, shiftToPush);
-        shiftToPush = $scope.func.setIdAndLength(shiftToPush);
+        shiftToPush = $scope.func.setID(shiftToPush);
         $scope.data.shifts.push(shiftToPush);
-        $scope.data.newShift = {
-          role: $scope.data.roles[0],
-          breakHours: 1,
-          startHour: 8,
-          startMin: '00',
-          endHour: 17,
-          endMin: '00'
-        };
+        $timeout($scope.func.refreshCalendar, 0);
         $scope.states.showNewPopup = false;
-        return $timeout($scope.func.refreshCalendar, 0);
+        return $scope.func.setNewShift();
       },
       createMultipleFromPopup: function() {
         var day, shiftToPush, _i, _len, _ref;
-        $scope.states.isInitializing = true;
         _ref = $scope.data.daysInWeek;
         for (_i = 0, _len = _ref.length; _i < _len; _i++) {
           day = _ref[_i];
-          if (day === $scope.data.daysInWeek[$scope.data.daysInWeek.length - 1]) {
-            $scope.states.isInitializing = false;
-          }
           if (day[4]) {
             shiftToPush = {};
             angular.copy($scope.data.newShift, shiftToPush);
             shiftToPush.date = day[1];
-            shiftToPush = $scope.func.setIdAndLength(shiftToPush);
+            shiftToPush = $scope.func.setID(shiftToPush);
             $scope.data.shifts.push(shiftToPush);
           }
         }
         $scope.data.newShift = {
           role: $scope.data.roles[0],
-          breakHours: 1,
-          startHour: 8,
-          startMin: '00',
-          endHour: 17,
-          endMin: '00'
+          start: '08:00 AM',
+          finish: '05:00 PM',
+          "break": 60
         };
         $scope.states.showNewPopup = false;
         $scope.data.createForMultiple = false;
@@ -60951,17 +64226,13 @@ REDIPS.event||(REDIPS.event=function(){return{add:function(q,B,J){q.addEventList
         return $timeout($scope.func.refreshCalendar, 0);
       },
       submitShift: function(shift) {
-        shift = $scope.func.setIdAndLength(shift);
+        shift = $scope.func.setID(shift);
         $scope.data.shifts.push(shift);
         $scope.data.baseShift = {};
         $scope.$apply();
         return $timeout($scope.func.refreshCalendar, 0);
       },
-      setIdAndLength: function(shift) {
-        var hours;
-        hours = shift.endHour - shift.startHour;
-        hours += (shift.endMin - shift.startMin) / 60;
-        shift.length = hours;
+      setID: function(shift) {
         shift.id = String($scope.data.shifts.length + 1);
         return shift;
       },
@@ -60984,23 +64255,27 @@ REDIPS.event||(REDIPS.event=function(){return{add:function(q,B,J){q.addEventList
           $scope.func.removeShifts($scope.data.toggledShifts);
           return $scope.$apply();
         };
-        return $scope.func.swal(ifSuccess, "Yes, delete!");
+        return $scope.func.swal(ifSuccess, "Yes, delete selected!");
       },
       refreshCalendar: function() {
-        var element, employeeID, employeeRow, shift, shiftStartingUL, _i, _len, _ref;
         console.log('refreshing calendar');
-        _ref = $scope.data.shifts;
-        for (_i = 0, _len = _ref.length; _i < _len; _i++) {
-          shift = _ref[_i];
-          employeeID = shift.employeeID;
-          employeeRow = $('tr[data-employee-id="' + employeeID + '"]');
-          shiftStartingUL = $(employeeRow).find('td[data-date=' + shift.date + ']');
-          element = $('.shift-bar[data-shift-id="' + shift.id + '"]');
-          shiftStartingUL.append(element);
-        }
+        $scope.func.setShifts();
         REDIPS.drag.init('week-view');
         $scope.func.estimate();
         return $('table').trigger('deselect');
+      },
+      loadData: function() {
+        var defer;
+        defer = $q.defer();
+        $http.post("/week_view_manager", {
+          date: $scope.data.calendarStartDate,
+          shifts: $scope.data.shifts
+        }).success(function(data, status, headers, config) {
+          return defer.resolve(data);
+        }).error(function(error, status, headers, config) {
+          return defer.reject(error);
+        });
+        return defer.promise;
       },
       publish: function() {
         var ifSuccess;
@@ -61027,6 +64302,50 @@ REDIPS.event||(REDIPS.event=function(){return{add:function(q,B,J){q.addEventList
       restrict: "A",
       link: function(scope) {
         return $(function() {
+          $('#week-view .time-input').timepicker({
+            minuteStep: 5,
+            template: false
+          });
+          $("#week-view .pikaday").each(function() {
+            return new Pikaday({
+              field: $(this)[0],
+              format: 'D MMM YYYY',
+              minDate: moment(scope.data.calendarStartDate, "D MMM YYYY").toDate(),
+              maxDate: moment(scope.data.calendarStartDate, "D MMM YYYY").add(6, 'days').toDate()
+            });
+          });
+          $('#commonTimingMenu').on('show', function() {
+            $(this).find('ng-form').show();
+            return $('#commonTimingMenu .time-input').timepicker({
+              minuteStep: 5,
+              template: false
+            });
+          });
+          $('body').on('mouseover', '.commonTiming-button', function() {
+            var ID, commonTiming, text, timing, _i, _len, _ref;
+            ID = $(this).data('timing-id');
+            _ref = scope.data.commonTimings;
+            for (_i = 0, _len = _ref.length; _i < _len; _i++) {
+              commonTiming = _ref[_i];
+              if (commonTiming.id === ID) {
+                timing = commonTiming;
+              }
+            }
+            text = timing.start + " - " + timing.finish;
+            return $(this).text(text);
+          });
+          $('body').on('mouseleave', '.commonTiming-button', function() {
+            var ID, commonTiming, timing, _i, _len, _ref;
+            ID = $(this).data('timing-id');
+            _ref = scope.data.commonTimings;
+            for (_i = 0, _len = _ref.length; _i < _len; _i++) {
+              commonTiming = _ref[_i];
+              if (commonTiming.id === ID) {
+                timing = commonTiming;
+              }
+            }
+            return $(this).text(timing.title);
+          });
           $('table').on('deselect', function() {
             return $('td.selected').removeClass('selected');
           });
@@ -61034,7 +64353,7 @@ REDIPS.event||(REDIPS.event=function(){return{add:function(q,B,J){q.addEventList
             return scope.func.goToSummary();
           });
           $('.shift-applicable').bind('DOMNodeInserted ', function(event) {
-            var attr, date, employeeID, newShift, shiftBeforeMod, _i, _len, _ref;
+            var date, employeeID, newShift, shiftBeforeMod;
             console.log('dom node inserted');
             if (scope.states.isInitializing) {
               return;
@@ -61044,11 +64363,7 @@ REDIPS.event||(REDIPS.event=function(){return{add:function(q,B,J){q.addEventList
             shiftBeforeMod = scope.data.baseShift;
             if (scope.states.isCloning) {
               newShift = {};
-              _ref = scope.data.attrToClone;
-              for (_i = 0, _len = _ref.length; _i < _len; _i++) {
-                attr = _ref[_i];
-                newShift[attr] = shiftBeforeMod[attr];
-              }
+              angular.copy(shiftBeforeMod, newShift);
               newShift.date = date;
               newShift.employeeID = employeeID;
               scope.func.submitShift(newShift);
@@ -61057,8 +64372,10 @@ REDIPS.event||(REDIPS.event=function(){return{add:function(q,B,J){q.addEventList
               console.log('modifying previous');
               shiftBeforeMod.date = date;
               shiftBeforeMod.employeeID = employeeID;
-              scope.func.estimate();
-              return scope.$apply();
+              if (!scope.states.showEditPopup) {
+                scope.$apply();
+              }
+              return scope.func.estimate();
             }
           });
           return $('.shift-applicable').on('click', function() {
@@ -61068,8 +64385,6 @@ REDIPS.event||(REDIPS.event=function(){return{add:function(q,B,J){q.addEventList
             }
             employeeID = $(this).parent('tr').data('employee-id');
             date = $(this).data('date');
-            scope.data.newShift.date = date;
-            scope.data.newShift.employeeID = employeeID;
             $('td.selected').removeClass('selected');
             $(this).addClass('selected');
             _ref = scope.data.daysInWeek;
@@ -61077,10 +64392,13 @@ REDIPS.event||(REDIPS.event=function(){return{add:function(q,B,J){q.addEventList
               day = _ref[_i];
               day[4] = false;
             }
-            dayInteger = moment($(this).data('date'), "DD-MM-YYYY").format('d');
+            dayInteger = moment($(this).data('date'), "D MMM YYYY").format('d');
             scope.data.daysInWeek[dayInteger][4] = true;
             scope.states.showNewPopup = true;
             scope.$apply();
+            scope.data.newShift.role = scope.func.grabEmployee(employeeID).defaultRole;
+            scope.data.newShift.date = date;
+            scope.data.newShift.employeeID = employeeID;
             tdOffset = $(this).offset();
             tdOffset.top += parseInt($(this).css('height')) / 2;
             tdOffset.left += parseInt($(this).css('width')) / 2;
@@ -61105,7 +64423,7 @@ REDIPS.event||(REDIPS.event=function(){return{add:function(q,B,J){q.addEventList
           while (i < 7) {
             increment = i !== 0 ? 1 : 0;
             day = scope.data.calMomentStart.add(increment, 'days');
-            scope.data.daysInWeek.push([day.format('ddd D MMM'), day.format("DD-MM-YYYY"), void 0, void 0, false]);
+            scope.data.daysInWeek.push([day.format('ddd D MMM'), day.format("D MMM YYYY"), void 0, void 0, false]);
             _results.push(i++);
           }
           return _results;
@@ -61127,7 +64445,7 @@ REDIPS.event||(REDIPS.event=function(){return{add:function(q,B,J){q.addEventList
               });
             }
             _results.push($(leaveTDs).each(function() {
-              return $(this).css('background', 'lightgrey').addClass('mark');
+              return $(this).css('background', 'rgb(110, 169, 169)').addClass('mark');
             }));
           }
           return _results;
@@ -61141,14 +64459,17 @@ REDIPS.event||(REDIPS.event=function(){return{add:function(q,B,J){q.addEventList
         return $(function() {
           setLeaveBars();
           setDraggableArea();
-          scope.func.estimate();
           return $(window).on('load', function() {
-            return localforage.getItem('shiftHistory', function(err, value) {
+            localforage.getItem('shifts', function(err, value) {
               if (value) {
-                scope.data.shiftStates = JSON.parse(value);
-                scope.data.originalShifts = scope.data.shiftStates[scope.data.shiftStates.length - 1];
-                angular.copy(scope.data.originalShifts, scope.data.shifts);
-                $timeout(scope.func.refreshCalendar, 0);
+                scope.data.shifts = JSON.parse(value);
+                angular.copy(scope.data.shifts, scope.data.originalShifts);
+                return $timeout(scope.func.refreshCalendar, 0);
+              }
+            });
+            return localforage.getItem('commonTimings', function(err, value) {
+              if (value) {
+                scope.data.commonTimings = JSON.parse(value);
                 return scope.$apply();
               }
             });
@@ -61168,11 +64489,10 @@ REDIPS.event||(REDIPS.event=function(){return{add:function(q,B,J){q.addEventList
           windowHeight = $(window).height();
           spaceFromLeft = windowWidth - tdOffset.left;
           spaceFromBottom = windowHeight - tdOffset.top;
-          console.log(spaceFromBottom);
           if (spaceFromLeft < 500) {
             tdOffset.left += -600 + windowWidth - tdOffset.left;
           }
-          if (spaceFromBottom < 300) {
+          if (spaceFromBottom < 400) {
             tdOffset.top += -400 + windowHeight - tdOffset.top;
           }
           move = function() {
@@ -61180,34 +64500,71 @@ REDIPS.event||(REDIPS.event=function(){return{add:function(q,B,J){q.addEventList
           };
           return $timeout(move, 0);
         });
-        $('i.fa-minus').parents('.btn').on('click', function(e) {
+        $('i.fa-minus').parents('.btn').on('click', function() {
           return $(this).parents('.expand-container').find('ng-form').hide();
         });
-        $('i.fa-plus').parents('.btn').on('click', function(e) {
+        $('i.fa-plus').parents('.btn').on('click', function() {
           return $(this).parents('.expand-container').find('ng-form').show();
         });
-        $('.popup, summary').draggable({
+        $('.popup, summary, .commands-list').draggable({
           cursor: 'grabbing !important',
           containment: '.draggable-area',
           opacity: 0.6
+        });
+        $('body').on('click', '#addNewCommonTiming', function() {
+          var newCommonTiming;
+          newCommonTiming = {
+            id: scope.data.commonTimings.length + 1,
+            title: 'Regular',
+            start: '08:00 AM',
+            finish: '06:00 PM',
+            "break": 60
+          };
+          scope.data.commonTimings.push(newCommonTiming);
+          scope.$apply();
+          return $('#commonTimingMenu .time-input').timepicker({
+            minuteStep: 5,
+            template: false
+          });
+        });
+        $('body').on('click', '#removeCommonTiming', function() {
+          var commonTimingID, index, timing, _i, _j, _len, _len1, _ref, _ref1;
+          commonTimingID = $(this).data('common-timing-id');
+          _ref = scope.data.commonTimings;
+          for (_i = 0, _len = _ref.length; _i < _len; _i++) {
+            timing = _ref[_i];
+            if (timing.id === commonTimingID) {
+              index = scope.data.commonTimings.indexOf(timing);
+              scope.data.commonTimings.splice(index, 1);
+              _ref1 = scope.data.commonTimings;
+              for (_j = 0, _len1 = _ref1.length; _j < _len1; _j++) {
+                timing = _ref1[_j];
+                timing.id = scope.data.commonTimings.indexOf(timing);
+              }
+            }
+          }
+          return scope.$apply();
         });
         $(window).on('keyup', function(e) {
           if (e.keyCode === 27) {
             angular.forEach(scope.states, function(state, key) {
               return scope.states[key] = false;
             });
-            $('.fa-minus').click();
+            $('summary .fa-minus').click();
             scope.func.resetSelected();
             $('table').trigger('deselect');
-            scope.$apply();
           }
           if (e.keyCode === 112) {
-            scope.states.showHelp = scope.states.showHelp ? false : true;
-            return scope.$apply();
+            scope.states.showHelp = !scope.states.showHelp;
           }
+          scope.states.metaKey = false;
+          return scope.$apply();
         });
         return $(window).on('keydown', function(e) {
           var stopUndo;
+          if ($(e.target).is('input')) {
+            return;
+          }
           if (e.shiftKey) {
             if (e.keyCode === 83) {
               scope.func.goToSummary();
@@ -61225,6 +64582,8 @@ REDIPS.event||(REDIPS.event=function(){return{add:function(q,B,J){q.addEventList
             }
           }
           if (e.metaKey) {
+            scope.states.metaKey = true;
+            scope.$apply();
             if (e.keyCode === 90) {
               scope.states.isUndoing = true;
               $('.fa-undo').click();
@@ -61256,17 +64615,19 @@ REDIPS.event||(REDIPS.event=function(){return{add:function(q,B,J){q.addEventList
       restrict: 'A',
       require: 'ngModel',
       link: function(scope, element, attrs) {
-        var setShift, shift, shiftID;
+        var shift, shiftID;
         shiftID = attrs.shiftId;
         shift = scope.func.grabShift(shiftID);
         scope.func.updateShiftColor = function(shift) {
           var shiftBar, shiftColor;
           shiftBar = $('.shift-bar[data-shift-id="' + shift.id + '"]');
           shiftColor = scope.data.shiftColors[shift.role];
-          shiftBar.css('color', shiftColor).css('border', '3px solid ' + shiftColor).html('<span>' + shift.role + "<br/>" + shift.startHour + ':' + shift.startMin + ' - ' + shift.endHour + ':' + shift.endMin + "</span>");
+          shiftBar.css('color', shiftColor).css('border', '3px solid ' + shiftColor).html('<span>' + shift.role + "<br/>" + shift.start + ' - ' + shift.finish + "</span>");
         };
-        setShift = function() {
-          var date, employeeID, employeeRow, role, shiftColor, shiftHeight, shiftStartingUL, shiftWidth, tdHeight, tdWidth;
+        return scope.$on('setShift', function() {
+          var date, employeeID, employeeRow, finish, htmlToAppend, role, shiftColor, shiftHeight, shiftStartingUL, shiftWidth, start, tdHeight, tdWidth;
+          start = moment(shift.date + shift.start, 'D MMM YYYYhh:mm A');
+          finish = moment(shift.date + shift.finish, 'D MMM YYYYhh:mm A');
           console.log('setting shift');
           tdWidth = parseInt($('.shift-applicable').first().css('width'));
           tdHeight = parseInt($('.shift-applicable').first().css('height'));
@@ -61274,14 +64635,19 @@ REDIPS.event||(REDIPS.event=function(){return{add:function(q,B,J){q.addEventList
           shiftHeight = '45px';
           role = shift.role;
           shiftColor = scope.data.shiftColors[role];
-          element.css('min-width', shiftWidth).css('min-height', shiftHeight).css('color', shiftColor).css('border', '3px solid ' + shiftColor).css('display', 'inline-block').html('<span>' + shift.role + "<br/>" + shift.startHour + ':' + shift.startMin + ' - ' + shift.endHour + ':' + shift.endMin + "</span>");
+          if (shift.overnight) {
+            shiftHeight = '65px';
+            htmlToAppend = '<span>' + shift.role + "<br/> <small> (overnight)  <br/> " + shift.start + ' - ' + shift.finish + "</small> </span>";
+          } else {
+            htmlToAppend = '<span>' + shift.role + " <br/> <small>" + shift.start + ' - ' + shift.finish + "</small> </span>";
+          }
+          element.css('min-width', shiftWidth).css('min-height', shiftHeight).css('color', shiftColor).css('background', 'white').css('border', '3px solid ' + shiftColor).css('display', 'inline-block').html(htmlToAppend);
           employeeID = shift.employeeID;
           employeeRow = $('tr[data-employee-id="' + employeeID + '"]');
           date = shift.date;
           shiftStartingUL = $(employeeRow).find('td[data-date="' + date + '"]');
           return shiftStartingUL.append(element);
-        };
-        return $timeout(setShift, 0);
+        });
       }
     };
   });
@@ -61295,34 +64661,22 @@ REDIPS.event||(REDIPS.event=function(){return{add:function(q,B,J){q.addEventList
           var rd;
           rd = REDIPS.drag;
           rd.init('week-view');
-          rd.hover.colorTd = 'blank';
-          rd.hover.borderTd = '3px solid #9bb3da';
+          rd.hover.colorTd = '#558f8f';
           rd.clone.keyDiv = true;
           rd.event.clicked = function(currentCell) {
-            var shiftID;
             console.log('clicked');
-            if (window.event.metaKey) {
-              shiftID = $(rd.obj).data('shift-id');
-              toggleItemInArray(scope.data.toggledShifts, shiftID);
-              if (scope.data.toggledShifts.length > 0) {
-                scope.states.isSelecting = true;
-              } else {
-                scope.states.isSelecting = false;
-              }
-              scope.$apply();
-              return scope.func.toggled();
-            } else {
-              return scope.data.selectedShiftToEdit = scope.func.grabShift(shiftID);
+            if (scope.states.metaKey) {
+              toggleItemInArray(scope.data.toggledShifts, $(rd.obj).data('shift-id'));
+              scope.func.toggled();
+              return scope.$apply();
             }
           };
-          rd.event.notCloned = function() {
-            return console.log('not cloned');
-          };
           rd.event.notMoved = function() {
-            var popup, shiftID, tdOffset;
-            if (!(window.event.ctrlKey || window.event.metaKey)) {
+            var popup, shift, shiftID, tdOffset;
+            if (!scope.states.metaKey) {
               shiftID = $(rd.obj).data('shift-id');
-              scope.data.selectedShiftToEdit = scope.func.grabShift(shiftID);
+              shift = scope.func.grabShift(shiftID);
+              scope.data.selectedShiftToEdit = shift;
               angular.copy(scope.data.selectedShiftToEdit, scope.data.shiftCopy);
               $('table').trigger('deselect');
               $(rd.td.current).addClass('selected');
@@ -61333,33 +64687,39 @@ REDIPS.event||(REDIPS.event=function(){return{add:function(q,B,J){q.addEventList
               tdOffset.left += parseInt(popup.css('width')) / 2;
               $('.popup').trigger('reposition', [tdOffset]);
               $('#editPopup').find('ng-form').show();
+              scope.func.resetSelected();
+              if (scope.data.toggledShifts.indexOf(shiftID) === -1) {
+                scope.data.toggledShifts.push(shiftID);
+              }
+              scope.func.toggled();
               return scope.$apply();
             }
           };
-          rd.event.moved = function() {
+          rd.event.moved = function(cloned) {
             var shiftID;
             console.log('moved');
             shiftID = $(rd.obj).data('shift-id');
             scope.data.baseShift = scope.func.grabShift(shiftID);
             scope.states.isDragging = true;
-            if (window.event.shiftKey === true) {
-              scope.states.isCloning = true;
-            }
+            scope.states.isCloning = cloned;
             return scope.$apply();
           };
           rd.event.dropped = function() {
             console.log('dropped');
+            scope.data.baseShift = {};
             scope.states.isDragging = false;
             scope.states.isCloning = false;
             return scope.$apply();
           };
           rd.event.notCloned = function() {
             console.log('notCloned');
+            scope.data.baseShift = {};
             scope.states.isDragging = false;
             scope.states.isCloning = false;
             return scope.$apply();
           };
-          return scope.states.isInitializing = false;
+          scope.states.isInitializing = false;
+          return scope.func.refreshCalendar;
         };
         if (window.addEventListener) {
           return window.addEventListener("load", redipsInit, false);
@@ -61472,6 +64832,7 @@ REDIPS.event||(REDIPS.event=function(){return{add:function(q,B,J){q.addEventList
 // Read Sprockets README (https://github.com/sstephenson/sprockets#sprockets-directives) for details
 // about supported directives.
 //
+
 
 
 
