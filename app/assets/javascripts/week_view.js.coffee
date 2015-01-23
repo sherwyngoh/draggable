@@ -48,7 +48,7 @@ app.controller "weekViewController", ($scope, $timeout, $http, $q) ->
 
   $scope.data.employees = [
     {id: '1', name: 'Gordon Ng', hoursExcludingThisWeek: 20, costPerHour: 10, totalHours: 40, currentWeekHours: 0, defaultRole: 'Manager'}
-    {id: '2', name: 'Eadwin Feng', hoursExcludingThisWeek: 16, costPerHour: 7.5, totalHours: 40, currentWeekHours: 0, defaultRole: 'Crew'}
+    {id: '2', name: 'Edwin Feng', hoursExcludingThisWeek: 16, costPerHour: 7.5, totalHours: 40, currentWeekHours: 0, defaultRole: 'Crew'}
     {id: '3', name: 'Dan G', hoursExcludingThisWeek: 10, costPerHour: 7, totalHours: 35, currentWeekHours: 0, defaultRole: 'Asst Manager' }
     {id: '4', name: 'Jesslyn', hoursExcludingThisWeek: 10, costPerHour: 12, totalHours: 35, currentWeekHours: 0, defaultRole: 'Asst Manager'}
     {id: '5', name: 'Sherwyn', hoursExcludingThisWeek: 10, costPerHour: 12, totalHours: 35, currentWeekHours: 0, defaultRole: 'Supervisor'}
@@ -270,7 +270,7 @@ app.controller "weekViewController", ($scope, $timeout, $http, $q) ->
       ifSuccess = ->
         $scope.data.shifts = []
         $scope.$apply()
-      $scope.func.swal(ifSuccess, "Yes, delete all shifts!")
+      $scope.func.swal(ifSuccess, "Delete all shifts!")
 
     resetShifts: ->
       ifSuccess = ->
@@ -377,7 +377,7 @@ app.controller "weekViewController", ($scope, $timeout, $http, $q) ->
       ifSuccess = ->
         $scope.func.removeShifts($scope.data.toggledShifts)
         $scope.$apply()
-      $scope.func.swal(ifSuccess, "Yes, delete!")
+      $scope.func.swal(ifSuccess, "Yes, delete selected!")
 
     refreshCalendar: ->
       console.log 'refreshing calendar'
@@ -399,15 +399,15 @@ app.controller "weekViewController", ($scope, $timeout, $http, $q) ->
       return defer.promise
 
     publish: ->
-      $scope.func.loadData().then( (data) ->
-        console.log 'todo'
-      , (error) ->
-        console.log 'error'
-      )
-
-      # ifSuccess = ->
+      # $scope.func.loadData().then( (data) ->
       #   console.log 'todo'
-      # $scope.func.swal(ifSuccess, "Yes, publish!",'#2ECC71', 'success')
+      # , (error) ->
+      #   console.log 'error'
+      # )
+
+      ifSuccess = ->
+        console.log 'todo'
+      $scope.func.swal(ifSuccess, "Yes, publish!",'#2ECC71', 'success')
 
 app.filter 'acronymify', () ->
   return (input) ->

@@ -149,7 +149,7 @@ app.directive 'popupHandler', ($timeout) ->
 
       if spaceFromLeft < 500
         tdOffset.left += -600 + windowWidth - tdOffset.left
-      if spaceFromBottom < 300
+      if spaceFromBottom < 400
         tdOffset.top += -400 + windowHeight - tdOffset.top
 
       move = ->
